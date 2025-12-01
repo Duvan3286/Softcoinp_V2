@@ -25,9 +25,13 @@ namespace Softcoinp.Backend.Models
         // Tipo de persona (visitante, contratista, etc.)
         public string Tipo { get; set; } = "visitante";
 
+        // 🆕 FOTO OBLIGATORIA
+        // URL de la foto guardada en el servidor (ej: /uploads/registros/123456_20251201.jpeg)
+        public string? FotoUrl { get; set; } 
+
         // Relaciones
-        public Guid? PersonalId { get; set; }    
-        public Personal? Personal { get; set; }    
+        public Guid? PersonalId { get; set; }     
+        public Personal? Personal { get; set; }     
 
         // Guardar SIEMPRE en UTC
         public DateTime HoraIngresoUtc { get; set; } = DateTime.UtcNow;

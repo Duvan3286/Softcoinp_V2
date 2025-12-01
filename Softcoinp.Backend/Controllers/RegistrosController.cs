@@ -1,13 +1,14 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Softcoinp.Backend.Models;
-using Softcoinp.Backend.Dtos;
+using Softcoinp.Backend.Dtos; // Usaremos esta directiva para referenciar tus DTOs existentes (como CreateRegistroDto, UpdateRegistroDto, RegistroDto, etc.)
 using Softcoinp.Backend.Services;
 using Softcoinp.Backend.Helpers;
 using Microsoft.EntityFrameworkCore;
 using ClosedXML.Excel;
 using System.Text;
 using Softcoinp.Backend.Exceptions;
+using System.IO; // 🆕 Necesario para System.IO.File y Path
 
 namespace Softcoinp.Backend.Controllers
 {
@@ -54,29 +55,36 @@ namespace Softcoinp.Backend.Controllers
 
             var total = query.Count();
 
+            // 🛑 Cambio clave: Proyección a tipo anónimo para crear la estructura anidada "personal: {}"
             var registros = query
                 .OrderByDescending(r => r.HoraIngresoUtc)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .Select(r => new RegistroDto
+                .Select(r => new // Tipo Anónimo
                 {
                     Id = r.Id,
-                    Nombre = r.Nombre,
-                    Apellido = r.Apellido,
-                    Documento = r.Documento,
+                    Personal = new // Objeto anidado "personal"
+                    {
+                        Id = r.PersonalId ?? Guid.Empty, 
+                        Nombre = r.Nombre,
+                        Apellido = r.Apellido,
+                        Documento = r.Documento,
+                        Tipo = r.Tipo,
+                    },
                     Motivo = r.Motivo,
                     Destino = r.Destino,
-                    Tipo = r.Tipo,
                     HoraIngresoUtc = r.HoraIngresoUtc,
                     HoraIngresoLocal = r.HoraIngresoLocal,
                     HoraSalidaUtc = r.HoraSalidaUtc,
                     HoraSalidaLocal = r.HoraSalidaLocal,
-                    RegistradoPor = r.RegistradoPor
+                    RegistradoPor = r.RegistradoPor,
+                    FotoUrl = r.FotoUrl // 🆕 Asegúrate de incluir FotoUrl si es visible
                 })
                 .ToList();
 
-            var response = new PagedResponse<RegistroDto>(registros, total, page, pageSize);
-            return Ok(ApiResponse<PagedResponse<RegistroDto>>.SuccessResponse(response));
+            // Los contenedores de respuesta deben usar 'object' debido al tipo anónimo
+            var response = new PagedResponse<object>(registros.Cast<object>().ToList(), total, page, pageSize); 
+            return Ok(ApiResponse<PagedResponse<object>>.SuccessResponse(response)); 
         }
 
         // GET: api/registros/{id}
@@ -98,7 +106,8 @@ namespace Softcoinp.Backend.Controllers
                     HoraIngresoLocal = r.HoraIngresoLocal,
                     HoraSalidaUtc = r.HoraSalidaUtc,
                     HoraSalidaLocal = r.HoraSalidaLocal,
-                    RegistradoPor = r.RegistradoPor
+                    RegistradoPor = r.RegistradoPor,
+                    FotoUrl = r.FotoUrl // 🆕 Incluir FotoUrl
                 })
                 .FirstOrDefault();
 
@@ -131,7 +140,8 @@ namespace Softcoinp.Backend.Controllers
                     HoraIngresoLocal = r.HoraIngresoLocal,
                     HoraSalidaUtc = r.HoraSalidaUtc,
                     HoraSalidaLocal = r.HoraSalidaLocal,
-                    RegistradoPor = r.RegistradoPor
+                    RegistradoPor = r.RegistradoPor,
+                    FotoUrl = r.FotoUrl // 🆕 Incluir FotoUrl
                 })
                 .FirstOrDefault();
 
@@ -144,88 +154,147 @@ namespace Softcoinp.Backend.Controllers
 
         // POST: api/registros
         [HttpPost]
-public async Task<IActionResult> Create([FromBody] CreateRegistroDto input)
-{
-    if (!ModelState.IsValid)
-        return BadRequest(ApiResponse<RegistroDto>.Fail(null, "Error de validación", ModelState));
-
-    var nowUtc = DateTime.UtcNow;
-
-    // 1️⃣ Buscar si la persona ya existe en la tabla Personal
-    var persona = await _db.Personal.FirstOrDefaultAsync(p => p.Documento == input.Documento);
-
-    if (persona == null)
-    {
-        // 2️⃣ Si no existe, crearla
-        persona = new Personal
+        public async Task<IActionResult> Create([FromBody] CreateRegistroDto input)
         {
-            Id = Guid.NewGuid(),
-            Nombre = input.Nombre,
-            Apellido = input.Apellido,
-            Documento = input.Documento,
-            Tipo = input.Tipo ?? "visitante"
-        };
-        _db.Personal.Add(persona);
-        await _db.SaveChangesAsync();
-    }
+            if (!ModelState.IsValid)
+                return BadRequest(ApiResponse<RegistroDto>.Fail(null, "Error de validación", ModelState));
 
-    // 3️⃣ Crear el registro de entrada asociado a esa persona
-    var registro = new Registro
-    {
-        Id = Guid.NewGuid(),
-        PersonalId = persona.Id,
-        Nombre = persona.Nombre,
-        Apellido = persona.Apellido,
-        Documento = persona.Documento,
-        Destino = input.Destino,
-        Motivo = input.Motivo,
-        Tipo = persona.Tipo,
-        HoraIngresoUtc = nowUtc
-    };
+            // =================================================================
+            // 🆕 VALIDACIÓN DE FOTO OBLIGATORIA
+            // =================================================================
+            if (string.IsNullOrWhiteSpace(input.Foto))
+            {
+                return BadRequest(ApiResponse<RegistroDto>.Fail(null, "🛑 La fotografía de la persona es un requisito obligatorio para registrar la entrada."));
+            }
+            // =================================================================
 
-    var userIdClaim = User.FindFirst("id")?.Value;
-    if (Guid.TryParse(userIdClaim, out var userId))
-        registro.RegistradoPor = userId;
+            var nowUtc = DateTime.UtcNow;
+            string? fotoUrl = null; 
+            
+            // =================================================================
+            // 🆕 1. PROCESAR Y GUARDAR LA FOTO
+            // =================================================================
+            try
+            {
+                // 🛑 PASO 1: Separar prefijo y decodificar Base64 a bytes
+                var base64Data = input.Foto;
+                if (base64Data.StartsWith("data:"))
+                {
+                    base64Data = base64Data.Substring(base64Data.IndexOf(',') + 1);
+                }
+                
+                byte[] imageBytes = Convert.FromBase64String(base64Data);
 
-    _db.Registros.Add(registro);
-    await _db.SaveChangesAsync();
+                // 🛑 PASO 2: Definir el nombre de archivo y la ruta
+                var extension = ".jpeg"; // Asumiendo JPEG por defecto
+                var fileName = $"{input.Documento}_{DateTime.Now:yyyyMMddHHmmss}{extension}";
+                
+                // Define la ruta absoluta
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "registros");
 
-    // 4️⃣ Log opcional
-    try
-    {
-        await _audit.LogAsync("RegistroCreated", "Registro", registro.Id, new
-        {
-            registro.Nombre,
-            registro.Apellido,
-            registro.Documento,
-            registro.Motivo,
-            registro.Destino,
-            registro.Tipo,
-            registro.RegistradoPor
-        });
-    }
-    catch { }
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
 
-    // 5️⃣ Respuesta
-    var dto = new RegistroDto
-    {
-        Id = registro.Id,
-        Nombre = persona.Nombre,
-        Apellido = persona.Apellido,
-        Documento = persona.Documento,
-        Motivo = registro.Motivo,
-        Destino = registro.Destino,
-        Tipo = persona.Tipo,
-        HoraIngresoUtc = registro.HoraIngresoUtc,
-        HoraIngresoLocal = registro.HoraIngresoLocal,
-        HoraSalidaUtc = registro.HoraSalidaUtc,
-        HoraSalidaLocal = registro.HoraSalidaLocal,
-        RegistradoPor = registro.RegistradoPor
-    };
+                var filePath = Path.Combine(uploadsFolder, fileName);
 
-    return CreatedAtAction(nameof(GetById), new { id = registro.Id },
-        ApiResponse<RegistroDto>.SuccessResponse(dto, "Registro creado con éxito"));
-}
+                // 🛑 PASO 3: Guardar el archivo en el disco
+                await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
+
+                // 🛑 PASO 4: Guardar la ruta pública para la DB
+                fotoUrl = $"/uploads/registros/{fileName}";
+            }
+            catch (FormatException)
+            {
+                return BadRequest(ApiResponse<RegistroDto>.Fail(null, "El formato de la imagen Base64 es inválido."));
+            }
+            catch (IOException ex)
+            {
+                return StatusCode(500, ApiResponse<RegistroDto>.Fail(null, $"Error al guardar la foto: {ex.Message}"));
+            }
+            // =================================================================
+
+
+            // 1️⃣ Buscar si la persona ya existe en la tabla Personal
+            var persona = await _db.Personal.FirstOrDefaultAsync(p => p.Documento == input.Documento);
+
+            if (persona == null)
+            {
+                // 2️⃣ Si no existe, crearla
+                persona = new Personal
+                {
+                    Id = Guid.NewGuid(),
+                    Nombre = input.Nombre,
+                    Apellido = input.Apellido,
+                    Documento = input.Documento,
+                    Tipo = input.Tipo ?? "visitante"
+                };
+                _db.Personal.Add(persona);
+                await _db.SaveChangesAsync();
+            }
+
+            // 3️⃣ Crear el registro de entrada asociado a esa persona
+            var registro = new Registro
+            {
+                Id = Guid.NewGuid(),
+                PersonalId = persona.Id,
+                Nombre = persona.Nombre,
+                Apellido = persona.Apellido,
+                Documento = persona.Documento,
+                Destino = input.Destino,
+                Motivo = input.Motivo,
+                Tipo = persona.Tipo,
+                HoraIngresoUtc = nowUtc,
+                // 🆕 Asignar la URL de la foto
+                FotoUrl = fotoUrl 
+            };
+
+            var userIdClaim = User.FindFirst("id")?.Value;
+            if (Guid.TryParse(userIdClaim, out var userId))
+                registro.RegistradoPor = userId;
+
+            _db.Registros.Add(registro);
+            await _db.SaveChangesAsync();
+
+            // 4️⃣ Log opcional
+            try
+            {
+                await _audit.LogAsync("RegistroCreated", "Registro", registro.Id, new
+                {
+                    registro.Nombre,
+                    registro.Apellido,
+                    registro.Documento,
+                    registro.Motivo,
+                    registro.Destino,
+                    registro.Tipo,
+                    registro.RegistradoPor
+                });
+            }
+            catch { }
+
+            // 5️⃣ Respuesta
+            var dto = new RegistroDto
+            {
+                Id = registro.Id,
+                Nombre = persona.Nombre,
+                Apellido = persona.Apellido,
+                Documento = persona.Documento,
+                Motivo = registro.Motivo,
+                Destino = registro.Destino,
+                Tipo = persona.Tipo,
+                HoraIngresoUtc = registro.HoraIngresoUtc,
+                HoraIngresoLocal = registro.HoraIngresoLocal,
+                HoraSalidaUtc = registro.HoraSalidaUtc,
+                HoraSalidaLocal = registro.HoraSalidaLocal,
+                RegistradoPor = registro.RegistradoPor,
+                // 🆕 Incluir la URL de la foto en la respuesta
+                FotoUrl = registro.FotoUrl 
+            };
+
+            return CreatedAtAction(nameof(GetById), new { id = registro.Id },
+                ApiResponse<RegistroDto>.SuccessResponse(dto, "Registro creado con éxito"));
+        }
 
 
         // PUT: api/registros/{id}/salida
@@ -269,7 +338,8 @@ public async Task<IActionResult> Create([FromBody] CreateRegistroDto input)
                 HoraIngresoLocal = registro.HoraIngresoLocal,
                 HoraSalidaUtc = registro.HoraSalidaUtc,
                 HoraSalidaLocal = registro.HoraSalidaLocal,
-                RegistradoPor = registro.RegistradoPor
+                RegistradoPor = registro.RegistradoPor,
+                FotoUrl = registro.FotoUrl // 🆕 Incluir FotoUrl
             };
 
             return Ok(ApiResponse<RegistroDto>.SuccessResponse(dto, "Salida registrada con éxito"));
@@ -315,7 +385,8 @@ public async Task<IActionResult> Create([FromBody] CreateRegistroDto input)
                 HoraIngresoLocal = registro.HoraIngresoLocal,
                 HoraSalidaUtc = registro.HoraSalidaUtc,
                 HoraSalidaLocal = registro.HoraSalidaLocal,
-                RegistradoPor = registro.RegistradoPor
+                RegistradoPor = registro.RegistradoPor,
+                FotoUrl = registro.FotoUrl // 🆕 Incluir FotoUrl
             };
 
             return Ok(ApiResponse<RegistroDto>.SuccessResponse(dto, "Registro actualizado correctamente"));
@@ -350,7 +421,7 @@ public async Task<IActionResult> Create([FromBody] CreateRegistroDto input)
 
             var tz = TimeZoneInfo.FindSystemTimeZoneById("SA Pacific Standard Time"); // Colombia
             var csv = new StringBuilder();
-            csv.AppendLine("Id;Nombre;Documento;Motivo;Destino;Tipo;FechaIngreso;HoraIngreso;FechaSalida;HoraSalida;RegistradoPor");
+            csv.AppendLine("Id;Nombre;Documento;Motivo;Destino;Tipo;FechaIngreso;HoraIngreso;FechaSalida;HoraSalida;RegistradoPor;FotoUrl"); // 🆕 Encabezado
 
             foreach (var r in registros)
             {
@@ -360,10 +431,10 @@ public async Task<IActionResult> Create([FromBody] CreateRegistroDto input)
                     : (DateTime?)null;
 
                 csv.AppendLine($"{r.Id};{r.Nombre};{r.Documento};{r.Motivo};{r.Destino};{r.Tipo};" +
-                            $"{ingresoLocal:yyyy-MM-dd};{ingresoLocal:HH:mm:ss};" +
-                            $"{(salidaLocal.HasValue ? salidaLocal.Value.ToString("yyyy-MM-dd") : "")};" +
-                            $"{(salidaLocal.HasValue ? salidaLocal.Value.ToString("HH:mm:ss") : "")};" +
-                            $"{r.RegistradoPor}");
+                                $"{ingresoLocal:yyyy-MM-dd};{ingresoLocal:HH:mm:ss};" +
+                                $"{(salidaLocal.HasValue ? salidaLocal.Value.ToString("yyyy-MM-dd") : "")};" +
+                                $"{(salidaLocal.HasValue ? salidaLocal.Value.ToString("HH:mm:ss") : "")};" +
+                                $"{r.RegistradoPor};{r.FotoUrl}"); // 🆕 Datos
             }
 
             var bytes = Encoding.UTF8.GetBytes(csv.ToString());
@@ -407,22 +478,23 @@ public async Task<IActionResult> Create([FromBody] CreateRegistroDto input)
             }
 
             var registros = (from r in query
-                            join u in _db.Users on r.RegistradoPor equals u.Id into gj
-                            from subUser in gj.DefaultIfEmpty()
-                            orderby r.HoraIngresoUtc descending
-                            select new
-                            {
-                                r.Id,
-                                r.Nombre,
-                                r.Apellido,
-                                r.Documento,
-                                r.Motivo,
-                                r.Destino,
-                                r.Tipo,
-                                r.HoraIngresoUtc,
-                                r.HoraSalidaUtc,
-                                RegistradoPorEmail = subUser != null ? subUser.Email : null
-                            }).ToList();
+                             join u in _db.Users on r.RegistradoPor equals u.Id into gj
+                             from subUser in gj.DefaultIfEmpty()
+                             orderby r.HoraIngresoUtc descending
+                             select new
+                             {
+                                 r.Id,
+                                 r.Nombre,
+                                 r.Apellido,
+                                 r.Documento,
+                                 r.Motivo,
+                                 r.Destino,
+                                 r.Tipo,
+                                 r.HoraIngresoUtc,
+                                 r.HoraSalidaUtc,
+                                 r.FotoUrl, // 🆕 Incluir FotoUrl en la consulta
+                                 RegistradoPorEmail = subUser != null ? subUser.Email : null
+                             }).ToList();
 
             var tz = TimeZoneInfo.FindSystemTimeZoneById("SA Pacific Standard Time"); // Colombia
 
@@ -441,6 +513,7 @@ public async Task<IActionResult> Create([FromBody] CreateRegistroDto input)
             worksheet.Cell(1, 10).Value = "FechaSalida";
             worksheet.Cell(1, 11).Value = "HoraSalida";
             worksheet.Cell(1, 12).Value = "RegistradoPor";
+            worksheet.Cell(1, 13).Value = "FotoUrl"; // 🆕 Encabezado
 
             int row = 2;
             foreach (var r in registros)
@@ -462,6 +535,7 @@ public async Task<IActionResult> Create([FromBody] CreateRegistroDto input)
                 worksheet.Cell(row, 10).Value = salidaLocal?.ToString("yyyy-MM-dd") ?? "";
                 worksheet.Cell(row, 11).Value = salidaLocal?.ToString("HH:mm:ss") ?? "";
                 worksheet.Cell(row, 12).Value = r.RegistradoPorEmail ?? "";
+                worksheet.Cell(row, 13).Value = r.FotoUrl ?? ""; // 🆕 Dato de la URL
                 row++;
             }
 

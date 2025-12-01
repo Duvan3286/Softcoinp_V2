@@ -21,5 +21,9 @@ namespace Softcoinp.Backend.Dtos
 
         // Si no se envía, en el controller se asigna "visitante" por defecto
         public string? Tipo { get; set; }
+
+        // Fotografía en base64
+        [Required(ErrorMessage = "La fotografía es obligatoria para el registro.")]
+        public string? Foto { get; set; }
     }
 }

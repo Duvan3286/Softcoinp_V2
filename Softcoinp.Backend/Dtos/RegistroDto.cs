@@ -12,6 +12,9 @@ namespace Softcoinp.Backend.Dtos
         public string Destino { get; set; } = string.Empty;
         public string Tipo { get; set; } = "visitante";
 
+        // 🆕 Propiedad de la foto que faltaba y causaba los errores CS0117 en el controlador
+        public string? FotoUrl { get; set; } 
+
         // Guardados en BD
         public DateTime HoraIngresoUtc { get; set; }
         public DateTime? HoraSalidaUtc { get; set; }

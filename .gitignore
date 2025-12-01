@@ -1,0 +1,24 @@
+# --- BACKEND (.NET) ---
+bin/
+obj/
+*.exe
+*.dll
+*.pdb
+*.cache
+*.log
+
+# ASP.NET
+appsettings.Development.json
+
+# --- FRONTEND (React/Vite/Next) ---
+node_modules/
+dist/
+.build/
+.next/
+.env
+.env.local
+.env.*.local
+
+# --- GENERAL ---
+.DS_Store
+Thumbs.db

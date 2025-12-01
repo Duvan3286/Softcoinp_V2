@@ -1,24 +1,66 @@
-# --- BACKEND (.NET) ---
+# =====================================
+#         .NET 8 / ASP.NET
+# =====================================
 bin/
 obj/
-*.exe
+Debug/
+Release/
 *.dll
+*.exe
 *.pdb
 *.cache
 *.log
+*.db
+*.mdf
+*.ldf
 
-# ASP.NET
+# Archivos locales
 appsettings.Development.json
+appsettings.Local.json
+appsettings.*.local.json
 
-# --- FRONTEND (React/Vite/Next) ---
+# EF Core
+Migrations/*Designer.cs
+Migrations/*Snapshot.cs
+
+# =====================================
+#         NODE / REACT / NEXT.JS
+# =====================================
 node_modules/
 dist/
-.build/
+build/
 .next/
+out/
+.vscode/
+.idea/
+*.local
+
+# Archivos de entorno
 .env
 .env.local
 .env.*.local
+.env.development
+.env.production
 
-# --- GENERAL ---
+# =====================================
+#         DOCKER
+# =====================================
+docker-compose.override.yml
+*.pid
+*.seed
+
+# =====================================
+#         SISTEMA / EDITORES
+# =====================================
 .DS_Store
 Thumbs.db
+*.swp
+*.swo
+
+# =====================================
+#         LOGS
+# =====================================
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*

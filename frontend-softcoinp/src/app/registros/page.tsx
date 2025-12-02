@@ -228,9 +228,9 @@ export default function RegistrosPage() {
                             <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Documento</th>
                             <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Tipo</th>
                             <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Destino</th>
-                            <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Fec. Ingreso</th>
+                            <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Fecha Ingreso</th>
                             <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Hora Ingreso</th>
-                            <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Fec. Salida</th>
+                            <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Fecha Salida</th>
                             <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Hora Salida</th>
                         </tr>
                     </thead>

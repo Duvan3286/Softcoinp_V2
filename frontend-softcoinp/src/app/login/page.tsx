@@ -23,18 +23,32 @@ export default function LoginPage() {
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      // 👇 aquí le decimos a axios que la respuesta es del tipo LoginResponse
-      const res = await api.post<LoginResponse>("/Auth/login", { email, password });
-      
-      localStorage.setItem("token", res.data.data.token);
-      router.push("/dashboard");
-    } catch (err: any) {
-      console.error(err.response); // debug en consola
-      setError(err.response?.data?.message || "Error al iniciar sesión. Verifique credenciales.");
+  e.preventDefault();
+  try {
+    const res = await api.post<LoginResponse>("/Auth/login", { email, password });
+
+    localStorage.setItem("token", res.data.data.token);
+    router.push("/dashboard");
+  } catch (err: any) {
+    // Manejo seguro de errores
+    if (axios.isAxiosError(err)) {
+      // Si hay respuesta del servidor (400, 401, 500, etc.)
+      if (err.response) {
+        console.error("Server responded with error:", err.response);
+        setError(err.response.data?.message || "Credenciales incorrectas");
+      } else {
+        // Network error, CORS, timeout, etc.
+        console.error("Network or CORS error:", err.message);
+        setError("No se pudo conectar al servidor. Verifica tu conexión.");
+      }
+    } else {
+      // Otros errores inesperados
+      console.error("Unexpected error:", err);
+      setError("Ocurrió un error inesperado.");
     }
-  };
+  }
+};
+
 
   return (
     // Contenedor principal: Altura completa (h-screen) con fondo claro.

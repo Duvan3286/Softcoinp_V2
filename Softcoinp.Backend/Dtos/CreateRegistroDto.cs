@@ -16,13 +16,11 @@ namespace Softcoinp.Backend.Dtos
         [Required(ErrorMessage = "El destino es obligatorio")]
         public string Destino { get; set; } = string.Empty;
 
-        // No es obligatorio, puede venir vacío
         public string? Motivo { get; set; }
 
-        // Si no se envía, en el controller se asigna "visitante" por defecto
-        public string? Tipo { get; set; }
+        public string? Tipo { get; set; }  // visitante por defecto
 
-        // Fotografía en base64
+        // 📸 Foto en base64 → obligatoria para registrar
         [Required(ErrorMessage = "La fotografía es obligatoria para el registro.")]
         public string? Foto { get; set; }
     }

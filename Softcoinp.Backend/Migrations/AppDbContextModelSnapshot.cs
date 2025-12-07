@@ -75,6 +75,9 @@ namespace Softcoinp.Backend.Migrations
                     b.Property<DateTime>("FechaCreacionUtc")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("FotoUrl")
+                        .HasColumnType("text");
+
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasColumnType("text");
@@ -119,13 +122,14 @@ namespace Softcoinp.Backend.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Motivo")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid?>("PersonalId")
+                    b.Property<Guid>("PersonalId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid?>("RegistradoPor")
@@ -178,11 +182,17 @@ namespace Softcoinp.Backend.Migrations
             modelBuilder.Entity("Softcoinp.Backend.Models.Registro", b =>
                 {
                     b.HasOne("Softcoinp.Backend.Models.Personal", "Personal")
-                        .WithMany()
+                        .WithMany("Registros")
                         .HasForeignKey("PersonalId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Personal");
+                });
+
+            modelBuilder.Entity("Softcoinp.Backend.Models.Personal", b =>
+                {
+                    b.Navigation("Registros");
                 });
 #pragma warning restore 612, 618
         }

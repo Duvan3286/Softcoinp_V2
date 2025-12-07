@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace Softcoinp.Backend.Models
@@ -8,18 +9,22 @@ namespace Softcoinp.Backend.Models
         [Key]
         public Guid Id { get; set; } = Guid.NewGuid();
 
-        [Required(ErrorMessage = "El campo Nombre es obligatorio")]
+        [Required]
         public string Nombre { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "El campo Apellido es obligatorio")]
+        [Required]
         public string Apellido { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "El campo Documento es obligatorio")]
+        [Required]
         public string Documento { get; set; } = string.Empty;
 
         public string Tipo { get; set; } = "visitante";
 
-        // Fecha en que fue creado el registro
+        public string? FotoUrl { get; set; }
+
         public DateTime FechaCreacionUtc { get; set; } = DateTime.UtcNow;
+
+        // Relación 1:N correcta
+        public List<Registro> Registros { get; set; } = new();
     }
 }

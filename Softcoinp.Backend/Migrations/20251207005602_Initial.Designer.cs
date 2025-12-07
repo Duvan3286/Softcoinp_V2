@@ -12,8 +12,8 @@ using Softcoinp.Backend;
 namespace Softcoinp.Backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251007055435_AddApellidoToRegistro")]
-    partial class AddApellidoToRegistro
+    [Migration("20251207005602_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -61,6 +61,42 @@ namespace Softcoinp.Backend.Migrations
                     b.ToTable("AuditLogs");
                 });
 
+            modelBuilder.Entity("Softcoinp.Backend.Models.Personal", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Apellido")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Documento")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("FechaCreacionUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FotoUrl")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Documento")
+                        .IsUnique();
+
+                    b.ToTable("Personal");
+                });
+
             modelBuilder.Entity("Softcoinp.Backend.Models.Registro", b =>
                 {
                     b.Property<Guid>("Id")
@@ -79,6 +115,9 @@ namespace Softcoinp.Backend.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("FotoUrl")
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("HoraIngresoUtc")
                         .HasColumnType("timestamp with time zone");
 
@@ -86,11 +125,15 @@ namespace Softcoinp.Backend.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Motivo")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<Guid>("PersonalId")
+                        .HasColumnType("uuid");
 
                     b.Property<Guid?>("RegistradoPor")
                         .HasColumnType("uuid");
@@ -101,8 +144,7 @@ namespace Softcoinp.Backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Documento")
-                        .IsUnique();
+                    b.HasIndex("PersonalId");
 
                     b.ToTable("Registros");
                 });
@@ -138,6 +180,22 @@ namespace Softcoinp.Backend.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("Softcoinp.Backend.Models.Registro", b =>
+                {
+                    b.HasOne("Softcoinp.Backend.Models.Personal", "Personal")
+                        .WithMany("Registros")
+                        .HasForeignKey("PersonalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Personal");
+                });
+
+            modelBuilder.Entity("Softcoinp.Backend.Models.Personal", b =>
+                {
+                    b.Navigation("Registros");
                 });
 #pragma warning restore 612, 618
         }

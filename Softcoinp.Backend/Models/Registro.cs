@@ -9,38 +9,29 @@ namespace Softcoinp.Backend.Models
         [Key]
         public Guid Id { get; set; } = Guid.NewGuid();
 
-        // 🔹 Datos personales
-        [Required(ErrorMessage = "El campo Nombre es obligatorio")]
+        // Relación con la tabla Personal (1:N)
+        [Required]
+        public Guid PersonalId { get; set; }
+
+        [ForeignKey("PersonalId")]
+        public Personal Personal { get; set; } = null!;
+
+        // Datos redundantes para mantener historial congelado
         public string Nombre { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "El campo Apellido es obligatorio")]
         public string Apellido { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "El campo Documento es obligatorio")]
         public string Documento { get; set; } = string.Empty;
 
-        public string? Motivo { get; set; }
+        public string Motivo { get; set; } = string.Empty;
         public string Destino { get; set; } = string.Empty;
-
-        // Tipo de persona (visitante, contratista, etc.)
         public string Tipo { get; set; } = "visitante";
 
-        // 🆕 FOTO OBLIGATORIA
-        // URL de la foto guardada en el servidor (ej: /uploads/registros/123456_20251201.jpeg)
-        public string? FotoUrl { get; set; } 
-
-        // Relaciones
-        public Guid? PersonalId { get; set; }     
-        public Personal? Personal { get; set; }     
-
-        // Guardar SIEMPRE en UTC
+        // Hora de entrada (UTC)
         public DateTime HoraIngresoUtc { get; set; } = DateTime.UtcNow;
+
+        // Hora de salida (UTC)
         public DateTime? HoraSalidaUtc { get; set; }
 
-        // Usuario que registró
-        public Guid? RegistradoPor { get; set; }
-
-        // Propiedades calculadas (no se guardan en BD)
+        // LOCAL TIME (solo lectura)
         [NotMapped]
         public DateTime HoraIngresoLocal =>
             TimeZoneInfo.ConvertTimeFromUtc(HoraIngresoUtc,
@@ -48,9 +39,15 @@ namespace Softcoinp.Backend.Models
 
         [NotMapped]
         public DateTime? HoraSalidaLocal =>
-            HoraSalidaUtc.HasValue
-                ? TimeZoneInfo.ConvertTimeFromUtc(HoraSalidaUtc.Value,
-                    TimeZoneInfo.FindSystemTimeZoneById("SA Pacific Standard Time"))
-                : null;
+            HoraSalidaUtc == null
+                ? null
+                : TimeZoneInfo.ConvertTimeFromUtc(HoraSalidaUtc.Value,
+                    TimeZoneInfo.FindSystemTimeZoneById("SA Pacific Standard Time"));
+
+        // Foto tomada al momento de la entrada (selfie de validación)
+        public string? FotoUrl { get; set; }
+
+        // Usuario que registró la entrada
+        public Guid? RegistradoPor { get; set; }
     }
 }

@@ -65,7 +65,7 @@ namespace Softcoinp.Backend.Controllers
                     Id = r.Id,
                     Personal = new // Objeto anidado "personal"
                     {
-                        Id = r.PersonalId ?? Guid.Empty, 
+                        Id = r.PersonalId, 
                         Nombre = r.Nombre,
                         Apellido = r.Apellido,
                         Documento = r.Documento,
@@ -152,6 +152,151 @@ namespace Softcoinp.Backend.Controllers
         }
 
 
+        // // POST: api/registros
+        // [HttpPost]
+        // public async Task<IActionResult> Create([FromBody] CreateRegistroDto input)
+        // {
+        //     if (!ModelState.IsValid)
+        //         return BadRequest(ApiResponse<RegistroDto>.Fail(null, "Error de validación", ModelState));
+
+        //     // =================================================================
+        //     // 🆕 VALIDACIÓN DE FOTO OBLIGATORIA
+        //     // =================================================================
+        //     if (string.IsNullOrWhiteSpace(input.Foto))
+        //     {
+        //         return BadRequest(ApiResponse<RegistroDto>.Fail(null, "🛑 La fotografía de la persona es un requisito obligatorio para registrar la entrada."));
+        //     }
+        //     // =================================================================
+
+        //     var nowUtc = DateTime.UtcNow;
+        //     string? fotoUrl = null; 
+            
+        //     // =================================================================
+        //     // 🆕 1. PROCESAR Y GUARDAR LA FOTO
+        //     // =================================================================
+        //     try
+        //     {
+        //         // 🛑 PASO 1: Separar prefijo y decodificar Base64 a bytes
+        //         var base64Data = input.Foto;
+        //         if (base64Data.StartsWith("data:"))
+        //         {
+        //             base64Data = base64Data.Substring(base64Data.IndexOf(',') + 1);
+        //         }
+                
+        //         byte[] imageBytes = Convert.FromBase64String(base64Data);
+
+        //         // 🛑 PASO 2: Definir el nombre de archivo y la ruta
+        //         var extension = ".jpeg"; // Asumiendo JPEG por defecto
+        //         var fileName = $"{input.Documento}_{DateTime.Now:yyyyMMddHHmmss}{extension}";
+                
+        //         // Define la ruta absoluta
+        //         var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "registros");
+
+        //         if (!Directory.Exists(uploadsFolder))
+        //         {
+        //             Directory.CreateDirectory(uploadsFolder);
+        //         }
+
+        //         var filePath = Path.Combine(uploadsFolder, fileName);
+
+        //         // 🛑 PASO 3: Guardar el archivo en el disco
+        //         await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
+
+        //         // 🛑 PASO 4: Guardar la ruta pública para la DB
+        //         fotoUrl = $"/uploads/registros/{fileName}";
+        //     }
+        //     catch (FormatException)
+        //     {
+        //         return BadRequest(ApiResponse<RegistroDto>.Fail(null, "El formato de la imagen Base64 es inválido."));
+        //     }
+        //     catch (IOException ex)
+        //     {
+        //         return StatusCode(500, ApiResponse<RegistroDto>.Fail(null, $"Error al guardar la foto: {ex.Message}"));
+        //     }
+        //     // =================================================================
+
+
+        //     // 1️⃣ Buscar si la persona ya existe en la tabla Personal
+        //     var persona = await _db.Personal.FirstOrDefaultAsync(p => p.Documento == input.Documento);
+
+        //     if (persona == null)
+        //     {
+        //         // 2️⃣ Si no existe, crearla
+        //         persona = new Personal
+        //         {
+        //             Id = Guid.NewGuid(),
+        //             Nombre = input.Nombre,
+        //             Apellido = input.Apellido,
+        //             Documento = input.Documento,
+        //             Tipo = input.Tipo ?? "visitante"
+        //         };
+        //         _db.Personal.Add(persona);
+        //         await _db.SaveChangesAsync();
+        //     }
+
+        //     // 3️⃣ Crear el registro de entrada asociado a esa persona
+        //     var registro = new Registro
+        //     {
+        //         Id = Guid.NewGuid(),
+        //         PersonalId = persona.Id,
+        //         Nombre = persona.Nombre,
+        //         Apellido = persona.Apellido,
+        //         Documento = persona.Documento,
+        //         Destino = input.Destino,
+        //         Motivo = input.Motivo,
+        //         Tipo = persona.Tipo,
+        //         HoraIngresoUtc = nowUtc,
+        //         // 🆕 Asignar la URL de la foto
+        //         FotoUrl = fotoUrl 
+        //     };
+
+        //     var userIdClaim = User.FindFirst("id")?.Value;
+        //     if (Guid.TryParse(userIdClaim, out var userId))
+        //         registro.RegistradoPor = userId;
+
+        //     _db.Registros.Add(registro);
+        //     await _db.SaveChangesAsync();
+
+        //     // 4️⃣ Log opcional
+        //     try
+        //     {
+        //         await _audit.LogAsync("RegistroCreated", "Registro", registro.Id, new
+        //         {
+        //             registro.Nombre,
+        //             registro.Apellido,
+        //             registro.Documento,
+        //             registro.Motivo,
+        //             registro.Destino,
+        //             registro.Tipo,
+        //             registro.RegistradoPor
+        //         });
+        //     }
+        //     catch { }
+
+        //     // 5️⃣ Respuesta
+        //     var dto = new RegistroDto
+        //     {
+        //         Id = registro.Id,
+        //         Nombre = persona.Nombre,
+        //         Apellido = persona.Apellido,
+        //         Documento = persona.Documento,
+        //         Motivo = registro.Motivo,
+        //         Destino = registro.Destino,
+        //         Tipo = persona.Tipo,
+        //         HoraIngresoUtc = registro.HoraIngresoUtc,
+        //         HoraIngresoLocal = registro.HoraIngresoLocal,
+        //         HoraSalidaUtc = registro.HoraSalidaUtc,
+        //         HoraSalidaLocal = registro.HoraSalidaLocal,
+        //         RegistradoPor = registro.RegistradoPor,
+        //         // 🆕 Incluir la URL de la foto en la respuesta
+        //         FotoUrl = registro.FotoUrl 
+        //     };
+
+        //     return CreatedAtAction(nameof(GetById), new { id = registro.Id },
+        //         ApiResponse<RegistroDto>.SuccessResponse(dto, "Registro creado con éxito"));
+        // }
+
+        
         // POST: api/registros
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateRegistroDto input)
@@ -159,82 +304,63 @@ namespace Softcoinp.Backend.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ApiResponse<RegistroDto>.Fail(null, "Error de validación", ModelState));
 
-            // =================================================================
-            // 🆕 VALIDACIÓN DE FOTO OBLIGATORIA
-            // =================================================================
             if (string.IsNullOrWhiteSpace(input.Foto))
-            {
-                return BadRequest(ApiResponse<RegistroDto>.Fail(null, "🛑 La fotografía de la persona es un requisito obligatorio para registrar la entrada."));
-            }
-            // =================================================================
+                return BadRequest(ApiResponse<RegistroDto>.Fail(null, "🛑 La fotografía de la persona es obligatoria."));
 
             var nowUtc = DateTime.UtcNow;
-            string? fotoUrl = null; 
-            
-            // =================================================================
-            // 🆕 1. PROCESAR Y GUARDAR LA FOTO
-            // =================================================================
+
+            // ---------- Procesar foto (guardar en /uploads/personal) ----------
+            string? fotoUrlPersonal = null;
             try
             {
-                // 🛑 PASO 1: Separar prefijo y decodificar Base64 a bytes
-                var base64Data = input.Foto;
-                if (base64Data.StartsWith("data:"))
-                {
-                    base64Data = base64Data.Substring(base64Data.IndexOf(',') + 1);
-                }
-                
-                byte[] imageBytes = Convert.FromBase64String(base64Data);
-
-                // 🛑 PASO 2: Definir el nombre de archivo y la ruta
-                var extension = ".jpeg"; // Asumiendo JPEG por defecto
-                var fileName = $"{input.Documento}_{DateTime.Now:yyyyMMddHHmmss}{extension}";
-                
-                // Define la ruta absoluta
-                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "registros");
-
-                if (!Directory.Exists(uploadsFolder))
-                {
-                    Directory.CreateDirectory(uploadsFolder);
-                }
-
-                var filePath = Path.Combine(uploadsFolder, fileName);
-
-                // 🛑 PASO 3: Guardar el archivo en el disco
-                await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
-
-                // 🛑 PASO 4: Guardar la ruta pública para la DB
-                fotoUrl = $"/uploads/registros/{fileName}";
+                var base64 = input.Foto.StartsWith("data:") ? input.Foto.Substring(input.Foto.IndexOf(',') + 1) : input.Foto;
+                var bytes = Convert.FromBase64String(base64);
+                var fileName = $"{input.Documento}_{DateTime.Now:yyyyMMddHHmmss}.jpeg";
+                var folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "personal");
+                if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+                var path = Path.Combine(folder, fileName);
+                await System.IO.File.WriteAllBytesAsync(path, bytes);
+                fotoUrlPersonal = $"/uploads/personal/{fileName}";
             }
             catch (FormatException)
             {
-                return BadRequest(ApiResponse<RegistroDto>.Fail(null, "El formato de la imagen Base64 es inválido."));
+                return BadRequest(ApiResponse<RegistroDto>.Fail(null, "Formato de imagen Base64 inválido."));
             }
             catch (IOException ex)
             {
                 return StatusCode(500, ApiResponse<RegistroDto>.Fail(null, $"Error al guardar la foto: {ex.Message}"));
             }
-            // =================================================================
 
-
-            // 1️⃣ Buscar si la persona ya existe en la tabla Personal
+            // ---------- Buscar o crear/actualizar Personal ----------
             var persona = await _db.Personal.FirstOrDefaultAsync(p => p.Documento == input.Documento);
-
             if (persona == null)
             {
-                // 2️⃣ Si no existe, crearla
                 persona = new Personal
                 {
                     Id = Guid.NewGuid(),
                     Nombre = input.Nombre,
                     Apellido = input.Apellido,
                     Documento = input.Documento,
-                    Tipo = input.Tipo ?? "visitante"
+                    Tipo = input.Tipo ?? "visitante",
+                    FotoUrl = fotoUrlPersonal,
+                    FechaCreacionUtc = DateTime.UtcNow
                 };
                 _db.Personal.Add(persona);
                 await _db.SaveChangesAsync();
             }
+            else
+            {
+                // Actualizar datos si el frontend envía nuevos (mantener si vienen vacíos)
+                persona.Nombre = string.IsNullOrWhiteSpace(input.Nombre) ? persona.Nombre : input.Nombre;
+                persona.Apellido = string.IsNullOrWhiteSpace(input.Apellido) ? persona.Apellido : input.Apellido;
+                persona.Tipo = string.IsNullOrWhiteSpace(input.Tipo) ? persona.Tipo : input.Tipo;
+                // Si llega foto nueva, actualizar FotoUrl
+                if (!string.IsNullOrWhiteSpace(fotoUrlPersonal))
+                    persona.FotoUrl = fotoUrlPersonal;
+                await _db.SaveChangesAsync();
+            }
 
-            // 3️⃣ Crear el registro de entrada asociado a esa persona
+            // ---------- Crear Registro usando la foto guardada en Personal ----------
             var registro = new Registro
             {
                 Id = Guid.NewGuid(),
@@ -246,8 +372,7 @@ namespace Softcoinp.Backend.Controllers
                 Motivo = input.Motivo,
                 Tipo = persona.Tipo,
                 HoraIngresoUtc = nowUtc,
-                // 🆕 Asignar la URL de la foto
-                FotoUrl = fotoUrl 
+                FotoUrl = persona.FotoUrl
             };
 
             var userIdClaim = User.FindFirst("id")?.Value;
@@ -257,39 +382,21 @@ namespace Softcoinp.Backend.Controllers
             _db.Registros.Add(registro);
             await _db.SaveChangesAsync();
 
-            // 4️⃣ Log opcional
-            try
-            {
-                await _audit.LogAsync("RegistroCreated", "Registro", registro.Id, new
-                {
-                    registro.Nombre,
-                    registro.Apellido,
-                    registro.Documento,
-                    registro.Motivo,
-                    registro.Destino,
-                    registro.Tipo,
-                    registro.RegistradoPor
-                });
-            }
-            catch { }
-
-            // 5️⃣ Respuesta
             var dto = new RegistroDto
             {
                 Id = registro.Id,
-                Nombre = persona.Nombre,
-                Apellido = persona.Apellido,
-                Documento = persona.Documento,
+                Nombre = registro.Nombre,
+                Apellido = registro.Apellido,
+                Documento = registro.Documento,
                 Motivo = registro.Motivo,
                 Destino = registro.Destino,
-                Tipo = persona.Tipo,
+                Tipo = registro.Tipo,
                 HoraIngresoUtc = registro.HoraIngresoUtc,
                 HoraIngresoLocal = registro.HoraIngresoLocal,
                 HoraSalidaUtc = registro.HoraSalidaUtc,
                 HoraSalidaLocal = registro.HoraSalidaLocal,
                 RegistradoPor = registro.RegistradoPor,
-                // 🆕 Incluir la URL de la foto en la respuesta
-                FotoUrl = registro.FotoUrl 
+                FotoUrl = registro.FotoUrl
             };
 
             return CreatedAtAction(nameof(GetById), new { id = registro.Id },

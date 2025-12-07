@@ -14,17 +14,21 @@ namespace Softcoinp.Backend
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // Documento único
             modelBuilder.Entity<Personal>()
                 .HasIndex(p => p.Documento)
                 .IsUnique();
 
+            // Relación 1:N entre Personal y Registro
             modelBuilder.Entity<Registro>()
                 .HasOne(r => r.Personal)
-                .WithMany()
+                .WithMany(p => p.Registros)   // ← ESTA ES LA PARTE QUE FALTABA
                 .HasForeignKey(r => r.PersonalId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             base.OnModelCreating(modelBuilder);
         }
+
     }
 }
+

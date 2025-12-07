@@ -24,5 +24,8 @@ namespace Softcoinp.Backend.Dtos
         public DateTime? HoraSalidaLocal { get; set; }
 
         public Guid? RegistradoPor { get; set; }
+
+        public Guid? PersonalId { get; set; }
+
     }
 }

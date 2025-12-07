@@ -463,7 +463,7 @@ export default function DashboardPage() {
               📊 Reporte
             </button>
             <button
-              onClick={() => router.push("/usuarios")}
+              onClick={() => router.push("/personal-activo")}
               className="bg-purple-600 text-white py-2 rounded-lg font-semibold shadow-md hover:bg-purple-700 text-xs"
             >
               👥 Personal

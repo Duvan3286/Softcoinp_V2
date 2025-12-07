@@ -500,7 +500,7 @@ namespace Softcoinp.Backend.Controllers
         }
 
 
-        // GET: api/registros/activo?documento=123456
+        // GET: api/registros/activo?documento
         [HttpGet("activo")]
         public IActionResult GetActivo([FromQuery] string documento)
         {
@@ -534,6 +534,31 @@ namespace Softcoinp.Backend.Controllers
             return Ok(ApiResponse<RegistroDto>.SuccessResponse(registro));
         }
 
+        // GET: api/registros/activos
+
+        [HttpGet("activos")]
+        public IActionResult GetActivos()
+        {
+            var registros = _db.Registros
+                .Where(r => r.HoraSalidaUtc == null)
+                .OrderBy(r => r.HoraIngresoUtc)
+                .Select(r => new RegistroDto
+                {
+                    Id = r.Id,
+                    Nombre = r.Nombre,
+                    Apellido = r.Apellido,
+                    Documento = r.Documento,
+                    Motivo = r.Motivo,
+                    Destino = r.Destino,
+                    Tipo = r.Tipo,
+                    HoraIngresoUtc = r.HoraIngresoUtc,
+                    HoraIngresoLocal = r.HoraIngresoLocal,
+                    FotoUrl = r.FotoUrl
+                })
+                .ToList();
+
+            return Ok(ApiResponse<List<RegistroDto>>.SuccessResponse(registros));
+        }
 
 
         // GET: api/registros/export/csv

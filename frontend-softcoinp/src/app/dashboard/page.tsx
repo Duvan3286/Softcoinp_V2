@@ -15,23 +15,24 @@ interface ModalState {
   type: "success" | "warning" | "error" | "info";
 }
 
+// Estado de registro activo
+interface RegistroActivo {
+  id: string;
+}
+
 // 📸 FUNCIÓN REFORZADA: Convierte una URL de imagen a Base64 usando XMLHttpRequest
-// Este método es más fiable para sortear posibles problemas de CORS/Blobs.
 const urlToBase64 = async (url: string): Promise<string> => {
-  // Construye la URL completa
   const fullUrl = url.startsWith('/') ? `${BACKEND_BASE_URL}${url}` : url;
 
   return new Promise((resolve) => {
     const xhr = new XMLHttpRequest();
 
     xhr.onload = function () {
-      // Verifica que la respuesta sea exitosa (código 200)
       if (xhr.status === 200 && xhr.response) {
         const reader = new FileReader();
         reader.onloadend = function () {
           resolve(reader.result as string);
         }
-        // Lee el Blob y lo convierte a Base64
         reader.readAsDataURL(xhr.response);
       } else {
         console.error(`❌ Fallo en XHR. Status: ${xhr.status}. URL: ${fullUrl}`);
@@ -40,20 +41,16 @@ const urlToBase64 = async (url: string): Promise<string> => {
     };
 
     xhr.onerror = function () {
-      // Si falla (ej: por error de red o CORS), devuelve cadena vacía
       console.error("❌ XHR Error de red al descargar la foto. Posible problema de CORS o ruta.");
       resolve("");
     };
 
-    // Configura el CORS y el tipo de respuesta (Blob)
     xhr.open('GET', fullUrl);
-    // Deshabilita la autenticación con credenciales para evitar problemas innecesarios con StaticFiles
     xhr.withCredentials = false;
     xhr.responseType = 'blob';
     xhr.send();
   });
 };
-
 
 export default function DashboardPage() {
   const [identificacion, setIdentificacion] = useState("");
@@ -68,7 +65,7 @@ export default function DashboardPage() {
   // 📸 ESTADOS para la cámara y la foto
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [fotoBase64, setFotoBase64] = useState<string | null>(null);
-  const [fotoUrl, setFotoUrl] = useState<string | null>(null); // Se usa para almacenar la URL del backend temporalmente
+  const [fotoUrl, setFotoUrl] = useState<string | null>(null);
 
   const [modal, setModal] = useState<ModalState>({
     isOpen: false,
@@ -76,9 +73,9 @@ export default function DashboardPage() {
     type: "info",
   });
 
-  const router = useRouter();
+  const [registroActivo, setRegistroActivo] = useState<RegistroActivo | null>(null);
 
-  // --- LÓGICA DEL COMPONENTE ---
+  const router = useRouter();
 
   useEffect(() => {
     const timer = setInterval(() => setFechaHora(new Date()), 1000);
@@ -93,158 +90,117 @@ export default function DashboardPage() {
     setModal({ ...modal, isOpen: false });
   };
 
-  // Función para manejar la foto tomada
   const handlePhotoTaken = (imageDataUrl: string) => {
-    // Si se toma una nueva foto, reemplazamos el Base64 y limpiamos la URL guardada
     setFotoBase64(imageDataUrl);
     setFotoUrl(null);
     setIsCameraOpen(false);
     showModal("Foto capturada con éxito.", "success");
   };
 
-  // const handleRegistrar = async (accion: "entrada" | "salida") => {
-
-  //   const requiredFields = [
-  //     { value: identificacion, name: "Identificación" },
-  //     { value: nombres, name: "Nombres" },
-  //     { value: apellidos, name: "Apellidos" },
-  //     { value: destino, name: "Destino" },
-  //     { value: motivo, name: "Motivo de ingreso" },
-  //   ];
-
-  //   const missingField = requiredFields.find(field => !field.value.trim());
-
-  //   if (missingField) {
-  //     showModal(
-  //       `🛑 Debe diligenciar el campo obligatorio: "${missingField.name}"`,
-  //       "error"
-  //     );
-  //     return;
-  //   }
-
-  //   // 📸 Validar que se haya tomado la foto para la ENTRADA
-  //   if (accion === "entrada" && !fotoBase64) {
-  //     showModal(
-  //       "🛑 Debe tomar una fotografía de la persona a registrar.",
-  //       "error"
-  //     );
-  //     return;
-  //   }
-
-  //   try {
-  //     if (accion === "entrada") {
-  //       await api.post("/registros", {
-  //         nombre: nombres,
-  //         apellido: apellidos,
-  //         documento: identificacion,
-  //         destino,
-  //         motivo,
-  //         tipo,
-  //         // Incluir la foto en Base64
-  //         foto: fotoBase64,
-  //       });
-
-  //       showModal("✅ Entrada registrada con éxito", "success");
-  //     } else if (accion === "salida") {
-  //       showModal("🚪 Funcionalidad de salida aún no implementada", "info");
-  //     }
-
-  //     // Limpiar estados después de un registro exitoso
-  //     setIdentificacion("");
-  //     setNombres("");
-  //     setApellidos("");
-  //     setCargo("");
-  //     setDestino("");
-  //     setMotivo("");
-  //     setTipo("visitante");
-  //     setFotoBase64(null); // 📸 Limpiar la foto Base64
-  //     setFotoUrl(null); // 📸 Limpiar la URL
-
-  //   } catch (err: any) {
-  //     console.error("❌ Error al registrar:", err.response?.data || err);
-  //     const errorMessage =
-  //       err.response?.data?.title ||
-  //       "Error al registrar. Verifica los datos e intenta nuevamente.";
-  //     showModal(errorMessage, "error");
-  //   }
-  // };
-
   const handleRegistrar = async (accion: "entrada" | "salida") => {
-  try {
-    if (accion === "entrada") {
-      // Validaciones para entrada (ya existentes)
-      const requiredFields = [
-        { value: identificacion, name: "Identificación" },
-        { value: nombres, name: "Nombres" },
-        { value: apellidos, name: "Apellidos" },
-        { value: destino, name: "Destino" },
-        { value: motivo, name: "Motivo de ingreso" },
-      ];
-      const missingField = requiredFields.find(field => !field.value.trim());
-      if (missingField) {
-        showModal(`🛑 Debe diligenciar el campo obligatorio: "${missingField.name}"`, "error");
-        return;
+    try {
+      if (accion === "entrada") {
+        // Verificar campos obligatorios
+        const requiredFields = [
+          { value: identificacion, name: "Identificación" },
+          { value: nombres, name: "Nombres" },
+          { value: apellidos, name: "Apellidos" },
+          { value: destino, name: "Destino" },
+          { value: motivo, name: "Motivo de ingreso" },
+        ];
+        const missingField = requiredFields.find(field => !field.value.trim());
+        if (missingField) {
+          showModal(`🛑 Debe diligenciar el campo obligatorio: "${missingField.name}"`, "error");
+          return;
+        }
+        if (!fotoBase64) {
+          showModal("🛑 Debe tomar una fotografía de la persona a registrar.", "error");
+          return;
+        }
+
+        // 🔍 Verificar si ya hay una entrada activa
+        try {
+          const res = await api.get(`/registros/activo`, { params: { documento: identificacion } });
+          if (res.data?.data) {
+            showModal(
+              "⚠️ Esta persona ya tiene una entrada activa. No se puede registrar otra entrada.",
+              "warning"
+            );
+            return; // ❌ Detener registro
+          }
+        } catch (err: any) {
+          // Si el backend devuelve 404, significa que no hay registro activo
+          if (err.response?.status !== 404) {
+            console.error("Error al verificar registro activo:", err);
+            showModal("Error al verificar entrada activa. Intente nuevamente.", "error");
+            return;
+          }
+        }
+
+        // Si no hay entrada activa, continuar con el POST
+        await api.post("/registros", {
+          nombre: nombres,
+          apellido: apellidos,
+          documento: identificacion,
+          destino,
+          motivo,
+          tipo,
+          foto: fotoBase64,
+        });
+        showModal("✅ Entrada registrada con éxito", "success");
+
+      } else if (accion === "salida") {
+        if (!identificacion.trim() || !nombres.trim() || !apellidos.trim()) {
+          showModal("🛑 Debe diligenciar Nombre, Apellido y Documento para registrar la salida.", "error");
+          return;
+        }
+
+        // 🔍 Buscar registro activo en el backend
+        let activeRegistroId: string | null = null;
+        try {
+          const res = await api.get(`/registros/activo`, { params: { documento: identificacion } });
+          if (res.data?.data) {
+            activeRegistroId = res.data.data.id;
+          }
+        } catch {
+          activeRegistroId = null;
+        }
+
+        if (!activeRegistroId) {
+          showModal("🛑 Esta persona no tiene una entrada activa.", "error");
+          return;
+        }
+
+        // Registrar salida
+        await api.put(`/registros/${activeRegistroId}/salida`);
+        showModal("🚪 Salida registrada con éxito", "success");
+        setRegistroActivo(null);
       }
-      if (!fotoBase64) {
-        showModal("🛑 Debe tomar una fotografía de la persona a registrar.", "error");
-        return;
-      }
 
-      // Registrar entrada
-      await api.post("/registros", {
-        nombre: nombres,
-        apellido: apellidos,
-        documento: identificacion,
-        destino,
-        motivo,
-        tipo,
-        foto: fotoBase64,
-      });
-      showModal("✅ Entrada registrada con éxito", "success");
 
-    } else if (accion === "salida") {
-      // ⚡ Solo validar nombre, apellido y documento
-      if (!identificacion.trim() || !nombres.trim() || !apellidos.trim()) {
-        showModal("🛑 Debe diligenciar Nombre, Apellido y Documento para registrar la salida.", "error");
-        return;
-      }
+      // Limpiar campos después de registrar
+      setIdentificacion("");
+      setNombres("");
+      setApellidos("");
+      setCargo("");
+      setDestino("");
+      setMotivo("");
+      setTipo("visitante");
+      setFotoBase64(null);
+      setFotoUrl(null);
 
-      // Registrar salida (POST simplificado)
-      await api.post("/registros/salida", {
-        nombre: nombres,
-        apellido: apellidos,
-        documento: identificacion,
-      });
-
-      showModal("🚪 Salida registrada con éxito", "success");
+    } catch (err: any) {
+      console.error("❌ Error al registrar:", err.response?.data || err);
+      const errorMessage =
+        err.response?.data?.title ||
+        "Error al registrar. Verifica los datos e intenta nuevamente.";
+      showModal(errorMessage, "error");
     }
+  };
 
-    // Limpiar campos después de registrar
-    setIdentificacion("");
-    setNombres("");
-    setApellidos("");
-    setCargo("");
-    setDestino("");
-    setMotivo("");
-    setTipo("visitante");
-    setFotoBase64(null);
-    setFotoUrl(null);
-
-  } catch (err: any) {
-    console.error("❌ Error al registrar:", err.response?.data || err);
-    const errorMessage =
-      err.response?.data?.title ||
-      "Error al registrar. Verifica los datos e intenta nuevamente.";
-    showModal(errorMessage, "error");
-  }
-};
-
-
-  // 🔄 FUNCIÓN handleBuscar 
   const handleBuscar = async () => {
     if (!identificacion.trim()) return;
 
-    // 1. Limpiamos estados antes de la búsqueda
     setNombres("");
     setApellidos("");
     setDestino("");
@@ -252,18 +208,18 @@ export default function DashboardPage() {
     setTipo("visitante");
     setFotoBase64(null);
     setFotoUrl(null);
+    setRegistroActivo(null);
 
     try {
-      // La solicitud pasa si es 2xx
       const res = (await api.get(`/registros/buscar`, {
         params: { documento: identificacion },
       })) as { data: { data?: any } };
 
       const persona = res.data?.data;
 
-      // ... (El resto de la lógica para cuando SÍ encuentra la persona)
       if (persona) {
         if (persona.tieneEntradaActiva) {
+          setRegistroActivo({ id: persona.registroActivo.id });
           showModal(
             "⚠️ Esta persona ya tiene una entrada activa. Debe registrar la salida antes de volver a ingresar.",
             "warning"
@@ -271,42 +227,31 @@ export default function DashboardPage() {
           return;
         }
 
-        // 2. Cargamos datos personales
         setNombres(persona.nombre || "");
         setApellidos(persona.apellido || "");
         setDestino(persona.destino || "");
         setMotivo(persona.motivo || "");
         setTipo(persona.tipo || "visitante");
 
-        // 3. 📸 Lógica de Carga de Foto (Requiere solución de CORS/archivos estáticos aparte)
         if (persona.fotoUrl) {
           setFotoUrl(persona.fotoUrl);
           const base64Image = await urlToBase64(persona.fotoUrl);
-
-          if (base64Image) {
-            setFotoBase64(base64Image);
-          } else {
-            showModal("Persona encontrada. No se pudo cargar la foto anterior. Tome una nueva.", "warning");
-          }
+          if (base64Image) setFotoBase64(base64Image);
+          else showModal("Persona encontrada. No se pudo cargar la foto anterior. Tome una nueva.", "warning");
         } else {
           showModal("Persona encontrada. Tome una foto para el registro.", "info");
         }
-
       } else {
-        // Este bloque solo se ejecutaría si el servidor devuelve 200 pero data es null/undefined
         showModal("⚠️ No se encontró persona con ese documento. Diligencie los datos.", "warning");
       }
 
     } catch (err: any) {
-      // 🛑 MANEJO DEL ERROR 404 (NotFound del backend)
       if (err.response && err.response.status === 404) {
-        // Aquí es donde se maneja el caso de "Persona Nueva"
         showModal(
           "⚠️ Documento no encontrado. Diligencie el formulario para registrar una nueva entrada.",
           "warning"
         );
       } else {
-        // Maneja otros errores (ej. 401 Unauthorized, 500 Server Error)
         console.error(err);
         showModal(
           err.response?.data?.title || "Error desconocido al buscar el documento.",
@@ -316,7 +261,6 @@ export default function DashboardPage() {
     }
   };
 
-  // Componente Modal (sin cambios)
   const Modal = ({ isOpen, message, type, onClose }: any) => {
     if (!isOpen) return null;
     let bgColor = "bg-blue-600";
@@ -335,7 +279,7 @@ export default function DashboardPage() {
           <div className={`${bgColor} text-white p-4 flex items-center justify-between`}>
             <h3 className="text-xl font-bold">{icon} {title}</h3>
             <button onClick={onClose} className="text-white hover:text-gray-200">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
           </div>
           <div className="p-6">
@@ -354,7 +298,6 @@ export default function DashboardPage() {
 
   return (
     <>
-      {/* 📸 Componente de Captura de Cámara: se muestra condicionalmente */}
       {isCameraOpen && (
         <CameraCapture
           onPhotoTaken={handlePhotoTaken}

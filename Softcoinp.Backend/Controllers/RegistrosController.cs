@@ -499,6 +499,43 @@ namespace Softcoinp.Backend.Controllers
             return Ok(ApiResponse<RegistroDto>.SuccessResponse(dto, "Registro actualizado correctamente"));
         }
 
+
+        // GET: api/registros/activo?documento=123456
+        [HttpGet("activo")]
+        public IActionResult GetActivo([FromQuery] string documento)
+        {
+            if (string.IsNullOrWhiteSpace(documento))
+                return BadRequest(ApiResponse<RegistroDto>.Fail(null, "El documento es obligatorio"));
+
+            var registro = _db.Registros
+                .Where(r => r.Documento == documento && r.HoraSalidaUtc == null)
+                .OrderByDescending(r => r.HoraIngresoUtc)
+                .Select(r => new RegistroDto
+                {
+                    Id = r.Id,
+                    Nombre = r.Nombre,
+                    Apellido = r.Apellido,
+                    Documento = r.Documento,
+                    Motivo = r.Motivo,
+                    Destino = r.Destino,
+                    Tipo = r.Tipo,
+                    HoraIngresoUtc = r.HoraIngresoUtc,
+                    HoraIngresoLocal = r.HoraIngresoLocal,
+                    HoraSalidaUtc = r.HoraSalidaUtc,
+                    HoraSalidaLocal = r.HoraSalidaLocal,
+                    RegistradoPor = r.RegistradoPor,
+                    FotoUrl = r.FotoUrl
+                })
+                .FirstOrDefault();
+
+            if (registro == null)
+                return NotFound(ApiResponse<RegistroDto>.Fail(null, "No hay registro activo"));
+
+            return Ok(ApiResponse<RegistroDto>.SuccessResponse(registro));
+        }
+
+
+
         // GET: api/registros/export/csv
         [HttpGet("export/csv")]
         public async Task<IActionResult> ExportCsv(

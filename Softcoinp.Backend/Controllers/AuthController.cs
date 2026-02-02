@@ -9,6 +9,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
+
 namespace Softcoinp.Backend.Controllers
 {
     [ApiController]
@@ -106,7 +107,34 @@ namespace Softcoinp.Backend.Controllers
             return Ok(ApiResponse<LoginResponseDto>.SuccessResponse(response, "Token renovado exitosamente"));
         }
 
-        // 🔹 Genera JWT normal
+        [HttpGet("me")]
+        [Authorize]
+        public IActionResult Me()
+        {
+            var userIdClaim = User.FindFirst("id")?.Value;
+
+            if (userIdClaim == null || !Guid.TryParse(userIdClaim, out var userId))
+                return Unauthorized(ApiResponse<AuthMeDto>.Fail(null, "Token inválido"));
+
+            var user = _db.Users
+                .Where(u => u.Id == userId)
+                .Select(u => new AuthMeDto
+                {
+                    Id = u.Id,
+                    Email = u.Email,
+                    Nombre = u.Nombre,
+                    Role = u.Role
+                })
+                .FirstOrDefault();
+
+            if (user == null)
+                return Unauthorized(ApiResponse<AuthMeDto>.Fail(null, "Usuario no encontrado"));
+
+            return Ok(ApiResponse<AuthMeDto>.SuccessResponse(user));
+        }
+
+
+        // Genera JWT normal
         private (string token, DateTime expiration) GenerateJwtToken(User user)
         {
             var jwtSettings = _config.GetSection("Jwt");
@@ -126,6 +154,8 @@ namespace Softcoinp.Backend.Controllers
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Email),
+                new Claim(ClaimTypes.Name, user.Nombre), 
+                new Claim("nombre", user.Nombre), 
                 new Claim("id", user.Id.ToString()),
                 new Claim("role", user.Role)
             };
@@ -143,7 +173,7 @@ namespace Softcoinp.Backend.Controllers
             return (new JwtSecurityTokenHandler().WriteToken(token), expiration);
         }
 
-        // 🔹 Genera refresh token aleatorio
+        // Genera refresh token aleatorio
         private string GenerateRefreshToken()
         {
             return Convert.ToBase64String(Guid.NewGuid().ToByteArray());

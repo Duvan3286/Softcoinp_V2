@@ -682,7 +682,7 @@ namespace Softcoinp.Backend.Controllers
             worksheet.Cell(1, 10).Value = "FechaSalida";
             worksheet.Cell(1, 11).Value = "HoraSalida";
             worksheet.Cell(1, 12).Value = "RegistradoPor";
-            worksheet.Cell(1, 13).Value = "FotoUrl"; // 🆕 Encabezado
+            worksheet.Cell(1, 13).Value = "FotoUrl"; 
 
             int row = 2;
             foreach (var r in registros)
@@ -704,7 +704,7 @@ namespace Softcoinp.Backend.Controllers
                 worksheet.Cell(row, 10).Value = salidaLocal?.ToString("yyyy-MM-dd") ?? "";
                 worksheet.Cell(row, 11).Value = salidaLocal?.ToString("HH:mm:ss") ?? "";
                 worksheet.Cell(row, 12).Value = r.RegistradoPorEmail ?? "";
-                worksheet.Cell(row, 13).Value = r.FotoUrl ?? ""; // 🆕 Dato de la URL
+                worksheet.Cell(row, 13).Value = r.FotoUrl ?? ""; 
                 row++;
             }
 

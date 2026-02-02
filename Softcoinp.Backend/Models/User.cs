@@ -16,6 +16,8 @@ namespace Softcoinp.Backend.Models
 
         public string Role { get; set; } = "operador";
 
+        public string Nombre { get; set; } = string.Empty;
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public string RefreshToken { get; set; } = string.Empty;

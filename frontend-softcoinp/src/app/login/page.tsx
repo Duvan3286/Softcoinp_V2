@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import api from "@/services/api";
+import axios from "axios";
 import { useRouter } from "next/navigation";
 
 // Definimos el tipo esperado en la respuesta de login (SIN CAMBIOS EN LÓGICA)
@@ -29,24 +30,25 @@ export default function LoginPage() {
 
     localStorage.setItem("token", res.data.data.token);
     router.push("/dashboard");
-  } catch (err: any) {
-    // Manejo seguro de errores
+  } catch (err: unknown) {
     if (axios.isAxiosError(err)) {
-      // Si hay respuesta del servidor (400, 401, 500, etc.)
       if (err.response) {
-        console.error("Server responded with error:", err.response);
-        setError(err.response.data?.message || "Credenciales incorrectas");
+        // Credenciales incorrectas (401 / 400)
+        if (err.response.status === 401 || err.response.status === 400) {
+          setError("Usuario o contraseña incorrectos");
+        } else {
+          // Otros errores del servidor
+          setError("Ocurrió un error en el servidor. Intenta más tarde.");
+        }
       } else {
-        // Network error, CORS, timeout, etc.
-        console.error("Network or CORS error:", err.message);
+        // Error de red
         setError("No se pudo conectar al servidor. Verifica tu conexión.");
       }
     } else {
-      // Otros errores inesperados
-      console.error("Unexpected error:", err);
       setError("Ocurrió un error inesperado.");
     }
   }
+
 };
 
 
@@ -114,11 +116,11 @@ export default function LoginPage() {
         </button>
         
         {/* Footer opcional / enlace de olvido */}
-        <div className="text-center mt-4">
+        {/* <div className="text-center mt-4">
             <a href="#" className="text-sm text-blue-500 hover:text-blue-700 transition duration-150">
                 ¿Olvidaste tu contraseña?
             </a>
-        </div>
+        </div> */}
       </form>
     </div>
   );

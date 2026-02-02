@@ -55,29 +55,54 @@ export default function PersonalActivoPage() {
 
   return (
     
-    <div className="h-screen w-screen bg-gray-100 p-6 flex flex-col">
+    // <div className="h-screen w-screen bg-gray-100 p-6 flex flex-col">
+    <div className="h-full w-full bg-gray-100 p-6 flex flex-col overflow-hidden">
 
-      {/* Botón para volver al Dashboard */}
-      <div className="mt-6 flex justify-left">
-        <button
-          onClick={() => router.push("/dashboard")}
-          className="bg-blue-600 text-white py-2 px-4 rounded-xl shadow-md hover:bg-blue-700 transition duration-200 flex items-center text-sm"
-        >
-          <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                Menú Principal
-        </button>
-      </div>
-      <h1 className="text-2xl font-extrabold text-blue-700 uppercase tracking-wide mb-6 text-center">
-        Personal con Entrada Activa
-      </h1>
+{/* <div className="mt-6 flex justify-between items-center w-full"> */}
+    <div className="flex-shrink-0 mt-4 flex justify-between items-center w-full">
+    {/* 1. Botón Izquierdo (Menú Principal) */}
+    <button
+        onClick={() => router.push("/dashboard")}
+        className="bg-blue-600 text-white py-2 px-4 rounded-xl shadow-md hover:bg-blue-700 transition duration-200 flex items-center text-sm"
+    >
+        <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        Menú Principal
+    </button>
 
-      {loading ? (
+    {/* 2. Título Central Centrado */}
+    <h1 className="text-2xl font-extrabold text-blue-700 uppercase tracking-wide text-center">
+        Personal Con Registro Activo
+    </h1>
+
+    {/* 3. Botón Derecho (Ejemplo: Guardar Cambios) */}
+    <button
+         onClick={() => router.push("/registros")}
+        className="bg-yellow-500 text-white py-2 px-4 rounded-xl shadow-md hover:bg-yellow-600 transition duration-200 flex items-center text-sm"
+    >
+        Historial de Registros
+    </button>
+</div>
+
+      
+<div className="flex-1 min-h-0 mt-4 overflow-hidden flex flex-col">
+  {loading ? (
+    <p className="text-center text-gray-500 mt-6">
+      Cargando registros activos...
+    </p>
+  ) : registrosActivos.length === 0 ? (
+    <p className="text-center text-gray-500 mt-6">
+      No hay personal con registro activo.
+    </p>
+  ) : (
+    <div className="flex-1 overflow-auto">
+      <table className="min-w-full bg-white rounded-xl shadow-md border border-gray-200">
+      {/* {loading ? (
         <p className="text-center text-gray-500">Cargando registros activos...</p>
       ) : registrosActivos.length === 0 ? (
-        <p className="text-center text-gray-500">No hay personal con entrada activa.</p>
+        <p className="text-center text-gray-500">No hay personal con registro activo.</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full bg-white rounded-xl shadow-md border border-gray-200">
+          <table className="min-w-full bg-white rounded-xl shadow-md border border-gray-200"> */}
             <thead className="bg-blue-100">
               <tr>
                 <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Foto</th>
@@ -124,6 +149,7 @@ export default function PersonalActivoPage() {
           </table>
         </div>
       )}
+    </div>
 
       {/* Botón para volver al Dashboard */}
       {/* <div className="mt-6 flex justify-center">

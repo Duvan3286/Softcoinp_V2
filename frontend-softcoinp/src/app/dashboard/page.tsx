@@ -5,7 +5,8 @@ import api from "@/services/api";
 import { useRouter } from "next/navigation";
 import CameraCapture from "@/components/CameraCapture";
 
-// 🚨 CONFIGURACIÓN CRÍTICA: La URL base de tu API de C#.
+
+// CONFIGURACIÓN CRÍTICA: La URL base de tu API de C#.
 const BACKEND_BASE_URL = "http://localhost:5004/static";
 
 // Definición de tipos para el modal
@@ -72,7 +73,6 @@ export default function DashboardPage() {
     message: "",
     type: "info",
   });
-
   const [registroActivo, setRegistroActivo] = useState<RegistroActivo | null>(null);
 
   const router = useRouter();
@@ -312,13 +312,15 @@ export default function DashboardPage() {
         onClose={closeModal}
       />
 
-      <div className="h-screen w-screen bg-gray-100 flex flex-col items-center justify-center py-2 px-6">
+      {/* <div className="h-screen w-screen bg-gray-100 flex flex-col items-center justify-center py-2 px-6"> */}
+      <div className="h-full w-full bg-gray-100 flex flex-col items-center justify-center px-6">
 
-        <div className="bg-white rounded-3xl shadow-2xl py-5 px-6 w-full border border-gray-200 flex flex-col">
+        {/* <div className="bg-white rounded-3xl shadow-2xl py-5 px-6 w-full border border-gray-200 flex flex-col"> */}
+        <div className="bg-white rounded-3xl shadow-2xl py-4 px-6 w-full max-w-[1400px] border border-gray-200 flex flex-col">
 
-          <h1 className="text-2xl font-extrabold text-center mb-4 text-blue-700 uppercase tracking-wide">
+          {/* <h1 className="text-2xl font-extrabold text-center mb-4 text-blue-700 uppercase tracking-wide">
             Control de Acceso | SOFTCOINP
-          </h1>
+          </h1> */}
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 flex-grow">
 
@@ -460,25 +462,25 @@ export default function DashboardPage() {
               onClick={() => router.push("/reportes")}
               className="bg-orange-500 text-white py-2 rounded-lg font-semibold shadow-md hover:bg-orange-600 text-xs"
             >
-              📊 Reporte
+              📊 Reporte de Novedades
             </button>
             <button
               onClick={() => router.push("/personal-activo")}
               className="bg-purple-600 text-white py-2 rounded-lg font-semibold shadow-md hover:bg-purple-700 text-xs"
             >
-              👥 Personal
+              👥 Personal Con Registro Activo
             </button>
             <button
               onClick={() => router.push("/registros")}
-              className="bg-yellow-500 text-gray-900 py-2 rounded-lg font-semibold shadow-md hover:bg-yellow-600 text-xs"
+              className="bg-yellow-500 text-white py-2 rounded-lg font-semibold shadow-md hover:bg-yellow-600 text-xs"
             >
-              📜 Historial
+              📜 Historial de Registros
             </button>
             <button
               onClick={() => router.push("/admin")}
               className="bg-blue-800 text-white py-2 rounded-lg font-semibold shadow-md hover:bg-blue-900 text-xs"
             >
-              🔑 Administrador
+              🔑 Configuraciones
             </button>
           </div>
         </div>

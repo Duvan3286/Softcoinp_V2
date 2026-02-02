@@ -39,6 +39,7 @@ namespace Softcoinp.Backend.Controllers
             {
                 Id = Guid.NewGuid(),
                 Email = request.Email,
+                Nombre = request.Nombre,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
                 Role = request.Role ?? "user",
                 CreatedAt = DateTime.UtcNow
@@ -57,6 +58,7 @@ namespace Softcoinp.Backend.Controllers
             {
                 Id = user.Id,
                 Email = user.Email,
+                Nombre = user.Nombre,
                 Role = user.Role,
                 CreatedAt = user.CreatedAt
             };
@@ -74,6 +76,7 @@ namespace Softcoinp.Backend.Controllers
                 {
                     Id = u.Id,
                     Email = u.Email,
+                    Nombre = u.Nombre,
                     Role = u.Role,
                     CreatedAt = u.CreatedAt
                 })
@@ -92,6 +95,7 @@ namespace Softcoinp.Backend.Controllers
                 {
                     Id = u.Id,
                     Email = u.Email,
+                    Nombre = u.Nombre,
                     Role = u.Role,
                     CreatedAt = u.CreatedAt
                 })
@@ -123,6 +127,9 @@ namespace Softcoinp.Backend.Controllers
                 user.Email = request.Email;
             }
 
+            if (!string.IsNullOrWhiteSpace(request.Nombre))
+                user.Nombre = request.Nombre;
+
             if (!string.IsNullOrWhiteSpace(request.Password))
                 user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
@@ -141,6 +148,7 @@ namespace Softcoinp.Backend.Controllers
             {
                 Id = user.Id,
                 Email = user.Email,
+                Nombre = user.Nombre,
                 Role = user.Role,
                 CreatedAt = user.CreatedAt
             };

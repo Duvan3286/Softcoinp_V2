@@ -120,7 +120,7 @@ export default function DashboardPage() {
 
         // 🔍 Verificar si ya hay una entrada activa
         try {
-          const res = await api.get(`/registros/activo`, { params: { documento: identificacion } });
+          const res = await api.get(`/registros/activo`, { params: { documento: identificacion } }) as any;
           if (res.data?.data) {
             showModal(
               "⚠️ Esta persona ya tiene una entrada activa. No se puede registrar otra entrada.",
@@ -158,7 +158,7 @@ export default function DashboardPage() {
         // 🔍 Buscar registro activo en el backend
         let activeRegistroId: string | null = null;
         try {
-          const res = await api.get(`/registros/activo`, { params: { documento: identificacion } });
+          const res = await api.get(`/registros/activo`, { params: { documento: identificacion } }) as any;
           if (res.data?.data) {
             activeRegistroId = res.data.data.id;
           }
@@ -477,7 +477,7 @@ export default function DashboardPage() {
               📜 Historial de Registros
             </button>
             <button
-              onClick={() => router.push("/admin")}
+              onClick={() => router.push("/configuraciones")}
               className="bg-blue-800 text-white py-2 rounded-lg font-semibold shadow-md hover:bg-blue-900 text-xs"
             >
               🔑 Configuraciones

@@ -11,6 +11,7 @@ namespace Softcoinp.Backend
         public DbSet<Registro> Registros { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<Personal> Personal { get; set; }
+        public DbSet<Anotacion> Anotaciones { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -25,6 +26,13 @@ namespace Softcoinp.Backend
                 .WithMany(p => p.Registros)   // ← ESTA ES LA PARTE QUE FALTABA
                 .HasForeignKey(r => r.PersonalId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Relación 1:N entre Personal y Anotacion
+            modelBuilder.Entity<Anotacion>()
+                .HasOne(a => a.Personal)
+                .WithMany(p => p.Anotaciones)
+                .HasForeignKey(a => a.PersonalId)
+                .OnDelete(DeleteBehavior.Cascade); // Si se elimina un personal, se borran sus reportes
 
             base.OnModelCreating(modelBuilder);
         }

@@ -30,7 +30,7 @@ export default function PersonalActivoPage() {
   const fetchActivos = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/registros/activos");
+      const res = await api.get("/registros/activos") as any;
       setRegistrosActivos(res.data?.data || []);
     } catch (err) {
       console.error("Error al cargar registros activos:", err);

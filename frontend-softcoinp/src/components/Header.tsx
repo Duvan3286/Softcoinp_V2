@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { getApiResponse } from "@/services/api";
-import { AuthUser } from "@/types/auth";
+interface AuthUser {
+  nombre: string;
+}
 
 export default function Header() {
   const [usuario, setUsuario] = useState("");

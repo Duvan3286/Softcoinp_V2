@@ -31,10 +31,11 @@ export default function LoginPage() {
     localStorage.setItem("token", res.data.data.token);
     router.push("/dashboard");
   } catch (err: unknown) {
-    if (axios.isAxiosError(err)) {
-      if (err.response) {
+    const axiosErr = err as any;
+    if (axiosErr?.isAxiosError) {
+      if (axiosErr.response) {
         // Credenciales incorrectas (401 / 400)
-        if (err.response.status === 401 || err.response.status === 400) {
+        if (axiosErr.response.status === 401 || axiosErr.response.status === 400) {
           setError("Usuario o contraseña incorrectos");
         } else {
           // Otros errores del servidor

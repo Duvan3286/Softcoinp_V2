@@ -26,5 +26,7 @@ namespace Softcoinp.Backend.Models
 
         // Relación 1:N correcta
         public List<Registro> Registros { get; set; } = new();
+
+        public List<Anotacion> Anotaciones { get; set; } = new();
     }
 }

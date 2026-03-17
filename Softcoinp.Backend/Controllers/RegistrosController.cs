@@ -130,6 +130,7 @@ namespace Softcoinp.Backend.Controllers
                 .Select(r => new RegistroDto
                 {
                     Id = r.Id,
+                    PersonalId = r.PersonalId,
                     Nombre = r.Nombre,
                     Apellido = r.Apellido,
                     Documento = r.Documento,
@@ -141,7 +142,7 @@ namespace Softcoinp.Backend.Controllers
                     HoraSalidaUtc = r.HoraSalidaUtc,
                     HoraSalidaLocal = r.HoraSalidaLocal,
                     RegistradoPor = r.RegistradoPor,
-                    FotoUrl = r.FotoUrl // 🆕 Incluir FotoUrl
+                    FotoUrl = r.FotoUrl
                 })
                 .FirstOrDefault();
 

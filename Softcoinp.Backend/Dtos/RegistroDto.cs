@@ -26,6 +26,9 @@ namespace Softcoinp.Backend.Dtos
         public Guid? RegistradoPor { get; set; }
 
         public Guid? PersonalId { get; set; }
-
+        
+        // --- Bloqueo de Seguridad ---
+        public bool IsBloqueado { get; set; }
+        public string? MotivoBloqueo { get; set; }
     }
 }

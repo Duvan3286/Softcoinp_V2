@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import CameraCapture from "@/components/CameraCapture";
 import { tipoService, TipoPersonal } from "@/services/tipoService";
 import { anotacionService, AnotacionDto } from "@/services/anotacionService";
+import CustomModal, { ModalType } from "@/components/CustomModal";
 
 
 // CONFIGURACIÓN CRÍTICA: La URL base de tu API de C#.
@@ -76,8 +77,14 @@ export default function DashboardPage() {
   const [fotoBase64, setFotoBase64] = useState<string | null>(null);
   const [fotoUrl, setFotoUrl] = useState<string | null>(null);
 
-  const [modal, setModal] = useState<ModalState>({
+  const [modal, setModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: ModalType;
+  }>({
     isOpen: false,
+    title: "",
     message: "",
     type: "info",
   });
@@ -86,6 +93,10 @@ export default function DashboardPage() {
   // 🔔 Alerta de Novedades
   const [anotacionesAlerta, setAnotacionesAlerta] = useState<AnotacionDto[]>([]);
   const [isTimelineOpen, setIsTimelineOpen] = useState(false);
+
+  // 🚫 Estado de Bloqueo
+  const [isBloqueado, setIsBloqueado] = useState(false);
+  const [motivoBloqueo, setMotivoBloqueo] = useState("");
 
   const router = useRouter();
 
@@ -113,8 +124,9 @@ export default function DashboardPage() {
     return () => clearInterval(timer);
   }, []);
 
-  const showModal = (message: string, type: ModalState["type"]) => {
-    setModal({ isOpen: true, message, type });
+  const showModal = (message: string, type: ModalType, title?: string) => {
+    const defaultTitle = type === "success" ? "Éxito" : type === "error" ? "Error" : type === "warning" ? "Advertencia" : "Información";
+    setModal({ isOpen: true, message, type, title: title || defaultTitle });
   };
 
   const closeModal = () => {
@@ -241,6 +253,8 @@ export default function DashboardPage() {
     setFotoUrl(null);
     setRegistroActivo(null);
     setAnotacionesAlerta([]);
+    setIsBloqueado(false);
+    setMotivoBloqueo("");
 
     try {
       const res = (await api.get(`/registros/buscar`, {
@@ -250,6 +264,12 @@ export default function DashboardPage() {
       const persona = res.data?.data;
 
       if (persona) {
+        if (persona.isBloqueado) {
+           setIsBloqueado(true);
+           setMotivoBloqueo(persona.motivoBloqueo || "Motivo no especificado");
+           showModal(`🚫 ACCESO DENEGADO: Esta persona se encuentra BLOQUEADA. Motivo: ${persona.motivoBloqueo}`, "error");
+        }
+
         if (persona.tieneEntradaActiva) {
           setRegistroActivo({ id: persona.registroActivo.id });
           showModal(
@@ -299,40 +319,7 @@ export default function DashboardPage() {
     }
   };
 
-  const Modal = ({ isOpen, message, type, onClose }: any) => {
-    if (!isOpen) return null;
-    let bgColor = "bg-blue-600";
-    let title = "Información";
-    let icon = "ℹ️";
-    let textColor = "text-blue-800";
-    switch (type) {
-      case "success": bgColor = "bg-green-600"; title = "Éxito"; icon = "✅"; textColor = "text-green-800"; break;
-      case "warning": bgColor = "bg-yellow-500"; title = "Advertencia"; icon = "⚠️"; textColor = "text-yellow-800"; break;
-      case "error": bgColor = "bg-red-600"; title = "Error"; icon = "❌"; textColor = "text-red-800"; break;
-      case "info": default: bgColor = "bg-blue-600"; title = "Información"; icon = "ℹ️"; textColor = "text-blue-800"; break;
-    }
-    return (
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 p-4 transition-opacity duration-300">
-        <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden transform scale-100 transition-transform duration-300 border-t-8 border-gray-300">
-          <div className={`${bgColor} text-white p-4 flex items-center justify-between`}>
-            <h3 className="text-xl font-bold">{icon} {title}</h3>
-            <button onClick={onClose} className="text-white hover:text-gray-200">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-          </div>
-          <div className="p-6">
-            <p className={`${textColor} text-lg mb-6 font-medium`}>{message}</p>
-            <div className="flex justify-end">
-              <button
-                onClick={onClose}
-                className={`text-white py-2 px-6 rounded-lg font-semibold transition duration-200 shadow-md transform hover:scale-[1.02] ${bgColor} hover:brightness-110`}
-              >Aceptar</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
+  // Componente Modal local eliminado para usar CustomModal
 
   const TimelineModal = ({ isOpen, onClose, anotaciones, nombre }: any) => {
     if (!isOpen) return null;
@@ -385,11 +372,12 @@ export default function DashboardPage() {
         />
       )}
 
-      <Modal
+      <CustomModal
         isOpen={modal.isOpen}
+        onClose={closeModal}
+        title={modal.title}
         message={modal.message}
         type={modal.type}
-        onClose={closeModal}
       />
 
       <TimelineModal
@@ -419,35 +407,47 @@ export default function DashboardPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
 
-                <div className="md:col-span-2 flex items-center relative">
+                <div className="relative">
+                  <span className="absolute left-2 top-2.5 text-xs text-gray-400 font-bold uppercase z-10">Identificación</span>
                   <input
                     type="text"
-                    placeholder="Número de Identificación"
                     value={identificacion}
-                    onChange={(e) => {
-                      const newValue = e.target.value.replace(/[^0-9]/g, '');
-                      setIdentificacion(newValue);
-                    }}
+                    onChange={(e) => setIdentificacion(e.target.value.replace(/[^0-9]/g, ""))}
                     onBlur={handleBuscar}
                     inputMode="numeric"
                     pattern="[0-9]*"
-                    className={`w-full p-2 pl-9 pr-12 border rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm text-sm transition-all ${
-                        anotacionesAlerta.length > 0 ? 'border-red-400 bg-red-50 ring-2 ring-red-100' : 'border-gray-300'
+                    className={`w-full p-2 pt-6 pl-9 pr-12 border rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm text-sm font-bold transition-all ${
+                        isBloqueado ? 'border-red-600 bg-red-50 ring-4 ring-red-100' :
+                        anotacionesAlerta.length > 0 ? 'border-yellow-400 bg-yellow-50 ring-2 ring-yellow-100' : 'border-gray-300'
                     }`}
                   />
-                  <svg className="absolute left-2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 21h7a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 2 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                  <svg className="absolute left-2 top-7 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 21h7a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 2 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
                   
-                  {anotacionesAlerta.length > 0 && (
+                  {(anotacionesAlerta.length > 0 || isBloqueado) && (
                     <button
                       onClick={() => setIsTimelineOpen(true)}
-                      className="absolute right-2 p-1.5 bg-red-600 text-white rounded-full shadow-lg animate-pulse-red hover:bg-red-700 transition-all flex items-center justify-center group"
-                      title="¡ALERTA DE SEGURIDAD! Clic para ver detalles"
+                      className={`absolute right-2 top-7 p-1.5 rounded-full shadow-lg transition-all flex items-center justify-center group ${
+                        isBloqueado ? 'bg-red-600 animate-bounce' : 'bg-yellow-500 animate-pulse-red'
+                      }`}
+                      title={isBloqueado ? "PERSONA BLOQUEADA - Clic para ver historial" : "¡ALERTA DE SEGURIDAD! Clic para ver detalles"}
                     >
-                      <span className="text-[14px]">⚠️</span>
-                      <span className="absolute -top-8 right-0 bg-red-700 text-white text-[9px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Ver Novedades</span>
+                      <span className="text-[14px]">{isBloqueado ? "🚫" : "⚠️"}</span>
                     </button>
                    )}
                 </div>
+
+                {isBloqueado && (
+                  <div className="bg-red-600 text-white p-3 rounded-lg shadow-inner animate-in slide-in-from-top duration-300 overflow-hidden relative">
+                    <div className="flex items-center gap-3">
+                        <div className="text-2xl animate-spin-slow">🚫</div>
+                        <div>
+                            <p className="text-[10px] font-black uppercase tracking-widest leading-none mb-1">Entrada Prohibida - Usuario Bloqueado</p>
+                            <p className="text-xs font-bold italic">"{motivoBloqueo}"</p>
+                        </div>
+                    </div>
+                    <div className="absolute -right-4 -bottom-4 text-7xl opacity-10 font-black">BLOCK</div>
+                  </div>
+                )}
 
                 <input
                   type="text"
@@ -536,15 +536,20 @@ export default function DashboardPage() {
               <div className="flex flex-col gap-2 w-full mb-3">
                 <button
                   onClick={() => handleRegistrar("entrada")}
-                  className="bg-green-600 text-white w-full py-3 text-lg font-bold rounded-xl shadow-md hover:bg-green-700 transition duration-200"
+                  disabled={isBloqueado}
+                  className={`w-full text-white p-3 rounded-xl font-bold shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 ${
+                    isBloqueado 
+                      ? 'bg-gray-400 cursor-not-allowed grayscale' 
+                      : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200'
+                  }`}
                 >
-                  ✅ Entrada
+                  {isBloqueado ? "🚫 INGRESO PROHIBIDO" : "✅ REGISTRAR ENTRADA"}
                 </button>
                 <button
                   onClick={() => handleRegistrar("salida")}
                   className="bg-red-500 text-white w-full py-3 text-lg font-bold rounded-xl shadow-md hover:bg-red-600 transition duration-200"
                 >
-                  🚪 Salida
+                  🚪 REGISTRAR SALIDA
                 </button>
               </div>
 

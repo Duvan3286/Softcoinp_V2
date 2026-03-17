@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { tipoService, TipoPersonal } from "@/services/tipoService";
+import CustomModal, { ModalType } from "@/components/CustomModal";
 
 export default function TiposConfigPage() {
   const router = useRouter();
@@ -13,6 +14,24 @@ export default function TiposConfigPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTipo, setEditingTipo] = useState<TipoPersonal | null>(null);
   const [nombre, setNombre] = useState("");
+
+  // 🔄 Estado de los Modales Custom
+  const [modalConfig, setModalConfig] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: ModalType;
+    onConfirm?: () => void;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showModal = (title: string, message: string, type: ModalType, onConfirm?: () => void) => {
+    setModalConfig({ isOpen: true, title, message, type, onConfirm });
+  };
 
   const fetchTipos = async () => {
     try {
@@ -54,19 +73,25 @@ export default function TiposConfigPage() {
       fetchTipos();
       setIsModalOpen(false);
     } catch (err: any) {
-      alert(err.response?.data?.message || "Error al guardar el tipo.");
+      showModal("Error", err.response?.data?.message || "Error al guardar el tipo.", "error");
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm("¿Estás seguro de que deseas eliminar este tipo de personal?")) {
-      try {
-        await tipoService.deleteTipo(id);
-        fetchTipos();
-      } catch (err: any) {
-        alert(err.response?.data?.message || "Error al eliminar el tipo.");
-      }
-    }
+    showModal(
+        "¿Eliminar Tipo de Personal?", 
+        "¿Estás seguro de que deseas eliminar este tipo? Esta acción no se puede deshacer.", 
+        "confirm", 
+        async () => {
+            try {
+                await tipoService.deleteTipo(id);
+                fetchTipos();
+                showModal("Éxito", "Tipo de personal eliminado correctamente.", "success");
+            } catch (err: any) {
+                showModal("Error", err.response?.data?.message || "Error al eliminar el tipo.", "error");
+            }
+        }
+    );
   };
 
   const toggleActivo = async (tipo: TipoPersonal) => {
@@ -74,7 +99,7 @@ export default function TiposConfigPage() {
       await tipoService.updateTipo(tipo.id, { activo: !tipo.activo });
       fetchTipos();
     } catch (err: any) {
-      alert("Error al actualizar estado.");
+      showModal("Error", "No se pudo actualizar el estado del tipo de personal.", "error");
     }
   };
 
@@ -208,6 +233,16 @@ export default function TiposConfigPage() {
           </div>
         </div>
       )}
+
+      {/* Modal Único de Alertas/Confirmaciones */}
+      <CustomModal
+        isOpen={modalConfig.isOpen}
+        onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
+        onConfirm={modalConfig.onConfirm}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        type={modalConfig.type}
+      />
     </div>
   );
 }

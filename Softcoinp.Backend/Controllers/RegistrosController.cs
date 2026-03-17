@@ -70,6 +70,8 @@ namespace Softcoinp.Backend.Controllers
                         Apellido = r.Apellido,
                         Documento = r.Documento,
                         Tipo = r.Tipo,
+                        IsBloqueado = r.Personal!.IsBloqueado,
+                        MotivoBloqueo = r.Personal!.MotivoBloqueo
                     },
                     Motivo = r.Motivo,
                     Destino = r.Destino,
@@ -107,7 +109,9 @@ namespace Softcoinp.Backend.Controllers
                     HoraSalidaUtc = r.HoraSalidaUtc,
                     HoraSalidaLocal = r.HoraSalidaLocal,
                     RegistradoPor = r.RegistradoPor,
-                    FotoUrl = r.FotoUrl // 🆕 Incluir FotoUrl
+                    FotoUrl = r.FotoUrl, // 🆕 Incluir FotoUrl
+                    IsBloqueado = r.Personal!.IsBloqueado,
+                    MotivoBloqueo = r.Personal!.MotivoBloqueo
                 })
                 .FirstOrDefault();
 
@@ -142,7 +146,9 @@ namespace Softcoinp.Backend.Controllers
                     HoraSalidaUtc = r.HoraSalidaUtc,
                     HoraSalidaLocal = r.HoraSalidaLocal,
                     RegistradoPor = r.RegistradoPor,
-                    FotoUrl = r.FotoUrl
+                    FotoUrl = r.FotoUrl,
+                    IsBloqueado = r.Personal!.IsBloqueado,
+                    MotivoBloqueo = r.Personal!.MotivoBloqueo
                 })
                 .FirstOrDefault();
 
@@ -539,7 +545,9 @@ namespace Softcoinp.Backend.Controllers
                     HoraSalidaUtc = r.HoraSalidaUtc,
                     HoraSalidaLocal = r.HoraSalidaLocal,
                     RegistradoPor = r.RegistradoPor,
-                    FotoUrl = r.FotoUrl
+                    FotoUrl = r.FotoUrl,
+                    IsBloqueado = r.Personal!.IsBloqueado,
+                    MotivoBloqueo = r.Personal!.MotivoBloqueo
                 })
                 .FirstOrDefault();
 

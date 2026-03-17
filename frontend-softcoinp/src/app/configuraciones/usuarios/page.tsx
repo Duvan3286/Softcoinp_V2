@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { userService, User } from "@/services/userService";
 import UserTable from "@/components/configuraciones/UserTable";
 import UserModal from "@/components/configuraciones/UserModal";
+import CustomModal, { ModalType } from "@/components/CustomModal";
 
 export default function UsuariosConfigPage() {
   const router = useRouter();
@@ -14,6 +15,24 @@ export default function UsuariosConfigPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
+  // 🔄 Estado de los Modales Custom
+  const [modalConfig, setModalConfig] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: ModalType;
+    onConfirm?: () => void;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showModal = (title: string, message: string, type: ModalType, onConfirm?: () => void) => {
+    setModalConfig({ isOpen: true, title, message, type, onConfirm });
+  };
 
   const fetchUsers = async () => {
     try {
@@ -49,25 +68,37 @@ export default function UsuariosConfigPage() {
   };
 
   const handleDeleteUser = async (id: string) => {
-    if (confirm("¿Estás seguro de que deseas eliminar este usuario?")) {
-      try {
-        await userService.deleteUser(id);
-        await fetchUsers();
-      } catch (err: any) {
-        alert(err.response?.data?.message || "Error al eliminar usuario.");
-      }
-    }
+    showModal(
+        "¿Eliminar Usuario?", 
+        "¿Estás seguro de que deseas eliminar este usuario? Esta acción es irreversible.", 
+        "confirm", 
+        async () => {
+            try {
+                await userService.deleteUser(id);
+                await fetchUsers();
+                showModal("Eliminado", "Usuario eliminado correctamente.", "success");
+            } catch (err: any) {
+                showModal("Error", err.response?.data?.message || "Error al eliminar usuario.", "error");
+            }
+        }
+    );
   };
 
   const handleResetPassword = async (id: string) => {
-    if (confirm("¿Estás seguro de que deseas resetear la contraseña de este usuario? Se encriptará una predeterminada temporalmente al guardarlo.")) {
-      try {
-        const result = await userService.resetPassword(id);
-        alert(result.message + (result.temporaryPassword ? `\nNueva contraseña: ${result.temporaryPassword}` : ""));
-      } catch (err: any) {
-        alert(err.response?.data?.message || "Error al resetear contraseña.");
-      }
-    }
+    showModal(
+        "¿Resetear Contraseña?", 
+        "¿Estás seguro de que deseas resetear la contraseña de este usuario? Se encriptará una predeterminada temporalmente.", 
+        "confirm", 
+        async () => {
+            try {
+                const result = await userService.resetPassword(id);
+                const passMsg = result.temporaryPassword ? `\nNueva contraseña: ${result.temporaryPassword}` : "";
+                showModal("Contraseña Reseteada", result.message + passMsg, "success");
+            } catch (err: any) {
+                showModal("Error", err.response?.data?.message || "Error al resetear contraseña.", "error");
+            }
+        }
+    );
   };
 
   return (
@@ -124,6 +155,16 @@ export default function UsuariosConfigPage() {
           onSave={handleSaveUser}
         />
       )}
+
+      {/* Modal Único de Alertas/Confirmaciones */}
+      <CustomModal
+        isOpen={modalConfig.isOpen}
+        onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
+        onConfirm={modalConfig.onConfirm}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        type={modalConfig.type}
+      />
     </div>
   );
 }

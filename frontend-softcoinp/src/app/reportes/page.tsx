@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import api, { ApiResponse } from "@/services/api";
 import { anotacionService, AnotacionDto } from "@/services/anotacionService";
+import { personalService } from "@/services/personalService";
+import CustomModal, { ModalType } from "@/components/CustomModal";
 
 const BACKEND_BASE_URL = "http://localhost:5004/static";
 
@@ -18,6 +20,8 @@ interface PersonalResult {
   destino?: string;
   motivo?: string;
   tieneEntradaActiva?: boolean;
+  isBloqueado?: boolean;
+  motivoBloqueo?: string;
 }
 
 export default function ReportesPage() {
@@ -32,10 +36,32 @@ export default function ReportesPage() {
   const [errorGuardar, setErrorGuardar] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
+  const [isBlocking, setIsBlocking] = useState(false);
+  const [motivoBloqueo, setMotivoBloqueo] = useState("");
+  const [showBlockModal, setShowBlockModal] = useState(false);
+
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
 
   const [isTimelineOpen, setIsTimelineOpen] = useState(false);
+
+  // 🔄 Estado de los Modales Custom
+  const [modalConfig, setModalConfig] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: ModalType;
+    onConfirm?: () => void;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showModal = (title: string, message: string, type: ModalType, onConfirm?: () => void) => {
+    setModalConfig({ isOpen: true, title, message, type, onConfirm });
+  };
 
   const handleBuscar = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,17 +136,47 @@ export default function ReportesPage() {
       setEditingId(null);
       setEditText("");
     } catch (err: any) {
-      alert(err.response?.data?.message || "Error al actualizar la anotación.");
+      showModal("Error", err.response?.data?.message || "Error al actualizar la anotación.", "error");
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("¿Estás seguro de que deseas eliminar esta anotación? Esta acción no se puede deshacer.")) return;
+    showModal(
+        "¿Eliminar Anotación?", 
+        "¿Estás seguro de que deseas eliminar esta anotación? Esta acción no se puede deshacer.", 
+        "confirm", 
+        async () => {
+            try {
+                await anotacionService.deleteAnotacion(id);
+                setAnotaciones(anotaciones.filter(a => a.id !== id));
+                setSuccessMsg("Anotación eliminada.");
+            } catch (err: any) {
+                showModal("Error", err.response?.data?.message || "Error al eliminar la anotación.", "error");
+            }
+        }
+    );
+  };
+
+  const handleBlockPerson = async () => {
+    if (!motivoBloqueo.trim() || !persona?.personalId) return;
+
+    setIsBlocking(true);
+    setErrorGuardar(null);
+    setSuccessMsg(null);
+
     try {
-      await anotacionService.deleteAnotacion(id);
-      setAnotaciones(anotaciones.filter(a => a.id !== id));
+      await personalService.bloquear(persona.personalId, motivoBloqueo.trim());
+      setPersona({ ...persona, isBloqueado: true, motivoBloqueo: motivoBloqueo.trim() });
+      setSuccessMsg("Persona bloqueada correctamente.");
+      setShowBlockModal(false);
+      setMotivoBloqueo("");
+      // Recargar anotaciones para ver la de bloqueo
+      const nuevasAnotaciones = await anotacionService.getAnotacionesPorPersonal(persona.personalId);
+      setAnotaciones(nuevasAnotaciones);
     } catch (err: any) {
-      alert(err.response?.data?.message || "Error al eliminar la anotación.");
+      setErrorGuardar(err.response?.data?.message || "Error al bloquear a la persona.");
+    } finally {
+      setIsBlocking(false);
     }
   };
 
@@ -230,11 +286,56 @@ export default function ReportesPage() {
                   {persona.tipo === "empleado" ? "Empleado" : "Visitante"}
                 </span>
 
-                {persona.tieneEntradaActiva && (
-                  <div className="mt-3 w-full bg-yellow-50 border border-yellow-200 rounded-lg p-2 text-xs text-yellow-700 font-medium">
+                 {persona.tieneEntradaActiva && (
+                  <div className="mt-3 w-full bg-yellow-50 border border-yellow-200 rounded-lg p-2 text-xs text-yellow-700 font-medium text-center">
                     ⚠️ Tiene entrada activa
                   </div>
                 )}
+
+                {persona.isBloqueado && (
+                  <div className="mt-3 w-full bg-red-100 border border-red-300 rounded-lg p-3 text-red-800 animate-pulse">
+                    <p className="text-[10px] font-bold uppercase mb-1">🚫 PERSONA BLOQUEADA</p>
+                    <p className="text-xs font-semibold italic">"{persona.motivoBloqueo}"</p>
+                  </div>
+                )}
+
+                <div className="mt-6 w-full space-y-3">
+                  {!persona.isBloqueado ? (
+                    <button
+                      onClick={() => setShowBlockModal(true)}
+                      className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-lg text-xs transition-all shadow-md active:scale-95 flex items-center justify-center gap-2"
+                    >
+                      <span>🚫</span> BLOQUEAR PERSONA
+                    </button>
+                  ) : (
+                    <button
+                      onClick={async () => {
+                        showModal(
+                            "Confirmar Desbloqueo", 
+                            "¿Está seguro de DESBLOQUEAR a esta persona? Podrá volver a ingresar al sistema.", 
+                            "confirm", 
+                            async () => {
+                                try {
+                                    if (persona.personalId) {
+                                        await personalService.desbloquear(persona.personalId);
+                                        setPersona({ ...persona, isBloqueado: false, motivoBloqueo: "" });
+                                        setSuccessMsg("Persona desbloqueada correctamente.");
+                                        const novas = await anotacionService.getAnotacionesPorPersonal(persona.personalId);
+                                        setAnotaciones(novas);
+                                    }
+                                } catch (err: any) {
+                                    setErrorGuardar(err.response?.data?.message || "Error al desbloquear");
+                                    showModal("Error", "No se pudo realizar el desbloqueo.", "error");
+                                }
+                            }
+                        );
+                      }}
+                      className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 rounded-lg text-xs transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 uppercase"
+                    >
+                       <span>🔓</span> Desbloquear Acceso
+                    </button>
+                  )}
+                </div>
 
                 <div className="mt-4 w-full border-t border-gray-100 pt-4 text-left space-y-2">
                   {persona.destino && (
@@ -424,6 +525,80 @@ export default function ReportesPage() {
             </div>
           </div>
         )}
+
+        {/* Modal de Bloqueo */}
+        {showBlockModal && persona && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-300">
+              <div className="bg-red-600 p-5 text-white">
+                <h3 className="text-xl font-bold flex items-center gap-2 uppercase tracking-tight">
+                    🚫 Confirmar Bloqueo
+                </h3>
+                <p className="text-red-100 text-xs mt-1 font-medium italic">Se prohibirá el ingreso de {persona.nombre} {persona.apellido} de forma permanente hasta que sea revertido.</p>
+              </div>
+              <div className="p-6">
+                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2">Motivo del Bloqueo (Obligatorio)</label>
+                <textarea
+                  value={motivoBloqueo}
+                  onChange={(e) => setMotivoBloqueo(e.target.value)}
+                  placeholder="Ej: Hurto detectado, comportamiento violento, etc..."
+                  className="w-full p-4 border border-red-200 rounded-xl bg-red-50 focus:ring-2 focus:ring-red-500 outline-none text-sm min-h-[120px]"
+                  autoFocus
+                />
+                <div className="mt-6 flex gap-3">
+                  <button
+                    onClick={() => {
+                        setShowBlockModal(false);
+                        setMotivoBloqueo("");
+                    }}
+                    className="flex-1 bg-gray-100 text-gray-600 py-3 rounded-xl font-bold hover:bg-gray-200 transition-all text-sm"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (!motivoBloqueo.trim()) {
+                        showModal("Dato Requerido", "Debe indicar un motivo de bloqueo para proceder.", "warning");
+                        return;
+                      }
+                      setIsBlocking(true);
+                      try {
+                        if (persona.personalId) {
+                            await personalService.bloquear(persona.personalId, motivoBloqueo);
+                            setPersona({ ...persona, isBloqueado: true, motivoBloqueo });
+                            setSuccessMsg("Persona bloqueada exitosamente.");
+                            setShowBlockModal(false);
+                            setMotivoBloqueo("");
+                            // Recargar anotaciones
+                            const novas = await anotacionService.getAnotacionesPorPersonal(persona.personalId);
+                            setAnotaciones(novas);
+                        }
+                      } catch (err: any) {
+                        showModal("Error", err.response?.data?.message || "Error al bloquear", "error");
+                      } finally {
+                        setIsBlocking(false);
+                      }
+                    }}
+                    disabled={isBlocking}
+                    className="flex-1 bg-red-600 text-white py-3 rounded-xl font-bold hover:bg-red-700 transition-all shadow-lg active:scale-95 disabled:bg-red-300 text-sm"
+                  >
+                    {isBlocking ? "Bloqueando..." : "Bloquear Ahora"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Único de Alertas/Confirmaciones */}
+        <CustomModal
+          isOpen={modalConfig.isOpen}
+          onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
+          onConfirm={modalConfig.onConfirm}
+          title={modalConfig.title}
+          message={modalConfig.message}
+          type={modalConfig.type}
+        />
       </div>
     </div>
   );

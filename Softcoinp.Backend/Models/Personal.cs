@@ -28,5 +28,10 @@ namespace Softcoinp.Backend.Models
         public List<Registro> Registros { get; set; } = new();
 
         public List<Anotacion> Anotaciones { get; set; } = new();
+
+        // --- Bloqueo de Seguridad ---
+        public bool IsBloqueado { get; set; } = false;
+        public string? MotivoBloqueo { get; set; }
+        public DateTime? FechaBloqueoUtc { get; set; }
     }
 }

@@ -234,93 +234,45 @@ export default function ReportesPage() {
               </div>
             </div>
 
-            {/* Panel de Anotaciones (derecha) */}
-            <div className="lg:col-span-2 flex flex-col gap-4 overflow-hidden">
-              {/* Formulario nueva anotación (fijo arriba) */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 shrink-0">
-                <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                  <span className="text-base">📝</span> Nueva Anotación de Seguridad
-                </h3>
-                <textarea
-                  value={textoAnotacion}
-                  onChange={(e) => setTextoAnotacion(e.target.value)}
-                  placeholder="Describa el incidente, observación o novedad de seguridad..."
-                  rows={3}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none placeholder-gray-400"
-                />
-
-                {errorGuardar && (
-                  <p className="text-red-600 text-xs mt-2">{errorGuardar}</p>
-                )}
-                {successMsg && (
-                  <p className="text-green-600 text-xs mt-2">{successMsg}</p>
-                )}
-
-                <div className="flex justify-end mt-2">
-                  <button
-                    onClick={handleGuardarAnotacion}
-                    disabled={guardando || !textoAnotacion.trim()}
-                    className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2 rounded-lg font-medium text-sm transition-colors shadow-sm disabled:opacity-50"
-                  >
-                    {guardando ? "Guardando..." : "Guardar Anotación"}
-                  </button>
+            {/* Área de Novedades: 2 Columnas internas (Historial + Formulario) */}
+            <div className="lg:col-span-2 grid grid-cols-1 xl:grid-cols-2 gap-6 overflow-hidden">
+              
+              {/* BLOQUE IZQUIERDO: Historial (Timeline) */}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-hidden">
+                <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between bg-white shrink-0">
+                  <h3 className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                    <span className="text-xl">🕓</span> Historial de Novedades
+                  </h3>
+                  <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100 uppercase">
+                    {anotaciones.length} Registros
+                  </span>
                 </div>
-              </div>
 
-              {/* Historial de anotaciones (scrollable) */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex-grow overflow-hidden flex flex-col">
-                <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2 shrink-0">
-                  <span className="text-base">🕓</span> Historial de Anotaciones
-                  <span className="ml-auto text-xs font-normal text-gray-400">{anotaciones.length} registro(s)</span>
-                </h3>
-
-                <div className="flex-grow overflow-y-auto pr-1 shadow-inner custom-scrollbar">
+                <div className="flex-1 overflow-y-auto p-5 custom-scrollbar bg-gray-50/20">
                   {anotaciones.length === 0 ? (
-                    <p className="text-sm text-gray-400 text-center py-6">
-                      No hay anotaciones de seguridad para esta persona aún.
-                    </p>
+                    <div className="h-full flex flex-col items-center justify-center text-gray-400 gap-3 opacity-50">
+                      <div className="text-5xl">📄</div>
+                      <p className="text-sm font-medium italic">Sin anotaciones de seguridad</p>
+                    </div>
                   ) : (
-                    <div className="space-y-4">
-                      {anotaciones.map((a, idx) => (
-                        <div key={a.id} className="flex gap-3">
-                          {/* Línea de timeline */}
-                          <div className="flex flex-col items-center">
-                            <div className="w-2.5 h-2.5 rounded-full bg-blue-500 mt-1 flex-shrink-0" />
-                            {idx < anotaciones.length - 1 && (
-                              <div className="w-0.5 bg-gray-200 flex-1 mt-1" />
-                            )}
-                          </div>
-                          {/* Contenido */}
-                          <div className="flex-1 pb-4">
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-xs text-gray-400">
+                    <div className="space-y-6 relative before:content-[''] before:absolute before:left-[11px] before:top-0 before:bottom-0 before:w-0.5 before:bg-blue-100">
+                      {anotaciones.map((a) => (
+                        <div key={a.id} className="relative pl-8">
+                          {/* Punto de la línea de tiempo */}
+                          <div className="absolute left-0 top-1.5 w-6 h-6 rounded-full bg-white border-4 border-blue-500 shadow-sm z-10" />
+                          
+                          <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase">
                                 {new Date(a.fechaCreacionUtc).toLocaleString("es-CO", {
-                                  year: "numeric", month: "short", day: "numeric",
-                                  hour: "2-digit", minute: "2-digit"
+                                  day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit"
                                 })}
                               </span>
-                              <div className="flex items-center gap-2">
-                                {a.registradoPorEmail && (
-                                  <span className="text-xs text-gray-400 bg-gray-50 border border-gray-100 rounded px-2 py-0.5">
-                                    {a.registradoPorEmail}
-                                  </span>
-                                )}
+                              <div className="flex gap-2">
                                 {editingId !== a.id && (
                                   <>
-                                    <button
-                                      onClick={() => handleStartEdit(a)}
-                                      className="text-xs text-blue-500 hover:text-blue-700 font-medium"
-                                      title="Editar anotación"
-                                    >
-                                      Editar
-                                    </button>
-                                    <button
-                                      onClick={() => handleDelete(a.id)}
-                                      className="text-xs text-red-500 hover:text-red-700 font-medium"
-                                      title="Eliminar anotación"
-                                    >
-                                      Eliminar
-                                    </button>
+                                    <button onClick={() => handleStartEdit(a)} className="text-[10px] font-bold text-blue-500 hover:text-blue-700 uppercase">Editar</button>
+                                    <button onClick={() => handleDelete(a.id)} className="text-[10px] font-bold text-red-400 hover:text-red-600 uppercase">Eliminar</button>
                                   </>
                                 )}
                               </div>
@@ -331,29 +283,24 @@ export default function ReportesPage() {
                                 <textarea
                                   value={editText}
                                   onChange={(e) => setEditText(e.target.value)}
-                                  rows={2}
-                                  className="w-full px-3 py-2 border border-blue-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                                  rows={3}
+                                  className="w-full px-3 py-2 border-2 border-blue-200 rounded-lg text-sm focus:border-blue-500 outline-none resize-none"
                                 />
-                                <div className="flex gap-2 justify-end">
-                                  <button
-                                    onClick={handleCancelEdit}
-                                    className="text-xs text-gray-500 hover:text-gray-700 font-medium px-3 py-1 border border-gray-200 rounded-lg"
-                                  >
-                                    Cancelar
-                                  </button>
-                                  <button
-                                    onClick={() => handleSaveEdit(a.id)}
-                                    disabled={!editText.trim()}
-                                    className="text-xs text-white bg-blue-600 hover:bg-blue-700 font-medium px-3 py-1 rounded-lg disabled:opacity-50"
-                                  >
-                                    Guardar cambios
-                                  </button>
+                                <div className="flex justify-end gap-2">
+                                  <button onClick={handleCancelEdit} className="px-3 py-1 text-[10px] font-bold text-gray-500 bg-gray-50 rounded-lg uppercase">Cancelar</button>
+                                  <button onClick={() => handleSaveEdit(a.id)} className="px-3 py-1 text-[10px] font-bold text-white bg-blue-600 rounded-lg uppercase">Guardar</button>
                                 </div>
                               </div>
                             ) : (
-                              <p className="text-sm text-gray-700 bg-gray-50 rounded-lg p-3 border border-gray-100 leading-relaxed font-medium">
-                                {a.texto}
-                              </p>
+                              <>
+                                <p className="text-sm text-gray-700 leading-relaxed font-medium mb-2">{a.texto}</p>
+                                {a.registradoPorEmail && (
+                                  <div className="pt-2 border-t border-gray-50 flex items-center gap-1.5">
+                                    <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Reportado por:</span>
+                                    <span className="text-[9px] text-blue-500 font-bold italic">{a.registradoPorEmail.split('@')[0]}</span>
+                                  </div>
+                                )}
+                              </>
                             )}
                           </div>
                         </div>
@@ -362,6 +309,60 @@ export default function ReportesPage() {
                   )}
                 </div>
               </div>
+
+              {/* BLOQUE DERECHO: Nueva Anotación (Sticky Form) */}
+              <div className="bg-white rounded-2xl shadow-sm border-2 border-blue-100 flex flex-col overflow-hidden h-fit">
+                <div className="bg-blue-600 px-5 py-4 flex items-center gap-3">
+                  <span className="text-xl">✍️</span>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-tight">Registar Nueva Novedad</h3>
+                </div>
+                
+                <div className="p-4 space-y-3">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Detalles del Incidente</label>
+                    <textarea
+                      value={textoAnotacion}
+                      onChange={(e) => setTextoAnotacion(e.target.value)}
+                      placeholder="Escriba aquí los detalles..."
+                      rows={4}
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-blue-100 focus:border-blue-500 focus:bg-white outline-none transition-all resize-none placeholder-gray-400"
+                    />
+                  </div>
+
+                  {errorGuardar && (
+                    <div className="bg-red-50 border border-red-100 p-2 rounded-lg text-red-600 text-[10px] font-bold flex items-center gap-2 animate-bounce">
+                      <span>⚠️</span> {errorGuardar}
+                    </div>
+                  )}
+                  {successMsg && (
+                    <div className="bg-green-50 border border-green-100 p-2 rounded-lg text-green-600 text-[10px] font-bold flex items-center gap-2">
+                      <span>✅</span> {successMsg}
+                    </div>
+                  )}
+
+                  <button
+                    onClick={handleGuardarAnotacion}
+                    disabled={guardando || !textoAnotacion.trim()}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-xl font-bold shadow-lg shadow-blue-200 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3 text-sm"
+                  >
+                    {guardando ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        Guardando...
+                      </>
+                    ) : (
+                      <>💾 GUARDAR ANOTACIÓN</>
+                    )}
+                  </button>
+
+                  <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100 mt-1">
+                    <p className="text-[9px] text-blue-700 leading-normal italic font-medium">
+                      * Este registro quedará vinculado permanentemente para auditoría.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
         )}

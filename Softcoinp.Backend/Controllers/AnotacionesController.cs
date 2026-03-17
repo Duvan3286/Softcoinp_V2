@@ -40,6 +40,7 @@ namespace Softcoinp.Backend.Controllers
                           PersonalId = a.PersonalId,
                           PersonalNombre = a.Personal!.Nombre,
                           PersonalApellido = a.Personal!.Apellido,
+                          PersonalDocumento = a.Personal!.Documento,
                           Texto = a.Texto,
                           FechaCreacionUtc = a.FechaCreacionUtc,
                           RegistradoPor = a.RegistradoPor,
@@ -116,6 +117,7 @@ namespace Softcoinp.Backend.Controllers
                           PersonalId = a.PersonalId,
                           PersonalNombre = a.Personal!.Nombre,       // Entity Framework maneja los includes implícitos para selecciones simples si la relación existe
                           PersonalApellido = a.Personal!.Apellido,
+                          PersonalDocumento = a.Personal!.Documento,
                           Texto = a.Texto,
                           FechaCreacionUtc = a.FechaCreacionUtc,
                           RegistradoPor = a.RegistradoPor,

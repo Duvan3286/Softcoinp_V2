@@ -63,7 +63,7 @@ export default function PersonalActivoPage() {
     {/* 1. Botón Izquierdo (Menú Principal) */}
     <button
         onClick={() => router.push("/dashboard")}
-        className="bg-blue-600 text-white py-2 px-4 rounded-xl shadow-md hover:bg-blue-700 transition duration-200 flex items-center text-sm"
+        className="bg-blue-600 text-white py-1.5 px-3 rounded-lg shadow-md hover:bg-blue-700 transition duration-200 flex items-center text-sm font-semibold"
     >
         <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
         Menú Principal

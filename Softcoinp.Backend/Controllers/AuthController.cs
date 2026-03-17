@@ -8,6 +8,7 @@ using Softcoinp.Backend.Helpers;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Softcoinp.Backend.Services;
 
 
 namespace Softcoinp.Backend.Controllers

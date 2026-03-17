@@ -18,6 +18,7 @@ namespace Softcoinp.Backend.Dtos
         public Guid PersonalId { get; set; }
         public string? PersonalNombre { get; set; }
         public string? PersonalApellido { get; set; }
+        public string? PersonalDocumento { get; set; }
         public string Texto { get; set; } = string.Empty;
         public DateTime FechaCreacionUtc { get; set; }
         public Guid RegistradoPor { get; set; }

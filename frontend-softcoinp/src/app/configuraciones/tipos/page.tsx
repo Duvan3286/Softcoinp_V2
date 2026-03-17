@@ -86,13 +86,13 @@ export default function TiposConfigPage() {
           <div className="flex items-center gap-4">
             <button
                onClick={() => router.push("/configuraciones")}
-               className="bg-gray-200 hover:bg-gray-300 text-gray-700 py-1.5 px-3 rounded-lg font-semibold transition-colors flex items-center text-sm"
-               title="Volver"
+               className="bg-blue-600 hover:bg-blue-700 text-white py-1.5 px-3 rounded-lg font-semibold shadow-md transition-all flex items-center text-sm"
+               title="Volver a Configuraciones"
             >
               <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
-              Volver
+              Volver a Configuraciones
             </button>
             <h1 className="text-2xl font-bold text-gray-800 tracking-tight">Tipos de Personal</h1>
           </div>

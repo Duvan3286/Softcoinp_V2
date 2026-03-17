@@ -182,6 +182,13 @@ export default function RegistrosPage() {
             📜 Historial de Ingresos y Salidas
           </h1>
 
+          {/* Botón derecha - Personal Activo */}
+          <button
+            onClick={() => router.push("/personal-activo")}
+            className="absolute right-0 bg-yellow-500 text-white py-1.5 px-3 rounded-lg font-semibold shadow-md hover:bg-yellow-600 transition duration-200 flex items-center text-sm"
+          >
+            🏃 Personal Activo
+          </button>
         </div>
 
 

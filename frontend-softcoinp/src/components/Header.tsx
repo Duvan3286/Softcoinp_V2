@@ -9,10 +9,12 @@ interface AuthUser {
 
 export default function Header() {
   const [usuario, setUsuario] = useState("");
-  const pathname = usePathname();
-  const router = useRouter();
+  // Removida la redirección redundante; SessionGuard se encarga de esto.
+  const pathname = usePathname(); // Mantener pathname para el handleLogout y el renderizado condicional si SessionGuard no lo maneja completamente.
+  const router = useRouter(); // Mantener router para handleLogout
 
   useEffect(() => {
+    // 🛡️ IMPORTANTE: No intentar cargar el usuario si estamos en el login
     if (pathname === "/login") return;
 
     const cargarUsuario = async () => {
@@ -20,7 +22,7 @@ export default function Header() {
         const res = await getApiResponse<AuthUser>("/auth/me");
         setUsuario(res.data.nombre);
       } catch {
-        router.replace("/login");
+        // El interceptor 401 se encarga de la redirección si falla
       }
     };
 
@@ -29,7 +31,8 @@ export default function Header() {
 
   const handleLogout = () => {
     localStorage.clear();
-    router.replace("/login");
+    // 🧹 LIMPIEZA DE HISTORIAL: Evita que al dar "atrás" vuelva a intentar cargar la sesión
+    window.location.replace("/login"); 
   };
 
   if (pathname === "/login") return null;

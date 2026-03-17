@@ -14,13 +14,30 @@ const api = axios.create({
 
 // ✅ Interceptor para añadir el token JWT automáticamente
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers = config.headers || {};
-    config.headers["Authorization"] = `Bearer ${token}`;
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers = config.headers || {};
+      (config.headers as any).Authorization = `Bearer ${token}`;
+    }
   }
   return config;
 });
+
+// ✅ Interceptor para manejar errores globales (ej: 401 Unauthorized)
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      console.warn("🔒 Sesión expirada o no autorizada. Redirigiendo a login...");
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 // ✅ Helper tipado para obtener respuestas del backend
 export async function getApiResponse<T>(url: string, config?: any): Promise<ApiResponse<T>> {

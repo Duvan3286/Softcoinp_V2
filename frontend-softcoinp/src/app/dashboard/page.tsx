@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import api from "@/services/api";
 import { useRouter } from "next/navigation";
 import CameraCapture from "@/components/CameraCapture";
+import { tipoService, TipoPersonal } from "@/services/tipoService";
 
 
 // CONFIGURACIÓN CRÍTICA: La URL base de tu API de C#.
@@ -62,6 +63,12 @@ export default function DashboardPage() {
   const [destino, setDestino] = useState("");
   const [motivo, setMotivo] = useState("");
   const [fechaHora, setFechaHora] = useState(new Date());
+  const [mounted, setMounted] = useState(false);
+
+  
+  // 🏷️ ESTADOS para los tipos de personal dinámicos
+  const [tipos, setTipos] = useState<TipoPersonal[]>([]);
+  const [loadingTipos, setLoadingTipos] = useState(true);
 
   // 📸 ESTADOS para la cámara y la foto
   const [isCameraOpen, setIsCameraOpen] = useState(false);
@@ -78,6 +85,25 @@ export default function DashboardPage() {
   const router = useRouter();
 
   useEffect(() => {
+    const fetchTipos = async () => {
+      try {
+        const data = await tipoService.getTipos();
+        const activos = data.filter(t => t.activo);
+        setTipos(activos);
+        if (activos.length > 0) {
+          setTipo(activos[0].nombre.toLowerCase());
+        }
+      } catch (err) {
+        console.error("Error al cargar tipos de personal:", err);
+      } finally {
+        setLoadingTipos(false);
+      }
+    };
+    fetchTipos();
+  }, []);
+
+  useEffect(() => {
+    setMounted(true);
     const timer = setInterval(() => setFechaHora(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
@@ -382,10 +408,16 @@ export default function DashboardPage() {
                   <select
                     value={tipo}
                     onChange={(e) => setTipo(e.target.value)}
-                    className="appearance-none w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm bg-white text-sm"
+                    disabled={loadingTipos || tipos.length === 0}
+                    className="appearance-none w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm bg-white text-sm disabled:bg-gray-50"
                   >
-                    <option value="visitante">Visitante</option>
-                    <option value="empleado">Empleado</option>
+                    {tipos.length > 0 ? (
+                      tipos.map(t => (
+                        <option key={t.id} value={t.nombre.toLowerCase()}>{t.nombre}</option>
+                      ))
+                    ) : (
+                      <option value="">{loadingTipos ? "Cargando..." : "Sin tipos disponibles"}</option>
+                    )}
                   </select>
                   <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                     <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 6.757 7.586 5.343 9l4.95 4.95z" /></svg>
@@ -443,12 +475,21 @@ export default function DashboardPage() {
               </div>
 
               <div className="text-center w-full bg-gray-800 p-3 rounded-lg shadow-inner">
-                <p className="text-base font-medium text-gray-300">
-                  {fechaHora.toLocaleDateString("es-CO", { year: 'numeric', month: 'short', day: 'numeric' })}
-                </p>
-                <p className="text-4xl font-mono font-extrabold text-green-400 mt-1 tracking-wider">
-                  {fechaHora.toLocaleTimeString("es-CO")}
-                </p>
+                {mounted ? (
+                  <>
+                    <p className="text-base font-medium text-gray-300">
+                      {fechaHora.toLocaleDateString("es-CO", { year: 'numeric', month: 'short', day: 'numeric' })}
+                    </p>
+                    <p className="text-4xl font-mono font-extrabold text-green-400 mt-1 tracking-wider">
+                      {fechaHora.toLocaleTimeString("es-CO")}
+                    </p>
+                  </>
+                ) : (
+                  <div className="animate-pulse flex flex-col items-center gap-2">
+                    <div className="h-4 w-32 bg-gray-700 rounded"></div>
+                    <div className="h-8 w-48 bg-gray-700 rounded"></div>
+                  </div>
+                )}
               </div>
 
             </div>

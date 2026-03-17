@@ -5,6 +5,7 @@ import api from "@/services/api";
 import { useRouter } from "next/navigation";
 import CameraCapture from "@/components/CameraCapture";
 import { tipoService, TipoPersonal } from "@/services/tipoService";
+import { anotacionService, AnotacionDto } from "@/services/anotacionService";
 
 
 // CONFIGURACIÓN CRÍTICA: La URL base de tu API de C#.
@@ -81,6 +82,10 @@ export default function DashboardPage() {
     type: "info",
   });
   const [registroActivo, setRegistroActivo] = useState<RegistroActivo | null>(null);
+
+  // 🔔 Alerta de Novedades
+  const [anotacionesAlerta, setAnotacionesAlerta] = useState<AnotacionDto[]>([]);
+  const [isTimelineOpen, setIsTimelineOpen] = useState(false);
 
   const router = useRouter();
 
@@ -235,6 +240,7 @@ export default function DashboardPage() {
     setFotoBase64(null);
     setFotoUrl(null);
     setRegistroActivo(null);
+    setAnotacionesAlerta([]);
 
     try {
       const res = (await api.get(`/registros/buscar`, {
@@ -258,6 +264,12 @@ export default function DashboardPage() {
         setDestino(persona.destino || "");
         setMotivo(persona.motivo || "");
         setTipo(persona.tipo || "visitante");
+
+        // 🔍 Verificar Novedades de Seguridad
+        if (persona.personalId) {
+          const alerts = await anotacionService.getAnotacionesPorPersonal(persona.personalId);
+          setAnotacionesAlerta(alerts);
+        }
 
         if (persona.fotoUrl) {
           setFotoUrl(persona.fotoUrl);
@@ -322,6 +334,48 @@ export default function DashboardPage() {
     );
   };
 
+  const TimelineModal = ({ isOpen, onClose, anotaciones, nombre }: any) => {
+    if (!isOpen) return null;
+    return (
+      <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+          <div className="bg-red-600 p-4 text-white flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">⚠️</span>
+              <h3 className="text-lg font-bold uppercase tracking-tight">Antecedentes de Seguridad: {nombre}</h3>
+            </div>
+            <button onClick={onClose} className="hover:bg-red-700 p-1 rounded-full transition-colors">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+          </div>
+          <div className="p-6 max-h-[70vh] overflow-y-auto bg-gray-50 custom-scrollbar">
+            <div className="space-y-4 relative before:content-[''] before:absolute before:left-[11px] before:top-0 before:bottom-0 before:w-0.5 before:bg-red-100">
+              {anotaciones.map((a: any) => (
+                <div key={a.id} className="relative pl-8">
+                  <div className="absolute left-0 top-1.5 w-6 h-6 rounded-full bg-white border-4 border-red-500 shadow-sm z-10" />
+                  <div className="bg-white rounded-xl p-4 border border-red-100 shadow-sm">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase">
+                        {new Date(a.fechaCreacionUtc).toLocaleString("es-CO", { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                      {a.registradoPorEmail && (
+                        <span className="text-[9px] text-red-400 font-bold uppercase italic">{a.registradoPorEmail.split('@')[0]}</span>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-700 font-medium">{a.texto}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="p-4 bg-white border-t flex justify-end">
+            <button onClick={onClose} className="bg-gray-800 text-white px-6 py-2 rounded-lg font-bold hover:bg-gray-900 transition-all">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <>
       {isCameraOpen && (
@@ -336,6 +390,13 @@ export default function DashboardPage() {
         message={modal.message}
         type={modal.type}
         onClose={closeModal}
+      />
+
+      <TimelineModal
+        isOpen={isTimelineOpen}
+        onClose={() => setIsTimelineOpen(false)}
+        anotaciones={anotacionesAlerta}
+        nombre={`${nombres} ${apellidos}`}
       />
 
       {/* <div className="h-screen w-screen bg-gray-100 flex flex-col items-center justify-center py-2 px-6"> */}
@@ -370,9 +431,22 @@ export default function DashboardPage() {
                     onBlur={handleBuscar}
                     inputMode="numeric"
                     pattern="[0-9]*"
-                    className="w-full p-2 pl-9 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm text-sm"
+                    className={`w-full p-2 pl-9 pr-12 border rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm text-sm transition-all ${
+                        anotacionesAlerta.length > 0 ? 'border-red-400 bg-red-50 ring-2 ring-red-100' : 'border-gray-300'
+                    }`}
                   />
                   <svg className="absolute left-2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 21h7a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 2 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                  
+                  {anotacionesAlerta.length > 0 && (
+                    <button
+                      onClick={() => setIsTimelineOpen(true)}
+                      className="absolute right-2 p-1.5 bg-red-600 text-white rounded-full shadow-lg animate-pulse-red hover:bg-red-700 transition-all flex items-center justify-center group"
+                      title="¡ALERTA DE SEGURIDAD! Clic para ver detalles"
+                    >
+                      <span className="text-[14px]">⚠️</span>
+                      <span className="absolute -top-8 right-0 bg-red-700 text-white text-[9px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Ver Novedades</span>
+                    </button>
+                   )}
                 </div>
 
                 <input
@@ -501,7 +575,11 @@ export default function DashboardPage() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <button
               onClick={() => router.push("/reportes")}
-              className="bg-orange-500 text-white py-2 rounded-lg font-semibold shadow-md hover:bg-orange-600 text-xs"
+              className={`text-white py-2 rounded-lg font-semibold shadow-md text-xs transition-all ${
+                anotacionesAlerta.length > 0 
+                  ? 'bg-red-600 animate-pulse-red shadow-red-200' 
+                  : 'bg-orange-500 hover:bg-orange-600'
+              }`}
             >
               📊 Reporte de Novedades
             </button>

@@ -35,6 +35,8 @@ export default function ReportesPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
 
+  const [isTimelineOpen, setIsTimelineOpen] = useState(false);
+
   const handleBuscar = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!documento.trim()) return;
@@ -150,7 +152,11 @@ export default function ReportesPage() {
           {/* Botón derecha - Historial */}
           <button
             onClick={() => router.push("/historial-novedades")}
-            className="bg-yellow-500 hover:bg-yellow-600 text-white py-1.5 px-3 rounded-lg shadow-md transition duration-200 flex items-center text-sm font-semibold"
+            className={`text-white py-1.5 px-3 rounded-lg shadow-md transition duration-200 flex items-center text-sm font-semibold ${
+                anotaciones.length > 0 
+                  ? 'bg-red-600 animate-pulse-red' 
+                  : 'bg-yellow-500 hover:bg-yellow-600'
+            }`}
           >
             📋 Historial de Novedades
           </button>
@@ -171,8 +177,21 @@ export default function ReportesPage() {
               onChange={(e) => setDocumento(e.target.value.replace(/[^0-9]/g, ""))}
               placeholder="Número de documento..."
               inputMode="numeric"
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none shadow-sm text-sm"
+              className={`w-full pl-10 pr-12 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none shadow-sm text-sm transition-all ${
+                anotaciones.length > 0 ? 'border-red-400 bg-red-50 ring-2 ring-red-50' : 'border-gray-300'
+              }`}
             />
+            
+            {anotaciones.length > 0 && (
+                <button
+                type="button"
+                onClick={() => setIsTimelineOpen(true)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-red-600 text-white rounded-full shadow-lg animate-pulse-red hover:bg-red-700 transition-all flex items-center justify-center group z-20"
+                title="Ver Novedades en Modal"
+                >
+                <span className="text-xs">⚠️</span>
+                </button>
+            )}
           </div>
           <button
             type="submit"
@@ -362,7 +381,46 @@ export default function ReportesPage() {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
 
+        {/* Modal de Antecedentes */}
+        {isTimelineOpen && persona && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in duration-300 border-t-8 border-red-600">
+              <div className="bg-white p-4 text-red-700 border-b flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">⚠️</span>
+                  <div>
+                    <h3 className="text-lg font-bold uppercase tracking-tight leading-none">Antecedentes Detectados</h3>
+                    <p className="text-xs text-gray-400 font-bold mt-1 uppercase tracking-wider">{persona.nombre} {persona.apellido}</p>
+                  </div>
+                </div>
+                <button onClick={() => setIsTimelineOpen(false)} className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-colors">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+              </div>
+              <div className="p-6 max-h-[70vh] overflow-y-auto bg-gray-50 custom-scrollbar">
+                <div className="space-y-4 relative before:content-[''] before:absolute before:left-[11px] before:top-0 before:bottom-0 before:w-0.5 before:bg-red-100">
+                  {anotaciones.map((a) => (
+                    <div key={a.id} className="relative pl-8">
+                      <div className="absolute left-0 top-1.5 w-6 h-6 rounded-full bg-white border-4 border-red-500 shadow-sm z-10" />
+                      <div className="bg-white rounded-xl p-4 border border-red-100 shadow-sm">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-[10px] font-bold text-gray-400 uppercase">
+                            {new Date(a.fechaCreacionUtc).toLocaleString("es-CO", { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-700 font-medium">{a.texto}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="p-4 bg-white border-t flex justify-end">
+                <button onClick={() => setIsTimelineOpen(false)} className="bg-gray-800 text-white px-6 py-2 rounded-lg font-bold hover:bg-gray-900 transition-all shadow-md">Cerrar</button>
+              </div>
             </div>
           </div>
         )}

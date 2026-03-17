@@ -127,8 +127,8 @@ export default function ReportesPage() {
     : null;
 
   return (
-    <div className="min-h-full bg-gray-50 p-6">
-      <div className="max-w-6xl mx-auto">
+    <div className="h-screen bg-gray-50 p-6 overflow-hidden flex flex-col">
+      <div className="max-w-7xl mx-auto w-full h-full flex flex-col">
         {/* Header */}
         <div className="relative flex items-center justify-between mb-6">
           {/* Botón izquierda - Menú Principal */}
@@ -190,10 +190,10 @@ export default function ReportesPage() {
         )}
 
         {persona && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-grow overflow-hidden pb-4">
             {/* Tarjeta de Persona (izquierda) */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col items-center text-center sticky top-4">
+            <div className="lg:col-span-1 overflow-y-auto pr-1 custom-scrollbar">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col items-center text-center">
                 <div className="w-28 h-28 rounded-full overflow-hidden bg-gray-200 mb-4 border-4 border-blue-100 flex-shrink-0">
                   {fotoSrc ? (
                     <img src={fotoSrc} alt="Foto" className="w-full h-full object-cover" />
@@ -235,9 +235,9 @@ export default function ReportesPage() {
             </div>
 
             {/* Panel de Anotaciones (derecha) */}
-            <div className="lg:col-span-2 space-y-4">
-              {/* Formulario nueva anotación */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+            <div className="lg:col-span-2 flex flex-col gap-4 overflow-hidden">
+              {/* Formulario nueva anotación (fijo arriba) */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 shrink-0">
                 <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
                   <span className="text-base">📝</span> Nueva Anotación de Seguridad
                 </h3>
@@ -245,8 +245,8 @@ export default function ReportesPage() {
                   value={textoAnotacion}
                   onChange={(e) => setTextoAnotacion(e.target.value)}
                   placeholder="Describa el incidente, observación o novedad de seguridad..."
-                  rows={4}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none placeholder-gray-400"
+                  rows={3}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none placeholder-gray-400"
                 />
 
                 {errorGuardar && (
@@ -256,7 +256,7 @@ export default function ReportesPage() {
                   <p className="text-green-600 text-xs mt-2">{successMsg}</p>
                 )}
 
-                <div className="flex justify-end mt-3">
+                <div className="flex justify-end mt-2">
                   <button
                     onClick={handleGuardarAnotacion}
                     disabled={guardando || !textoAnotacion.trim()}
@@ -267,98 +267,100 @@ export default function ReportesPage() {
                 </div>
               </div>
 
-              {/* Historial de anotaciones */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-                <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+              {/* Historial de anotaciones (scrollable) */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex-grow overflow-hidden flex flex-col">
+                <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2 shrink-0">
                   <span className="text-base">🕓</span> Historial de Anotaciones
                   <span className="ml-auto text-xs font-normal text-gray-400">{anotaciones.length} registro(s)</span>
                 </h3>
 
-                {anotaciones.length === 0 ? (
-                  <p className="text-sm text-gray-400 text-center py-6">
-                    No hay anotaciones de seguridad para esta persona aún.
-                  </p>
-                ) : (
-                  <div className="space-y-4">
-                    {anotaciones.map((a, idx) => (
-                      <div key={a.id} className="flex gap-3">
-                        {/* Línea de timeline */}
-                        <div className="flex flex-col items-center">
-                          <div className="w-2.5 h-2.5 rounded-full bg-blue-500 mt-1 flex-shrink-0" />
-                          {idx < anotaciones.length - 1 && (
-                            <div className="w-0.5 bg-gray-200 flex-1 mt-1" />
-                          )}
-                        </div>
-                        {/* Contenido */}
-                        <div className="flex-1 pb-4">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs text-gray-400">
-                              {new Date(a.fechaCreacionUtc).toLocaleString("es-CO", {
-                                year: "numeric", month: "short", day: "numeric",
-                                hour: "2-digit", minute: "2-digit"
-                              })}
-                            </span>
-                            <div className="flex items-center gap-2">
-                              {a.registradoPorEmail && (
-                                <span className="text-xs text-gray-400 bg-gray-50 border border-gray-100 rounded px-2 py-0.5">
-                                  {a.registradoPorEmail}
-                                </span>
-                              )}
-                              {editingId !== a.id && (
-                                <>
-                                  <button
-                                    onClick={() => handleStartEdit(a)}
-                                    className="text-xs text-blue-500 hover:text-blue-700 font-medium"
-                                    title="Editar anotación"
-                                  >
-                                    Editar
-                                  </button>
-                                  <button
-                                    onClick={() => handleDelete(a.id)}
-                                    className="text-xs text-red-500 hover:text-red-700 font-medium"
-                                    title="Eliminar anotación"
-                                  >
-                                    Eliminar
-                                  </button>
-                                </>
-                              )}
-                            </div>
+                <div className="flex-grow overflow-y-auto pr-1 shadow-inner custom-scrollbar">
+                  {anotaciones.length === 0 ? (
+                    <p className="text-sm text-gray-400 text-center py-6">
+                      No hay anotaciones de seguridad para esta persona aún.
+                    </p>
+                  ) : (
+                    <div className="space-y-4">
+                      {anotaciones.map((a, idx) => (
+                        <div key={a.id} className="flex gap-3">
+                          {/* Línea de timeline */}
+                          <div className="flex flex-col items-center">
+                            <div className="w-2.5 h-2.5 rounded-full bg-blue-500 mt-1 flex-shrink-0" />
+                            {idx < anotaciones.length - 1 && (
+                              <div className="w-0.5 bg-gray-200 flex-1 mt-1" />
+                            )}
                           </div>
-
-                          {editingId === a.id ? (
-                            <div className="space-y-2">
-                              <textarea
-                                value={editText}
-                                onChange={(e) => setEditText(e.target.value)}
-                                rows={3}
-                                className="w-full px-3 py-2 border border-blue-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
-                              />
-                              <div className="flex gap-2 justify-end">
-                                <button
-                                  onClick={handleCancelEdit}
-                                  className="text-xs text-gray-500 hover:text-gray-700 font-medium px-3 py-1 border border-gray-200 rounded-lg"
-                                >
-                                  Cancelar
-                                </button>
-                                <button
-                                  onClick={() => handleSaveEdit(a.id)}
-                                  disabled={!editText.trim()}
-                                  className="text-xs text-white bg-blue-600 hover:bg-blue-700 font-medium px-3 py-1 rounded-lg disabled:opacity-50"
-                                >
-                                  Guardar cambios
-                                </button>
+                          {/* Contenido */}
+                          <div className="flex-1 pb-4">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-xs text-gray-400">
+                                {new Date(a.fechaCreacionUtc).toLocaleString("es-CO", {
+                                  year: "numeric", month: "short", day: "numeric",
+                                  hour: "2-digit", minute: "2-digit"
+                                })}
+                              </span>
+                              <div className="flex items-center gap-2">
+                                {a.registradoPorEmail && (
+                                  <span className="text-xs text-gray-400 bg-gray-50 border border-gray-100 rounded px-2 py-0.5">
+                                    {a.registradoPorEmail}
+                                  </span>
+                                )}
+                                {editingId !== a.id && (
+                                  <>
+                                    <button
+                                      onClick={() => handleStartEdit(a)}
+                                      className="text-xs text-blue-500 hover:text-blue-700 font-medium"
+                                      title="Editar anotación"
+                                    >
+                                      Editar
+                                    </button>
+                                    <button
+                                      onClick={() => handleDelete(a.id)}
+                                      className="text-xs text-red-500 hover:text-red-700 font-medium"
+                                      title="Eliminar anotación"
+                                    >
+                                      Eliminar
+                                    </button>
+                                  </>
+                                )}
                               </div>
                             </div>
-                          ) : (
-                            <p className="text-sm text-gray-700 bg-gray-50 rounded-lg p-3 border border-gray-100 leading-relaxed">
-                              {a.texto}
-                            </p>
-                          )}
+
+                            {editingId === a.id ? (
+                              <div className="space-y-2">
+                                <textarea
+                                  value={editText}
+                                  onChange={(e) => setEditText(e.target.value)}
+                                  rows={2}
+                                  className="w-full px-3 py-2 border border-blue-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                                />
+                                <div className="flex gap-2 justify-end">
+                                  <button
+                                    onClick={handleCancelEdit}
+                                    className="text-xs text-gray-500 hover:text-gray-700 font-medium px-3 py-1 border border-gray-200 rounded-lg"
+                                  >
+                                    Cancelar
+                                  </button>
+                                  <button
+                                    onClick={() => handleSaveEdit(a.id)}
+                                    disabled={!editText.trim()}
+                                    className="text-xs text-white bg-blue-600 hover:bg-blue-700 font-medium px-3 py-1 rounded-lg disabled:opacity-50"
+                                  >
+                                    Guardar cambios
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <p className="text-sm text-gray-700 bg-gray-50 rounded-lg p-3 border border-gray-100 leading-relaxed font-medium">
+                                {a.texto}
+                              </p>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>

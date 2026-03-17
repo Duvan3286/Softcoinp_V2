@@ -26,7 +26,11 @@ namespace Softcoinp.Backend.Services
                 Guid? userId = null;
                 if (http?.User?.Identity?.IsAuthenticated == true)
                 {
-                    var idClaim = http.User.FindFirst("id")?.Value;
+                    // Buscar en "id" (usado en AuthController), NameIdentifier (estándar .NET) y sub (JWT estándar)
+                    var idClaim = http.User.FindFirst("id")?.Value 
+                               ?? http.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                               ?? http.User.FindFirst("sub")?.Value;
+
                     if (Guid.TryParse(idClaim, out var g)) userId = g;
                 }
 

@@ -4,6 +4,8 @@ using Softcoinp.Backend.Models;
 using Softcoinp.Backend.Dtos;
 using Microsoft.EntityFrameworkCore;
 
+using Softcoinp.Backend.Helpers;
+
 namespace Softcoinp.Backend.Controllers
 {
     [ApiController]
@@ -34,7 +36,7 @@ namespace Softcoinp.Backend.Controllers
                 query = query.Where(l => l.UserId == userId);
 
             if (!string.IsNullOrWhiteSpace(action))
-                query = query.Where(l => l.Action == action);
+                query = query.Where(l => l.Action.Contains(action));
 
            if (desde.HasValue)
             {
@@ -50,31 +52,36 @@ namespace Softcoinp.Backend.Controllers
             
             var total = query.Count();
 
-            var logs = query
-                .OrderByDescending(l => l.CreatedAt)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Select(l => new AuditLogDto
-                {
-                    Id = l.Id,
-                    UserId = l.UserId,
-                    Action = l.Action,
-                    Entity = l.Entity,
-                    EntityId = l.EntityId,
-                    Data = l.Data,
-                    IpAddress = l.IpAddress,
-                    UserAgent = l.UserAgent,
-                    CreatedAt = l.CreatedAt
-                })
-                .ToList();
+            var logs = (from l in query
+                        join u in _db.Users on l.UserId equals u.Id into userJoin
+                        from subUser in userJoin.DefaultIfEmpty()
+                        orderby l.CreatedAt descending
+                        select new AuditLogDto
+                        {
+                            Id = l.Id,
+                            UserId = l.UserId,
+                            UserName = subUser != null ? subUser.Nombre : "Sistema",
+                            Action = l.Action,
+                            Entity = l.Entity,
+                            EntityId = l.EntityId,
+                            Data = l.Data,
+                            IpAddress = l.IpAddress,
+                            UserAgent = l.UserAgent,
+                            CreatedAt = l.CreatedAt
+                        })
+                        .Skip((page - 1) * pageSize)
+                        .Take(pageSize)
+                        .ToList();
 
-            return Ok(new
+            var result = new 
             {
                 total,
                 page,
                 pageSize,
                 logs
-            });
+            };
+
+            return Ok(ApiResponse<object>.SuccessResponse(result));
         }
     }
 }

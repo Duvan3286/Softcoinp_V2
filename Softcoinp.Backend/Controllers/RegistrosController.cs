@@ -383,6 +383,20 @@ namespace Softcoinp.Backend.Controllers
             _db.Registros.Add(registro);
             await _db.SaveChangesAsync();
 
+            try
+            {
+                await _audit.LogAsync("RegistroCreated", "Registro", registro.Id, new
+                {
+                    registro.Nombre,
+                    registro.Apellido,
+                    registro.Documento,
+                    registro.Destino,
+                    registro.Motivo,
+                    registro.Tipo
+                });
+            }
+            catch { }
+
             var dto = new RegistroDto
             {
                 Id = registro.Id,

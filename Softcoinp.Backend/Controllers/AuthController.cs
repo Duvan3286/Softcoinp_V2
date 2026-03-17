@@ -18,16 +18,18 @@ namespace Softcoinp.Backend.Controllers
     {
         private readonly AppDbContext _db;
         private readonly IConfiguration _config;
+        private readonly IAuditService _audit;
 
-        public AuthController(AppDbContext db, IConfiguration config)
+        public AuthController(AppDbContext db, IConfiguration config, IAuditService audit)
         {
             _db = db;
             _config = config;
+            _audit = audit;
         }
 
         [HttpPost("login")]
         [AllowAnonymous]
-        public IActionResult Login([FromBody] LoginRequest request)
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ApiResponse<LoginResponseDto>.Fail(null, "Error de validación", ModelState));
@@ -35,6 +37,7 @@ namespace Softcoinp.Backend.Controllers
             var user = _db.Users.SingleOrDefault(u => u.Email == request.Email);
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             {
+                try { await _audit.LogAsync("LoginFailed", "Auth", null, new { request.Email }); } catch { }
                 return Unauthorized(ApiResponse<LoginResponseDto>.Fail(null, "Credenciales inválidas"));
             }
 
@@ -43,6 +46,9 @@ namespace Softcoinp.Backend.Controllers
 
             user.RefreshToken = refreshToken;
             user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7); // 7 días válido
+            
+            try { await _audit.LogAsync("Login", "Auth", user.Id, new { user.Email }); } catch { }
+            
             _db.SaveChanges();
 
             var response = new LoginResponseDto

@@ -6,6 +6,7 @@ namespace Softcoinp.Backend.Dtos
     {
         public Guid Id { get; set; }
         public Guid? UserId { get; set; }
+        public string? UserName { get; set; }
         public string? Action { get; set; }
         public string? Entity { get; set; }
         public Guid? EntityId { get; set; }

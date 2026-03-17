@@ -22,6 +22,11 @@ export interface UpdateUserDto {
   role?: string;
 }
 
+export interface ChangePasswordDto {
+  currentPassword: string;
+  newPassword: string;
+}
+
 export const userService = {
   getUsers: async (): Promise<User[]> => {
     const response = await getApiResponse<User[]>("/users");
@@ -47,8 +52,17 @@ export const userService = {
     await api.delete(`/users/${id}`);
   },
 
+  getMe: async (): Promise<User> => {
+    const response = await getApiResponse<User>("/auth/me");
+    return response.data;
+  },
+
+  changePassword: async (data: ChangePasswordDto): Promise<void> => {
+    await api.put("/users/change-password", data);
+  },
+
   resetPassword: async (id: string, newPassword?: string): Promise<{ message: string; temporaryPassword?: string }> => {
     const response = await api.post<ApiResponse<{ message: string; temporaryPassword?: string }>>(`/users/${id}/reset-password`, { newPassword });
-    return response.data.data; // Retorna el mensaje y password si se genró auto
+    return response.data.data;
   },
 };

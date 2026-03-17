@@ -97,10 +97,10 @@ export default function HistorialNovedadesPage() {
   });
 
   return (
-    <div className="min-h-full bg-gray-50 p-6">
-      <div className="max-w-6xl mx-auto">
+    <div className="h-screen bg-gray-50 p-6 overflow-hidden flex flex-col">
+      <div className="max-w-6xl mx-auto w-full h-full flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6 shrink-0">
           <div>
             <h1 className="text-2xl font-bold text-gray-800">📋 Historial de Novedades</h1>
             <p className="text-sm text-gray-500 mt-1">
@@ -119,7 +119,7 @@ export default function HistorialNovedadesPage() {
         </div>
 
         {/* Filtros */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6 flex flex-col sm:flex-row gap-3">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-4 flex flex-col sm:flex-row gap-3 shrink-0">
           <input
             type="text"
             value={filtroBusqueda}
@@ -136,58 +136,60 @@ export default function HistorialNovedadesPage() {
         </div>
 
         {/* Conteo */}
-        <div className="flex items-center justify-between mb-3">
-          <p className="text-sm text-gray-500">
+        <div className="flex items-center justify-between mb-3 shrink-0">
+          <p className="text-sm text-gray-500 font-medium">
             {loading ? "Cargando..." : `${novedadesFiltradas.length} novedad(es) encontrada(s)`}
           </p>
         </div>
 
-        {/* Lista de novedades */}
-        {loading ? (
-          <div className="text-center py-12 text-gray-400">Cargando novedades...</div>
-        ) : novedadesFiltradas.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 py-12 text-center text-gray-400">
-            No hay novedades registradas.
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {novedadesFiltradas.map(n => (
-              <div key={n.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-                <div className="flex items-start justify-between gap-4">
-                  {/* Info de la persona */}
-                  <div className="flex items-center gap-3 flex-shrink-0">
-                    <div className="w-9 h-9 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600 font-bold text-sm">
-                      {(n.personalNombre?.[0] || "?").toUpperCase()}
+        {/* Lista de novedades (scrollable) */}
+        <div className="flex-grow overflow-y-auto pr-1 shadow-inner custom-scrollbar pb-6">
+          {loading ? (
+            <div className="text-center py-12 text-gray-400">Cargando novedades...</div>
+          ) : novedadesFiltradas.length === 0 ? (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 py-12 text-center text-gray-400">
+              No hay novedades registradas.
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {novedadesFiltradas.map(n => (
+                <div key={n.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:border-yellow-200 transition-colors">
+                  <div className="flex items-start justify-between gap-4">
+                    {/* Info de la persona */}
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      <div className="w-9 h-9 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600 font-bold text-sm">
+                        {(n.personalNombre?.[0] || "?").toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-800">
+                          {n.personalNombre || "—"} {n.personalApellido || ""}
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          {new Date(n.fechaCreacionUtc).toLocaleString("es-CO", {
+                            year: "numeric", month: "short", day: "numeric",
+                            hour: "2-digit", minute: "2-digit"
+                          })}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-800">
-                        {n.personalNombre || "—"} {n.personalApellido || ""}
-                      </p>
-                      <p className="text-xs text-gray-400">
-                        {new Date(n.fechaCreacionUtc).toLocaleString("es-CO", {
-                          year: "numeric", month: "short", day: "numeric",
-                          hour: "2-digit", minute: "2-digit"
-                        })}
-                      </p>
-                    </div>
+
+                    {/* Registrado por */}
+                    {n.registradoPorEmail && (
+                      <span className="text-xs text-gray-400 bg-gray-50 border border-gray-100 rounded-full px-3 py-1 flex-shrink-0 font-medium">
+                        👤 {n.registradoPorEmail}
+                      </span>
+                    )}
                   </div>
 
-                  {/* Registrado por */}
-                  {n.registradoPorEmail && (
-                    <span className="text-xs text-gray-400 bg-gray-50 border border-gray-100 rounded-full px-3 py-1 flex-shrink-0">
-                      👤 {n.registradoPorEmail}
-                    </span>
-                  )}
+                  {/* Texto de la novedad */}
+                  <p className="mt-3 text-sm text-gray-700 leading-relaxed border-l-4 border-yellow-400 pl-4 bg-yellow-50/50 rounded-r-lg py-3 pr-4 font-medium">
+                    {n.texto}
+                  </p>
                 </div>
-
-                {/* Texto de la novedad */}
-                <p className="mt-3 text-sm text-gray-700 leading-relaxed border-l-4 border-yellow-400 pl-3 bg-yellow-50 rounded-r-lg py-2 pr-3">
-                  {n.texto}
-                </p>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

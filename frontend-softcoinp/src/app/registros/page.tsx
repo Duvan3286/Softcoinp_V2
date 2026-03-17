@@ -146,9 +146,8 @@ export default function RegistrosPage() {
   };
 
   return (
-   <div className="flex-1 w-full bg-gray-100 px-4 overflow-hidden">
-
-<div className="bg-white rounded-2xl shadow-xl px-5 py-3 border border-gray-200 h-full flex flex-col min-h-0">
+    <div className="h-screen w-full bg-gray-100 p-6 overflow-hidden flex flex-col items-center">
+      <div className="bg-white rounded-2xl shadow-xl px-5 py-3 border border-gray-200 w-full max-w-[1400px] h-full flex flex-col overflow-hidden">
 
 
 

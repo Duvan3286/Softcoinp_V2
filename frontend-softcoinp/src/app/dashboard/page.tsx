@@ -339,7 +339,7 @@ export default function DashboardPage() {
       />
 
       {/* <div className="h-screen w-screen bg-gray-100 flex flex-col items-center justify-center py-2 px-6"> */}
-      <div className="h-full w-full bg-gray-100 flex flex-col items-center justify-center px-6">
+      <div className="h-screen w-full bg-gray-100 flex flex-col items-center justify-center px-6 overflow-hidden">
 
         {/* <div className="bg-white rounded-3xl shadow-2xl py-5 px-6 w-full border border-gray-200 flex flex-col"> */}
         <div className="bg-white rounded-3xl shadow-2xl py-4 px-6 w-full max-w-[1400px] border border-gray-200 flex flex-col">

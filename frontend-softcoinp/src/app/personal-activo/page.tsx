@@ -55,8 +55,8 @@ export default function PersonalActivoPage() {
 
   return (
     
-    // <div className="h-screen w-screen bg-gray-100 p-6 flex flex-col">
-    <div className="h-full w-full bg-gray-100 p-6 flex flex-col overflow-hidden">
+    <div className="h-screen w-full bg-gray-100 p-6 flex flex-col overflow-hidden items-center">
+      <div className="w-full max-w-[1400px] h-full flex flex-col overflow-hidden">
 
 {/* <div className="mt-6 flex justify-between items-center w-full"> */}
     <div className="flex-shrink-0 mt-4 flex justify-between items-center w-full">
@@ -160,6 +160,7 @@ export default function PersonalActivoPage() {
           ⬅️ Menú Principal
         </button>
       </div> */}
+      </div>
     </div>
   );
 }

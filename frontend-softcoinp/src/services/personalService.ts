@@ -9,7 +9,7 @@ export const personalService = {
     await api.post<ApiResponse<any>>(`/personal/${id}/bloquear`, { motivo });
   },
 
-  desbloquear: async (id: string): Promise<void> => {
-    await api.post<ApiResponse<any>>(`/personal/${id}/desbloquear`, {});
+  desbloquear: async (id: string, motivo: string): Promise<void> => {
+    await api.post<ApiResponse<any>>(`/personal/${id}/desbloquear`, { motivo });
   },
 };

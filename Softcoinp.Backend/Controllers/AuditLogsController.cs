@@ -10,7 +10,7 @@ namespace Softcoinp.Backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "admin")] // 🔒 Solo admins pueden consultar logs
+    [Authorize(Roles = "superadmin")] // 🔒 Solo superadmins pueden consultar logs
     public class AuditLogsController : ControllerBase
     {
         private readonly AppDbContext _db;

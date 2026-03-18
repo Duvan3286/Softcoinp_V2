@@ -1,5 +1,8 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 import { User, userService } from "@/services/userService";
+import { getCurrentUser, UserPayload } from "@/utils/auth";
 
 interface UserModalProps {
   user: User | null; // Si es null, estamos creando
@@ -16,8 +19,13 @@ export default function UserModal({ user, onClose, onSave }: UserModalProps) {
     password: "",
     role: "user",
   });
+  const [currentUser, setCurrentUser] = useState<UserPayload | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setCurrentUser(getCurrentUser());
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -138,7 +146,14 @@ export default function UserModal({ user, onClose, onSave }: UserModalProps) {
                 className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all bg-white"
               >
                 <option value="user">Usuario Básico (user)</option>
-                <option value="admin">Administrador (admin)</option>
+                {/* Solo SuperAdmin puede crear/editar el rol Admin */}
+                {currentUser?.role === "superadmin" && (
+                  <option value="admin">Administrador (admin)</option>
+                )}
+                {/* SuperAdmin también puede ver si el usuario ya es superadmin (aunque no debería poder crearlo) */}
+                {formData.role === "superadmin" && currentUser?.role === "superadmin" && (
+                   <option value="superadmin">Super Administrador (superadmin)</option>
+                )}
               </select>
             </div>
           </form>

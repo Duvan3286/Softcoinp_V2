@@ -121,15 +121,11 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// LOGS
-var webRootPath = Path.Combine(app.Environment.ContentRootPath, "wwwroot");
-app.Logger.LogInformation($"Content Root Path (Directorio Base): {app.Environment.ContentRootPath}");
-app.Logger.LogInformation($"Web Root Path (Archivos Estáticos Forzado): {webRootPath}");
-
 // 1. Usar CORS (debe ir ANTES de UseStaticFiles)
 app.UseCors("AllowFrontend");
 
-// 2. CONFIGURACIÓN FINAL DE ARCHIVOS ESTÁTICOS: Mapeo Explícito, CORS Forzado Y MIME Type
+// 2. CONFIGURACIÓN FINAL DE ARCHIVOS ESTÁTICOS
+var webRootPath = Path.Combine(app.Environment.ContentRootPath, "wwwroot");
 var provider = new FileExtensionContentTypeProvider();
 provider.Mappings[".jpeg"] = "image/jpeg"; 
 if (!provider.Mappings.ContainsKey(".json"))
@@ -137,28 +133,27 @@ if (!provider.Mappings.ContainsKey(".json"))
     provider.Mappings[".json"] = "application/json";
 }
 
-app.UseStaticFiles(new StaticFileOptions
+if (Directory.Exists(webRootPath))
 {
-    FileProvider = new PhysicalFileProvider(webRootPath),
-    ContentTypeProvider = provider, 
-    // Usamos el prefijo /static para evitar conflictos con rutas API
-    RequestPath = "/static", 
-    OnPrepareResponse = ctx =>
+    app.UseStaticFiles(new StaticFileOptions
     {
-        ctx.Context.Response.Headers.Append("Access-Control-Allow-Origin", "http://localhost:3000");
-        ctx.Context.Response.Headers.Append("Access-Control-Allow-Methods", "GET");
-        ctx.Context.Response.Headers.Remove("Content-Disposition");
-    }
-}); 
-
-/*
-// Inicializar base de datos al iniciar
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.EnsureCreated(); // Crea la BD y aplica HasData() definido en AppDbContext
+        FileProvider = new PhysicalFileProvider(webRootPath),
+        ContentTypeProvider = provider, 
+        // Usamos el prefijo /static para evitar conflictos con rutas API
+        RequestPath = "/static", 
+        OnPrepareResponse = ctx =>
+        {
+            ctx.Context.Response.Headers.Append("Access-Control-Allow-Origin", "http://localhost:3000");
+            ctx.Context.Response.Headers.Append("Access-Control-Allow-Methods", "GET");
+            ctx.Context.Response.Headers.Remove("Content-Disposition");
+        }
+    }); 
 }
-*/
+else
+{
+    app.Logger.LogWarning($"Advertencia: wwwroot no encontrado en {webRootPath}. Usando configuración por defecto.");
+    app.UseStaticFiles(); 
+}
 
 // Swagger solo en desarrollo
 if (app.Environment.IsDevelopment())

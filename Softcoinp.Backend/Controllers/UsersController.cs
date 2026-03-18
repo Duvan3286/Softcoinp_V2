@@ -35,13 +35,22 @@ namespace Softcoinp.Backend.Controllers
             if (_db.Users.Any(u => u.Email == request.Email))
                 return BadRequest(ApiResponse<UserDto>.Fail(null, "Ya existe un usuario con ese email."));
 
+            var isSuperAdmin = User.IsInRole("superadmin");
+            var targetRole = request.Role?.ToLower() ?? "user";
+
+            // 🛡️ Solo superadmin puede crear otros admins o superadmins
+            if (targetRole != "user" && !isSuperAdmin)
+            {
+                return Forbid();
+            }
+
             var user = new User
             {
                 Id = Guid.NewGuid(),
                 Email = request.Email,
                 Nombre = request.Nombre,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
-                Role = request.Role ?? "user",
+                Role = targetRole,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -70,7 +79,16 @@ namespace Softcoinp.Backend.Controllers
         [HttpGet]
         public IActionResult GetAll()
         {
-            var users = _db.Users
+            var isSuperAdmin = User.IsInRole("superadmin");
+            var query = _db.Users.AsQueryable();
+
+            // 🛡️ Ocultar SuperAdmins si el solicitante no es uno
+            if (!isSuperAdmin)
+            {
+                query = query.Where(u => u.Role != "superadmin");
+            }
+
+            var users = query
                 .OrderBy(u => u.Email)
                 .Select(u => new UserDto
                 {
@@ -109,7 +127,7 @@ namespace Softcoinp.Backend.Controllers
 
         // PATCH: api/users/{id}
         [HttpPatch("{id}")]
-        [Authorize(Roles = "admin")] 
+        [Authorize(Roles = "admin,superadmin")] 
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateUserDto request)
         {
             if (!ModelState.IsValid)
@@ -118,6 +136,12 @@ namespace Softcoinp.Backend.Controllers
             var user = _db.Users.Find(id);
             if (user == null)
                 return NotFound(ApiResponse<UserDto>.Fail(null, "Usuario no encontrado"));
+
+            var isSuperAdmin = User.IsInRole("superadmin");
+
+            // 🛡️ No se puede editar a un superadmin si no eres uno
+            if (user.Role == "superadmin" && !isSuperAdmin)
+                return Forbid();
 
             if (!string.IsNullOrWhiteSpace(request.Email))
             {
@@ -133,8 +157,15 @@ namespace Softcoinp.Backend.Controllers
             if (!string.IsNullOrWhiteSpace(request.Password))
                 user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
+            // 🛡️ Un admin normal no puede promover a alguien a admin o superadmin
             if (!string.IsNullOrWhiteSpace(request.Role))
-                user.Role = request.Role;
+            {
+                var newRole = request.Role.ToLower();
+                if (newRole != user.Role && !isSuperAdmin)
+                    return Forbid();
+                
+                user.Role = newRole;
+            }
 
             await _db.SaveChangesAsync();
 
@@ -189,12 +220,18 @@ namespace Softcoinp.Backend.Controllers
 
         // DELETE: api/users/{id}
         [HttpDelete("{id}")]
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "admin,superadmin")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var user = _db.Users.Find(id);
             if (user == null)
                 return NotFound(ApiResponse<UserDto>.Fail(null, "Usuario no encontrado"));
+
+            var isSuperAdmin = User.IsInRole("superadmin");
+
+            // 🛡️ No se puede borrar a un superadmin si no eres uno
+            if (user.Role == "superadmin" && !isSuperAdmin)
+                return Forbid();
 
             _db.Users.Remove(user);
             await _db.SaveChangesAsync();
@@ -210,12 +247,18 @@ namespace Softcoinp.Backend.Controllers
 
         // POST: api/users/{id}/reset-password
         [HttpPost("{id}/reset-password")]
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "admin,superadmin")]
         public async Task<IActionResult> ResetPassword(Guid id, [FromBody] ResetPasswordRequest request)
         {
             var user = _db.Users.Find(id);
             if (user == null)
                 return NotFound(ApiResponse<UserDto>.Fail(null, "Usuario no encontrado"));
+
+            var isSuperAdmin = User.IsInRole("superadmin");
+
+            // 🛡️ No se puede resetear pass a un superadmin si no eres uno
+            if (user.Role == "superadmin" && !isSuperAdmin)
+                return Forbid();
 
             var newPassword = string.IsNullOrWhiteSpace(request.NewPassword)
                 ? Guid.NewGuid().ToString("N").Substring(0, 8)

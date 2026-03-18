@@ -4,11 +4,13 @@ using System.Threading.Tasks;
 using Softcoinp.Backend.Models;
 using System;
 using System.Linq;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Softcoinp.Backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "superadmin")]
     public class MaintenanceController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -36,28 +38,23 @@ namespace Softcoinp.Backend.Controllers
                 await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"Users\"");
                 await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"TiposPersonal\"");
 
-                // 3. Insertar Seeds Básicos mediante EF
-                var tipos = new[]
-                {
-                    new TipoPersonal { Id = Guid.Parse("00000000-0000-0000-0000-000000000001"), Nombre = "Empleado", Activo = true },
-                    new TipoPersonal { Id = Guid.Parse("00000000-0000-0000-0000-000000000002"), Nombre = "Visitante", Activo = true }
-                };
-                _context.TiposPersonal.AddRange(tipos);
+                // 3. Insertar Seeds Básicos mediante SQL Directo (evita conflictos con EF Change Tracker)
+                // Usamos guiones dobles para escapar comillas en C# si es necesario, pero aquí usamos cadenas simples
+                
+                await _context.Database.ExecuteSqlRawAsync(@"
+                    INSERT INTO ""TiposPersonal"" (""Id"", ""Nombre"", ""Activo"") VALUES 
+                    ('00000000-0000-0000-0000-000000000001', 'Empleado', true),
+                    ('00000000-0000-0000-0000-000000000002', 'Visitante', true);
+                ");
 
-                var admin = new User
-                {
-                    Id = Guid.Parse("00000000-0000-0000-0000-000000000000"),
-                    Email = "admin@local",
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin123"),
-                    Role = "admin",
-                    Nombre = "Administrador Sistema",
-                    CreatedAt = DateTime.UtcNow,
-                    RefreshToken = string.Empty,
-                    RefreshTokenExpiry = DateTime.UtcNow
-                };
-                _context.Users.Add(admin);
+                var superPass = BCrypt.Net.BCrypt.HashPassword("SuperDev2026!");
+                var adminPass = BCrypt.Net.BCrypt.HashPassword("Admin123");
 
-                await _context.SaveChangesAsync();
+                await _context.Database.ExecuteSqlRawAsync($@"
+                    INSERT INTO ""Users"" (""Id"", ""Email"", ""PasswordHash"", ""Role"", ""Nombre"", ""CreatedAt"", ""RefreshToken"", ""RefreshTokenExpiry"") VALUES 
+                    ('00000000-0000-0000-0000-000000000000', 'superadmin@dev', '{superPass}', 'superadmin', 'Super Desarrollador', NOW() AT TIME ZONE 'UTC', '', NOW() AT TIME ZONE 'UTC'),
+                    ('00000000-0000-0000-0000-00000000000A', 'admin@local', '{adminPass}', 'admin', 'Administrador Sistema', NOW() AT TIME ZONE 'UTC', '', NOW() AT TIME ZONE 'UTC');
+                ");
 
                 return Ok(new { message = "Base de datos reseteada con éxito. Admin permanente restaurado." });
             }

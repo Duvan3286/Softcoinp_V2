@@ -164,7 +164,7 @@ namespace Softcoinp.Backend.Controllers
                 new Claim(ClaimTypes.Name, user.Nombre), 
                 new Claim("nombre", user.Nombre), 
                 new Claim("id", user.Id.ToString()),
-                new Claim("role", user.Role)
+                new Claim(ClaimTypes.Role, user.Role)
             };
 
             var expiration = DateTime.UtcNow.AddHours(2);

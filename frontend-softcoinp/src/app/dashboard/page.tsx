@@ -7,6 +7,7 @@ import CameraCapture from "@/components/CameraCapture";
 import { tipoService, TipoPersonal } from "@/services/tipoService";
 import { anotacionService, AnotacionDto } from "@/services/anotacionService";
 import CustomModal, { ModalType } from "@/components/CustomModal";
+import { getCurrentUser, UserPayload } from "@/utils/auth";
 
 
 // CONFIGURACIÓN CRÍTICA: La URL base de tu API de C#.
@@ -98,6 +99,8 @@ export default function DashboardPage() {
   const [isBloqueado, setIsBloqueado] = useState(false);
   const [motivoBloqueo, setMotivoBloqueo] = useState("");
 
+  const [usuario, setUsuario] = useState<UserPayload | null>(null);
+
   const router = useRouter();
 
   useEffect(() => {
@@ -120,6 +123,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     setMounted(true);
+    setUsuario(getCurrentUser());
     const timer = setInterval(() => setFechaHora(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
@@ -589,6 +593,7 @@ export default function DashboardPage() {
 
           {/* Botones de Navegación Inferiores (sin cambios) */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {/* Solo Admin y SuperAdmin ven Reportes y Registros */}
             <button
               onClick={() => router.push("/reportes")}
               className={`text-white py-2 rounded-lg font-semibold shadow-md text-xs transition-all ${
@@ -599,24 +604,40 @@ export default function DashboardPage() {
             >
               📊 Reporte de Novedades
             </button>
-            <button
-              onClick={() => router.push("/personal-activo")}
-              className="bg-purple-600 text-white py-2 rounded-lg font-semibold shadow-md hover:bg-purple-700 text-xs"
-            >
-              👥 Personal Con Registro Activo
-            </button>
+
             <button
               onClick={() => router.push("/registros")}
               className="bg-yellow-500 text-white py-2 rounded-lg font-semibold shadow-md hover:bg-yellow-600 text-xs"
             >
               📜 Historial de Registros
             </button>
+
             <button
-              onClick={() => router.push("/configuraciones")}
-              className="bg-blue-800 text-white py-2 rounded-lg font-semibold shadow-md hover:bg-blue-900 text-xs"
+              onClick={() => router.push("/personal-activo")}
+              className="bg-purple-600 text-white py-2 rounded-lg font-semibold shadow-md hover:bg-purple-700 text-xs"
             >
-              🔑 Configuraciones
+              👥 Personal Con Registro Activo
             </button>
+
+            {/* Solo Admin y SuperAdmin ven Configuraciones */}
+            {(usuario?.role === "admin" || usuario?.role === "superadmin") && (
+              <button
+                onClick={() => router.push("/configuraciones")}
+                className="bg-blue-800 text-white py-2 rounded-lg font-semibold shadow-md hover:bg-blue-900 text-xs"
+              >
+                🔑 Configuraciones
+              </button>
+            )}
+
+            {/* Solo SuperAdmin ve Mantenimiento */}
+            {usuario?.role === "superadmin" && (
+              <button
+                onClick={() => router.push("/configuraciones/general?mantenimiento=true")}
+                className="bg-red-700 text-white py-2 rounded-lg font-semibold shadow-md hover:bg-red-800 text-xs border-2 border-red-300 animate-pulse"
+              >
+                🛠️ Mantenimiento (DEV)
+              </button>
+            )}
           </div>
         </div>
 

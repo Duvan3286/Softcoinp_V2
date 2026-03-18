@@ -1,5 +1,8 @@
+"use client";
+
 import React from "react";
 import { User } from "@/services/userService";
+import { getCurrentUser } from "@/utils/auth";
 
 interface UserTableProps {
   users: User[];
@@ -9,6 +12,8 @@ interface UserTableProps {
 }
 
 export default function UserTable({ users, onEdit, onDelete, onResetPassword }: UserTableProps) {
+  const currentUser = getCurrentUser();
+
   if (users.length === 0) {
     return <div className="p-6 text-center text-gray-500">No hay usuarios registrados.</div>;
   }
@@ -31,6 +36,7 @@ export default function UserTable({ users, onEdit, onDelete, onResetPassword }: 
             <td className="px-6 py-4 whitespace-nowrap text-gray-600">{user.email}</td>
             <td className="px-6 py-4 whitespace-nowrap">
               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                user.role === "superadmin" ? "bg-red-100 text-red-800" :
                 user.role === "admin" ? "bg-purple-100 text-purple-800" : "bg-blue-100 text-blue-800"
               }`}>
                 {user.role}
@@ -40,27 +46,35 @@ export default function UserTable({ users, onEdit, onDelete, onResetPassword }: 
               {new Date(user.createdAt).toLocaleDateString()}
             </td>
             <td className="px-6 py-4 whitespace-nowrap text-right font-medium space-x-3">
-              <button
-                onClick={() => onEdit(user)}
-                className="text-blue-600 hover:text-blue-900"
-                title="Editar Usuario"
-              >
-                Editar
-              </button>
-              <button
-                onClick={() => onResetPassword(user.id)}
-                className="text-orange-600 hover:text-orange-900"
-                title="Resetear Contraseña"
-              >
-                Resetear Contraseña
-              </button>
-              <button
-                onClick={() => onDelete(user.id)}
-                className="text-red-600 hover:text-red-900"
-                title="Eliminar Usuario"
-              >
-                Eliminar
-              </button>
+              {/* Solo mostrar acciones si el usuario actual es superadmin O si el objetivo NO es superadmin */}
+              {(currentUser?.role === "superadmin" || user.role !== "superadmin") && (
+                <>
+                  <button
+                    onClick={() => onEdit(user)}
+                    className="text-blue-600 hover:text-blue-900"
+                    title="Editar Usuario"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => onResetPassword(user.id)}
+                    className="text-orange-600 hover:text-orange-900"
+                    title="Resetear Contraseña"
+                  >
+                    Resetear Contraseña
+                  </button>
+                  {/* No permitir que un usuario se elimine a sí mismo si es el único admin/superadmin, o simplemente por seguridad */}
+                  {user.email !== currentUser?.email && (
+                    <button
+                      onClick={() => onDelete(user.id)}
+                      className="text-red-600 hover:text-red-900"
+                      title="Eliminar Usuario"
+                    >
+                      Eliminar
+                    </button>
+                  )}
+                </>
+              )}
             </td>
           </tr>
         ))}

@@ -3,9 +3,19 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { auditService, AuditLog } from "@/services/auditService";
+import { getCurrentUser } from "@/utils/auth";
 
 export default function AuditoriaPage() {
   const router = useRouter();
+  
+  // 🔒 Seguridad: Solo SuperAdmin
+  useEffect(() => {
+    const user = getCurrentUser();
+    if (!user || user.role !== "superadmin") {
+      router.push("/configuraciones");
+    }
+  }, [router]);
+
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);

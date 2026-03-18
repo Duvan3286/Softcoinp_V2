@@ -68,7 +68,7 @@ namespace Softcoinp.Backend.Controllers
 
         // POST: api/personal/{id}/desbloquear
         [HttpPost("{id}/desbloquear")]
-        public async Task<IActionResult> Desbloquear(Guid id)
+        public async Task<IActionResult> Desbloquear(Guid id, [FromBody] MotivoBloqueoDto input)
         {
             var persona = await _db.Personal.FindAsync(id);
             if (persona == null)
@@ -76,6 +76,9 @@ namespace Softcoinp.Backend.Controllers
 
             if (!persona.IsBloqueado)
                 return BadRequest(ApiResponse<object>.Fail(null, "Esta persona no se encuentra bloqueada."));
+
+            if (string.IsNullOrWhiteSpace(input.Motivo))
+                return BadRequest(ApiResponse<object>.Fail(null, "El motivo del desbloqueo es obligatorio."));
 
             var userIdClaim = User.FindFirst("id")?.Value;
             if (!Guid.TryParse(userIdClaim, out var userId))
@@ -91,7 +94,7 @@ namespace Softcoinp.Backend.Controllers
             {
                 Id = Guid.NewGuid(),
                 PersonalId = persona.Id,
-                Texto = $"🔓 DESBLOQUEO DE SEGURIDAD: Se ha restaurado el permiso de acceso.",
+                Texto = $"🔓 DESBLOQUEO DE SEGURIDAD: {input.Motivo}",
                 FechaCreacionUtc = DateTime.UtcNow,
                 RegistradoPor = userId
             };
@@ -99,7 +102,7 @@ namespace Softcoinp.Backend.Controllers
 
             await _db.SaveChangesAsync();
 
-            try { await _audit.LogAsync("PersonalDesbloqueado", "Personal", persona.Id, new { Documento = persona.Documento }); } catch { }
+            try { await _audit.LogAsync("PersonalDesbloqueado", "Personal", persona.Id, new { Motivo = input.Motivo, Documento = persona.Documento }); } catch { }
 
             return Ok(ApiResponse<object>.SuccessResponse(null, "Persona desbloqueada correctamente."));
         }

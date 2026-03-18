@@ -130,6 +130,7 @@ namespace Softcoinp.Backend.Controllers
 
         // PATCH: api/anotaciones/{id}
         [HttpPatch("{id}")]
+        [Authorize(Roles = "admin,superadmin")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateAnotacionDto input)
         {
             if (string.IsNullOrWhiteSpace(input.Texto))
@@ -158,6 +159,7 @@ namespace Softcoinp.Backend.Controllers
 
         // DELETE: api/anotaciones/{id}
         [HttpDelete("{id}")]
+        [Authorize(Roles = "admin,superadmin")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var anotacion = await _db.Anotaciones.FindAsync(id);

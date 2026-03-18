@@ -102,14 +102,14 @@ export default function UsuariosConfigPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col font-sans p-6">
-      <main className="flex-1 max-w-7xl mx-auto w-full">
+    <div className="h-screen bg-gray-50 flex flex-col font-sans p-6 overflow-hidden">
+      <main className="flex-1 max-w-7xl mx-auto w-full flex flex-col min-h-0">
         {/* Header con navegación */}
         <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-200">
           <div className="flex items-center gap-4">
             <button
                onClick={() => router.push("/configuraciones")}
-               className="bg-blue-600 hover:bg-blue-700 text-white py-1.5 px-3 rounded-lg font-semibold shadow-md transition-all flex items-center text-sm"
+               className="bg-blue-600 text-white py-1.5 px-3 rounded-lg font-semibold shadow-md hover:bg-blue-700 transition duration-200 flex items-center text-sm"
                title="Volver a Configuraciones"
             >
               <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -131,13 +131,15 @@ export default function UsuariosConfigPage() {
           <span>❌</span> {error}
         </div>}
 
-        {loading ? (
+        {loading && (
           <div className="flex flex-col items-center justify-center py-20 text-gray-400 gap-4">
             <div className="w-10 h-10 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
             <p className="text-sm font-medium">Cargando usuarios...</p>
           </div>
-        ) : (
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+        )}
+
+        {!loading && !error && (
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-y-auto flex-grow custom-scrollbar min-h-0">
              <UserTable
               users={users}
               onEdit={handleOpenModal}

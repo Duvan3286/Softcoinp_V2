@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import api, { ApiResponse } from "@/services/api";
 import { anotacionService, AnotacionDto } from "@/services/anotacionService";
 import { personalService } from "@/services/personalService";
+import { getCurrentUser, UserPayload } from "@/utils/auth";
 import CustomModal, { ModalType } from "@/components/CustomModal";
 
 const BACKEND_BASE_URL = "http://localhost:5004/static";
@@ -26,6 +27,20 @@ interface PersonalResult {
 
 export default function ReportesPage() {
   const router = useRouter();
+
+  const [usuario, setUsuario] = useState<UserPayload | null>(null);
+
+  // 🔒 Seguridad: Todos los roles autenticados pueden entrar, 
+  // pero dentro se filtran acciones.
+  React.useEffect(() => {
+    const user = getCurrentUser();
+    if (!user) {
+      router.push("/dashboard");
+    } else {
+      setUsuario(user);
+    }
+  }, [router]);
+
   const [documento, setDocumento] = useState("");
   const [persona, setPersona] = useState<PersonalResult | null>(null);
   const [anotaciones, setAnotaciones] = useState<AnotacionDto[]>([]);
@@ -39,6 +54,7 @@ export default function ReportesPage() {
   const [isBlocking, setIsBlocking] = useState(false);
   const [motivoBloqueo, setMotivoBloqueo] = useState("");
   const [showBlockModal, setShowBlockModal] = useState(false);
+  const [showUnblockModal, setShowUnblockModal] = useState(false);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
@@ -180,6 +196,29 @@ export default function ReportesPage() {
     }
   };
 
+  const handleUnblockPerson = async () => {
+    if (!motivoBloqueo.trim() || !persona?.personalId) return;
+
+    setIsBlocking(true);
+    setErrorGuardar(null);
+    setSuccessMsg(null);
+
+    try {
+      await personalService.desbloquear(persona.personalId, motivoBloqueo.trim());
+      setPersona({ ...persona, isBloqueado: false, motivoBloqueo: "" });
+      setSuccessMsg("Persona desbloqueada correctamente.");
+      setShowUnblockModal(false);
+      setMotivoBloqueo("");
+      // Recargar anotaciones para ver la de desbloqueo
+      const nuevasAnotaciones = await anotacionService.getAnotacionesPorPersonal(persona.personalId);
+      setAnotaciones(nuevasAnotaciones);
+    } catch (err: any) {
+      setErrorGuardar(err.response?.data?.message || "Error al desbloquear a la persona.");
+    } finally {
+      setIsBlocking(false);
+    }
+  };
+
   const fotoSrc = persona?.fotoUrl
     ? `${BACKEND_BASE_URL}/${persona.fotoUrl}`
     : null;
@@ -309,27 +348,7 @@ export default function ReportesPage() {
                     </button>
                   ) : (
                     <button
-                      onClick={async () => {
-                        showModal(
-                            "Confirmar Desbloqueo", 
-                            "¿Está seguro de DESBLOQUEAR a esta persona? Podrá volver a ingresar al sistema.", 
-                            "confirm", 
-                            async () => {
-                                try {
-                                    if (persona.personalId) {
-                                        await personalService.desbloquear(persona.personalId);
-                                        setPersona({ ...persona, isBloqueado: false, motivoBloqueo: "" });
-                                        setSuccessMsg("Persona desbloqueada correctamente.");
-                                        const novas = await anotacionService.getAnotacionesPorPersonal(persona.personalId);
-                                        setAnotaciones(novas);
-                                    }
-                                } catch (err: any) {
-                                    setErrorGuardar(err.response?.data?.message || "Error al desbloquear");
-                                    showModal("Error", "No se pudo realizar el desbloqueo.", "error");
-                                }
-                            }
-                        );
-                      }}
+                      onClick={() => setShowUnblockModal(true)}
                       className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 rounded-lg text-xs transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 uppercase"
                     >
                        <span>🔓</span> Desbloquear Acceso
@@ -389,7 +408,7 @@ export default function ReportesPage() {
                                 })}
                               </span>
                               <div className="flex gap-2">
-                                {editingId !== a.id && (
+                                {editingId !== a.id && (usuario?.role === "admin" || usuario?.role === "superadmin") && (
                                   <>
                                     <button onClick={() => handleStartEdit(a)} className="text-[10px] font-bold text-blue-500 hover:text-blue-700 uppercase">Editar</button>
                                     <button onClick={() => handleDelete(a.id)} className="text-[10px] font-bold text-red-400 hover:text-red-600 uppercase">Eliminar</button>
@@ -583,6 +602,47 @@ export default function ReportesPage() {
                     className="flex-1 bg-red-600 text-white py-3 rounded-xl font-bold hover:bg-red-700 transition-all shadow-lg active:scale-95 disabled:bg-red-300 text-sm"
                   >
                     {isBlocking ? "Bloqueando..." : "Bloquear Ahora"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* Modal de Desbloqueo */}
+        {showUnblockModal && persona && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-300">
+              <div className="bg-green-600 p-5 text-white">
+                <h3 className="text-xl font-bold flex items-center gap-2 uppercase tracking-tight">
+                    🔓 Confirmar Desbloqueo
+                </h3>
+                <p className="text-green-100 text-xs mt-1 font-medium italic">Se restaurará el acceso para {persona.nombre} {persona.apellido}.</p>
+              </div>
+              <div className="p-6">
+                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2">Motivo del Desbloqueo (Obligatorio)</label>
+                <textarea
+                  value={motivoBloqueo}
+                  onChange={(e) => setMotivoBloqueo(e.target.value)}
+                  placeholder="Ej: Error en el reporte, compromiso de buen comportamiento, etc..."
+                  className="w-full p-4 border border-green-200 rounded-xl bg-green-50 focus:ring-2 focus:ring-green-500 outline-none text-sm min-h-[120px]"
+                  autoFocus
+                />
+                <div className="mt-6 flex gap-3">
+                  <button
+                    onClick={() => {
+                        setShowUnblockModal(false);
+                        setMotivoBloqueo("");
+                    }}
+                    className="flex-1 bg-gray-100 text-gray-600 py-3 rounded-xl font-bold hover:bg-gray-200 transition-all text-sm"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleUnblockPerson}
+                    disabled={isBlocking || !motivoBloqueo.trim()}
+                    className="flex-1 bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 transition-all shadow-lg active:scale-95 disabled:bg-green-300 text-sm"
+                  >
+                    {isBlocking ? "Desbloqueando..." : "Confirmar Desbloqueo"}
                   </button>
                 </div>
               </div>

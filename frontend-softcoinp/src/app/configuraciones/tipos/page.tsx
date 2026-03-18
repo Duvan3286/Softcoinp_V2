@@ -104,21 +104,20 @@ export default function TiposConfigPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 flex flex-col font-sans">
-      <main className="flex-1 max-w-5xl mx-auto w-full">
+    <div className="h-screen bg-gray-50 p-6 flex flex-col font-sans overflow-hidden">
+      <main className="flex-1 max-w-5xl mx-auto w-full flex flex-col min-h-0">
         {/* Header */}
         <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-200">
           <div className="flex items-center gap-4">
             <button
-               onClick={() => router.push("/configuraciones")}
-               className="bg-blue-600 hover:bg-blue-700 text-white py-1.5 px-3 rounded-lg font-semibold shadow-md transition-all flex items-center text-sm"
-               title="Volver a Configuraciones"
-            >
-              <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              Volver a Configuraciones
-            </button>
+            onClick={() => router.push("/configuraciones")}
+            className="bg-blue-600 text-white py-1.5 px-3 rounded-lg font-semibold shadow-md hover:bg-blue-700 transition duration-200 flex items-center text-sm"
+          >
+            <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Volver a Configuraciones
+          </button>
             <h1 className="text-2xl font-bold text-gray-800 tracking-tight">Tipos de Personal</h1>
           </div>
           <button
@@ -135,56 +134,60 @@ export default function TiposConfigPage() {
           </div>
         )}
 
-        {loading ? (
+        {loading && (
           <div className="flex flex-col items-center justify-center py-20 text-gray-400 gap-4">
             <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
             <p className="text-sm font-medium">Cargando tipos...</p>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {tipos.map((t) => (
-              <div key={t.id} className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm shadow-gray-200/50 flex flex-col justify-between transition-all hover:shadow-md">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-3 h-3 rounded-full ${t.activo ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                    <span className="font-bold text-gray-800 text-lg">{t.nombre}</span>
+        )}
+
+        {!loading && !error && (
+          <div className="flex-grow overflow-y-auto pr-2 custom-scrollbar min-h-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-6">
+              {tipos.map((t) => (
+                <div key={t.id} className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm shadow-gray-200/50 flex flex-col justify-between transition-all hover:shadow-md">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-3 h-3 rounded-full ${t.activo ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                      <span className="font-bold text-gray-800 text-lg">{t.nombre}</span>
+                    </div>
+                    <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-md ${t.activo ? 'bg-green-50 text-green-600' : 'bg-gray-50 text-gray-400'}`}>
+                      {t.activo ? 'Activo' : 'Inactivo'}
+                    </span>
                   </div>
-                  <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-md ${t.activo ? 'bg-green-50 text-green-600' : 'bg-gray-50 text-gray-400'}`}>
-                    {t.activo ? 'Activo' : 'Inactivo'}
-                  </span>
+                  
+                  <div className="flex items-center justify-end gap-2 mt-4 pt-4 border-t border-gray-50">
+                    <button 
+                      onClick={() => toggleActivo(t)}
+                      className={`p-2 rounded-lg transition-colors ${t.activo ? 'bg-orange-50 text-orange-600 hover:bg-orange-100' : 'bg-green-50 text-green-600 hover:bg-green-100'}`}
+                      title={t.activo ? "Desactivar" : "Activar"}
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636" />
+                      </svg>
+                    </button>
+                    <button 
+                      onClick={() => handleOpenModal(t)}
+                      className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                      title="Editar"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(t.id)}
+                      className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
+                      title="Eliminar"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
-                
-                <div className="flex items-center justify-end gap-2 mt-4 pt-4 border-t border-gray-50">
-                   <button 
-                    onClick={() => toggleActivo(t)}
-                    className={`p-2 rounded-lg transition-colors ${t.activo ? 'bg-orange-50 text-orange-600 hover:bg-orange-100' : 'bg-green-50 text-green-600 hover:bg-green-100'}`}
-                    title={t.activo ? "Desactivar" : "Activar"}
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636" />
-                    </svg>
-                  </button>
-                  <button 
-                    onClick={() => handleOpenModal(t)}
-                    className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
-                    title="Editar"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                    </svg>
-                  </button>
-                  <button 
-                    onClick={() => handleDelete(t.id)}
-                    className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
-                    title="Eliminar"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
       </main>

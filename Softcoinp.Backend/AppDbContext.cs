@@ -35,6 +35,12 @@ namespace Softcoinp.Backend
                 .HasForeignKey(a => a.PersonalId)
                 .OnDelete(DeleteBehavior.Cascade); // Si se elimina un personal, se borran sus reportes
 
+            // Seed initial Personal Types
+            modelBuilder.Entity<TipoPersonal>().HasData(
+                new TipoPersonal { Id = Guid.Parse("00000000-0000-0000-0000-000000000001"), Nombre = "Empleado", Activo = true },
+                new TipoPersonal { Id = Guid.Parse("00000000-0000-0000-0000-000000000002"), Nombre = "Visitante", Activo = true }
+            );
+
             base.OnModelCreating(modelBuilder);
         }
 

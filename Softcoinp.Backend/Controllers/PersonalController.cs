@@ -25,6 +25,31 @@ namespace Softcoinp.Backend.Controllers
             _audit = audit;
         }
 
+        // GET: api/personal
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var personas = await _db.Personal
+                .Include(p => p.Registros)
+                .OrderByDescending(p => p.FechaCreacionUtc)
+                .Select(p => new
+                {
+                    p.Id,
+                    p.Nombre,
+                    p.Apellido,
+                    p.Documento,
+                    p.Tipo,
+                    p.Telefono,
+                    p.FechaCreacionUtc,
+                    p.IsBloqueado,
+                    TieneEntradaActiva = p.Registros.Any(r => r.HoraSalidaUtc == null),
+                    FotoUrl = p.FotoUrl ?? p.Registros.Where(r => r.FotoUrl != null).OrderByDescending(r => r.HoraIngresoUtc).Select(r => r.FotoUrl).FirstOrDefault()
+                })
+                .ToListAsync();
+
+            return Ok(ApiResponse<object>.SuccessResponse(personas));
+        }
+
         // POST: api/personal/{id}/bloquear
         [HttpPost("{id}/bloquear")]
         public async Task<IActionResult> Bloquear(Guid id, [FromBody] MotivoBloqueoDto input)

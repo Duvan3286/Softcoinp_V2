@@ -35,8 +35,17 @@ export default function HistorialVehicularesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Cargar todas las novedades al inicio
+  // Cargar todas las novedades al inicio y leer filtros URL si existen
   useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const d = urlParams.get('desde');
+    const h = urlParams.get('hasta');
+    if (d) setDesdeFilter(d);
+    if (h) setHastaFilter(h);
+    
+    // Auto-limpiar URL para no ensuciar la navegación futura
+    window.history.replaceState(null, '', window.location.pathname);
+
     fetchAllNovedades();
   }, []);
 
@@ -68,19 +77,13 @@ export default function HistorialVehicularesPage() {
     // 3. Filtro por Fechas
     if (desdeFilter || hastaFilter) {
       const fechaLog = new Date(n.fechaCreacionUtc);
-      fechaLog.setHours(0, 0, 0, 0);
+      const year = fechaLog.getFullYear();
+      const month = String(fechaLog.getMonth() + 1).padStart(2, '0');
+      const day = String(fechaLog.getDate()).padStart(2, '0');
+      const localDateStr = `${year}-${month}-${day}`;
 
-      if (desdeFilter) {
-        const desde = new Date(desdeFilter);
-        desde.setHours(0, 0, 0, 0);
-        if (fechaLog < desde) return false;
-      }
-
-      if (hastaFilter) {
-        const hasta = new Date(hastaFilter);
-        hasta.setHours(0, 0, 0, 0);
-        if (fechaLog > hasta) return false;
-      }
+      if (desdeFilter && localDateStr < desdeFilter) return false;
+      if (hastaFilter && localDateStr > hastaFilter) return false;
     }
 
     // 4. Filtro por Reportante

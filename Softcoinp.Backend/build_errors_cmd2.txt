@@ -1,0 +1,8 @@
+C:\Program Files\dotnet\sdk\8.0.414\Microsoft.Common.CurrentVersion.targets(5321,5): error MSB3027: No se pudo copiar "C:\softcoinp\Softcoinp.Backend\obj\Debug\net8.0\apphost.exe" en "bin\Debug\net8.0\Softcoinp.Backend.exe". Se superó el número de 10 reintentos. Error. El archivo se ha bloqueado por: "Softcoinp.Backend (11668)" [C:\softcoinp\Softcoinp.Backend\Softcoinp.Backend.csproj]
+C:\Program Files\dotnet\sdk\8.0.414\Microsoft.Common.CurrentVersion.targets(5321,5): error MSB3021: No se puede copiar "C:\softcoinp\Softcoinp.Backend\obj\Debug\net8.0\apphost.exe" en "bin\Debug\net8.0\Softcoinp.Backend.exe". The process cannot access the file 'C:\softcoinp\Softcoinp.Backend\bin\Debug\net8.0\Softcoinp.Backend.exe' because it is being used by another process. [C:\softcoinp\Softcoinp.Backend\Softcoinp.Backend.csproj]
+
+ERROR al compilar.
+    10 Advertencia(s)
+    2 Errores
+
+Tiempo transcurrido 00:00:13.43

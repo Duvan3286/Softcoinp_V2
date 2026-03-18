@@ -17,6 +17,7 @@ export default function Sidebar() {
   const [isHistorialOpen, setIsHistorialOpen] = useState(false);
   const [isEnSitioOpen, setIsEnSitioOpen] = useState(false);
   const [isNovedadesOpen, setIsNovedadesOpen] = useState(false);
+  const [isAnaliticaOpen, setIsAnaliticaOpen] = useState(false);
 
   useEffect(() => {
     if (pathname === "/login") return;
@@ -25,7 +26,8 @@ export default function Sidebar() {
     // Auto-abrir grupos si la ruta actual pertenece a ellos
     if (pathname.includes("registros")) setIsHistorialOpen(true);
     if (pathname.includes("activo")) setIsEnSitioOpen(true);
-    if (pathname.includes("reportes") || pathname.includes("novedades")) setIsNovedadesOpen(true);
+    if (pathname.includes("novedades")) setIsNovedadesOpen(true);
+    if (pathname.includes("reportes")) setIsAnaliticaOpen(true);
     
     // Cerrar sidebar en móvil al navegar
     setIsOpen(false);
@@ -65,6 +67,19 @@ export default function Sidebar() {
             >
                <NavItem icon="👥" text="Novedades Personas" path="/novedades" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />
                <NavItem icon="🚗" text="Novedades Vehicular" path="/novedades-vehiculares" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />
+            </NavGroup>
+
+            {/* Grupo Analítica y Catálogos */}
+            <NavGroup 
+               icon="📊" 
+               text="Analítica & Catálogos" 
+               isOpen={isAnaliticaOpen && isExpanded} 
+               isExpanded={isExpanded}
+               onToggle={() => setIsAnaliticaOpen(!isAnaliticaOpen)}
+            >
+               <NavItem icon="📈" text="Dashboard Analítico" path="/reportes" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />
+               <NavItem icon="👥" text="Catálogo Personas" path="/reportes/personas" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />
+               <NavItem icon="🚗" text="Catálogo Vehículos" path="/reportes/vehiculos" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />
             </NavGroup>
             
             {/* Grupo Historial */}

@@ -22,9 +22,18 @@ export const vehiculoService = {
     try {
       const response = await api.get(`/vehiculos/placa/${placa}`);
       return response.data.data;
-    } catch (error: any) {
-      if (error.response?.status === 404) return null;
-      throw error;
+    } catch (error) {
+      console.error(`Error al obtener vehículo con placa ${placa}:`, error);
+      return null;
+    }
+  },
+  getAllVehiculos: async (): Promise<VehiculoDto[]> => {
+    try {
+      const response = await api.get<{ data: VehiculoDto[] }>("/vehiculos");
+      return response.data.data || [];
+    } catch (error) {
+      console.error("Error al obtener el catálogo de vehículos:", error);
+      return [];
     }
   }
 };

@@ -708,12 +708,12 @@ export default function DashboardPage() {
         nombre={`${nombres} ${apellidos}`}
       />
 
-      <div className="h-[calc(100vh-56px)] w-full flex flex-col relative z-0 overflow-hidden">
+      <div className="flex-1 w-full flex flex-col relative z-0 lg:overflow-hidden">
         
         {/* Halo decorativo */}
         <div className="fixed top-0 left-0 w-full h-96 bg-gradient-to-b from-blue-50/40 to-transparent -z-10 pointer-events-none"></div>
 
-        <div className="flex flex-col lg:flex-row gap-4 h-full min-h-0 w-full max-w-[1700px] mx-auto p-3 lg:p-4 overflow-y-auto lg:overflow-hidden">
+        <div className="flex flex-col lg:flex-row gap-4 flex-1 min-h-0 w-full max-w-[1700px] mx-auto p-3 lg:p-4 overflow-y-auto lg:overflow-hidden">
 
           {/* ══════════════════════════════════════════
               COLUMNA IZQUIERDA: Reloj + Vehículo
@@ -721,7 +721,7 @@ export default function DashboardPage() {
           <div className="w-full lg:w-96 xl:w-[26rem] flex flex-col gap-3 flex-shrink-0">
 
             {/* ── Bloque Vehículo ── */}
-            <div className="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm p-3 lg:p-4 flex flex-col gap-2.5 overflow-hidden">
+            <div className="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm p-3 lg:p-4 flex flex-col gap-2.5 lg:overflow-hidden">
               <div className="flex items-center gap-3 mb-1 flex-shrink-0">
                 {/* Título — izquierda */}
                 <div className="flex flex-col justify-center flex-1 min-w-0">
@@ -927,7 +927,7 @@ export default function DashboardPage() {
           {/* ══════════════════════════════════════════
               COLUMNA DERECHA: Formulario Persona + Acciones
           ══════════════════════════════════════════ */}
-          <div className="flex-1 flex flex-col bg-white rounded-2xl border border-slate-200 shadow-sm p-4 lg:p-5 overflow-hidden min-h-0">
+          <div className="flex-1 flex flex-col bg-white rounded-2xl border border-slate-200 shadow-sm p-4 lg:p-5 lg:overflow-hidden min-h-0">
             {/* Cabecera: Título izq + Foto derecha */}
             <div className="flex items-center gap-3 mb-2 flex-shrink-0">
 

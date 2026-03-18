@@ -3,10 +3,12 @@
 import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { getCurrentUser } from "@/utils/auth";
+import { useSidebar } from "@/context/SidebarContext";
 
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { isOpen, setIsOpen } = useSidebar();
   const [isExpanded, setIsExpanded] = useState(false);
   const [usuario, setUsuario] = useState<{ role?: string; id?: string } | null>(null);
   const [hayNovedades, setHayNovedades] = useState(false);
@@ -22,72 +24,85 @@ export default function Sidebar() {
     // Auto-abrir grupos si la ruta actual pertenece a ellos
     if (pathname.includes("registros")) setIsHistorialOpen(true);
     if (pathname.includes("activo")) setIsEnSitioOpen(true);
-  }, [pathname]);
+    
+    // Cerrar sidebar en móvil al navegar
+    setIsOpen(false);
+  }, [pathname, setIsOpen]);
 
   if (pathname === "/login") return null;
 
   return (
-    <aside 
-      className={`bg-white text-slate-700 flex flex-col pt-2 pb-4 z-[100] flex-shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.05)] relative transition-all duration-300 ease-in-out border-r border-slate-200 ${isExpanded ? 'w-72' : 'w-[88px]'} hidden lg:flex h-full`}
-      onMouseEnter={() => setIsExpanded(true)}
-      onMouseLeave={() => {
-          setIsExpanded(false);
-          // Opcional: Cerrar grupos al colapsar el sidebar? 
-          // Mejor dejarlos para que cuando vuelva a expandir estén como antes
-      }}
-    >
-      <nav className="flex flex-col gap-2 flex-grow px-4 overflow-y-auto overflow-x-hidden custom-scrollbar mt-4">
-         <NavItem icon="🏢" text="Dashboard" path="/dashboard" currentPath={pathname} isExpanded={isExpanded} router={router} />
-         <NavItem icon="📊" text="Reportes" path="/reportes" currentPath={pathname} isExpanded={isExpanded} alert={hayNovedades} router={router} />
-         
-         {/* Grupo Historial */}
-         <NavGroup 
-            icon="📜" 
-            text="Historial" 
-            isOpen={isHistorialOpen && isExpanded} 
-            isExpanded={isExpanded}
-            onToggle={() => setIsHistorialOpen(!isHistorialOpen)}
-         >
-            <NavItem icon="👥" text="Personas" path="/registros" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />
-            <NavItem icon="🚗" text="Vehículos" path="/registros-vehiculos" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />
-         </NavGroup>
+    <>
+      {/* 🌑 BACKDROP (Solo móvil) */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[115] lg:hidden animate-in fade-in duration-300"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
 
-         {/* Grupo En Sitio */}
-         <NavGroup 
-            icon="📍" 
-            text="En Sitio" 
-            isOpen={isEnSitioOpen && isExpanded} 
-            isExpanded={isExpanded}
-            onToggle={() => setIsEnSitioOpen(!isEnSitioOpen)}
-         >
-            <NavItem icon="👤" text="Personas Activas" path="/personal-activo" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />
-            <NavItem icon="🚘" text="Vehículos Activos" path="/vehiculos-activos" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />
-         </NavGroup>
+      <aside 
+        className={`bg-white text-slate-700 flex flex-col pt-2 pb-4 flex-shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.05)] border-r border-slate-200 transition-all duration-300 ease-in-out
+          fixed inset-y-0 left-0 z-[120] lg:static lg:z-10 h-full
+          ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          ${isExpanded ? 'w-72' : 'w-72 lg:w-[88px]'}
+        `}
+        onMouseEnter={() => setIsExpanded(true)}
+        onMouseLeave={() => setIsExpanded(false)}
+      >
+        <nav className="flex flex-col gap-2 flex-grow px-4 overflow-y-auto overflow-x-hidden custom-scrollbar mt-4">
+           <NavItem icon="🏢" text="Dashboard" path="/dashboard" currentPath={pathname} isExpanded={isExpanded} router={router} />
+           <NavItem icon="📊" text="Reportes" path="/reportes" currentPath={pathname} isExpanded={isExpanded} alert={hayNovedades} router={router} />
+           
+           {/* Grupo Historial */}
+           <NavGroup 
+              icon="📜" 
+              text="Historial" 
+              isOpen={isHistorialOpen && isExpanded} 
+              isExpanded={isExpanded}
+              onToggle={() => setIsHistorialOpen(!isHistorialOpen)}
+           >
+              <NavItem icon="👥" text="Personas" path="/registros" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />
+              <NavItem icon="🚗" text="Vehículos" path="/registros-vehiculos" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />
+           </NavGroup>
 
-         <NavItem icon="📦" text="Correspondencia" path="/correspondencia" currentPath={pathname} isExpanded={isExpanded} router={router} />
+           {/* Grupo En Sitio */}
+           <NavGroup 
+              icon="📍" 
+              text="En Sitio" 
+              isOpen={isEnSitioOpen && isExpanded} 
+              isExpanded={isExpanded}
+              onToggle={() => setIsEnSitioOpen(!isEnSitioOpen)}
+           >
+              <NavItem icon="👤" text="Personas Activas" path="/personal-activo" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />
+              <NavItem icon="🚘" text="Vehículos Activos" path="/vehiculos-activos" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />
+           </NavGroup>
 
-         {(usuario?.role === "admin" || usuario?.role === "superadmin") && (
-            <div className="mt-2 pt-2 border-t border-slate-200">
-                <NavItem icon="🔑" text="Configuraciones" path="/configuraciones" currentPath={pathname} isExpanded={isExpanded} router={router} />
-            </div>
-         )}
+           <NavItem icon="📦" text="Correspondencia" path="/correspondencia" currentPath={pathname} isExpanded={isExpanded} router={router} />
 
-         {usuario?.role === "superadmin" && (
-            <div className="mt-2 text-[10px] uppercase font-black text-slate-300 px-4 mb-1">Super Admin</div>
-         )}
-         {usuario?.role === "superadmin" && (
-            <NavItem icon="🛠️" text="Mantenimiento" path="/configuraciones/general?mantenimiento=true" currentPath={pathname} isExpanded={isExpanded} router={router} highlightRed />
-         )}
-      </nav>
+           {(usuario?.role === "admin" || usuario?.role === "superadmin") && (
+              <div className="mt-2 pt-2 border-t border-slate-200">
+                  <NavItem icon="🔑" text="Configuraciones" path="/configuraciones" currentPath={pathname} isExpanded={isExpanded} router={router} />
+              </div>
+           )}
 
-      <div className="mt-auto pt-4 border-t border-slate-200 text-center overflow-hidden flex flex-col items-center justify-center min-h-[40px]">
-         {isExpanded ? (
-           <p className="text-[10px] text-slate-400 font-bold tracking-widest whitespace-nowrap animate-in fade-in duration-300">SOFTCOINP V1.0</p>
-         ) : (
-           <p className="text-[10px] text-slate-400 font-bold tracking-widest">V1.0</p>
-         )}
-      </div>
-    </aside>
+           {usuario?.role === "superadmin" && (
+              <div className="mt-2 text-[10px] uppercase font-black text-slate-300 px-4 mb-1">Super Admin</div>
+           )}
+           {usuario?.role === "superadmin" && (
+              <NavItem icon="🛠️" text="Mantenimiento" path="/configuraciones/general?mantenimiento=true" currentPath={pathname} isExpanded={isExpanded} router={router} highlightRed />
+           )}
+        </nav>
+
+        <div className="mt-auto pt-4 border-t border-slate-200 text-center overflow-hidden flex flex-col items-center justify-center min-h-[40px]">
+           {isExpanded ? (
+             <p className="text-[10px] text-slate-400 font-bold tracking-widest whitespace-nowrap animate-in fade-in duration-300">SOFTCOINP V1.0</p>
+           ) : (
+             <p className="text-[10px] text-slate-400 font-bold tracking-widest">V1.0</p>
+           )}
+        </div>
+      </aside>
+    </>
   );
 }
 
@@ -103,8 +118,7 @@ function NavGroup({ icon, text, isOpen, isExpanded, onToggle, children }: any) {
             >
                 <span className="text-xl flex-shrink-0 flex items-center justify-center w-8 group-hover:scale-110 transition-transform">{icon}</span>
                 <span 
-                    className={`text-sm ml-3 transition-opacity duration-300 flex-1 text-left tracking-wide ${isExpanded ? 'opacity-100' : 'opacity-0 w-0 hidden'}`}
-                    style={{ display: isExpanded ? 'block' : 'none' }}
+                    className={`text-sm ml-3 transition-opacity duration-300 flex-1 text-left tracking-wide ${isExpanded ? 'lg:opacity-100' : 'lg:opacity-0 lg:w-0 lg:hidden'}`}
                 >
                     {text}
                 </span>
@@ -142,8 +156,7 @@ function NavItem({ icon, text, path, currentPath, isExpanded, alert, highlightRe
     <button onClick={() => router.push(path)} className={baseClass} title={text}>
        <span className={`${isSubItem ? 'text-lg' : 'text-xl'} flex-shrink-0 flex items-center justify-center w-8 group-hover:scale-110 transition-transform ${isActive ? 'drop-shadow-md' : ''}`}>{icon}</span>
        <span 
-         className={`${isSubItem ? 'text-xs' : 'text-sm'} ml-3 transition-opacity duration-300 flex-1 text-left tracking-wide ${isExpanded ? 'opacity-100' : 'opacity-0 w-0 hidden'}`}
-         style={{ display: isExpanded ? 'block' : 'none' }}
+         className={`${isSubItem ? 'text-xs' : 'text-sm'} ml-3 transition-opacity duration-300 flex-1 text-left tracking-wide ${isExpanded ? 'lg:opacity-100' : 'lg:opacity-0 lg:w-0 lg:hidden'}`}
        >
          {text}
        </span>

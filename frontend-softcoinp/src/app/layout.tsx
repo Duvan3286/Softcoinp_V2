@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "@/components/Header";
 import SessionGuard from "@/components/SessionGuard"; 
 import Sidebar from "@/components/Sidebar";
+import { SidebarProvider } from "@/context/SidebarContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,20 +29,22 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-100 h-screen flex flex-col`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-100 min-h-screen flex flex-col`}
       >
-        {/* 🔝 HEADER GLOBAL */}
-        <Header />
+        <SidebarProvider>
+          {/* 🔝 HEADER GLOBAL */}
+          <Header />
 
-        {/* 📄 CONTENIDO */}
-        <main className="flex flex-row h-[calc(100vh-56px)] w-full overflow-hidden">
-          <SessionGuard>
-            <Sidebar />
-            <div className="flex-1 overflow-y-auto h-full bg-slate-50 w-full">
-              {children}
-            </div>
-          </SessionGuard>
-        </main>
+          {/* 📄 CONTENIDO */}
+          <main className="flex flex-row flex-1 w-full overflow-hidden relative">
+            <SessionGuard>
+              <Sidebar />
+              <div className="flex-1 overflow-y-auto bg-slate-50 w-full relative">
+                {children}
+              </div>
+            </SessionGuard>
+          </main>
+        </SidebarProvider>
       </body>
     </html>
   );

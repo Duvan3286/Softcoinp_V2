@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { getApiResponse } from "@/services/api";
+import { useSidebar } from "@/context/SidebarContext";
 
 interface AuthUser {
   nombre: string;
@@ -38,8 +39,20 @@ export default function Header() {
     ? usuario.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase()
     : "?";
 
+  const { toggleSidebar } = useSidebar();
+
   return (
-    <header className="relative w-full h-14 bg-white border-b border-slate-200/80 px-5 flex items-center gap-4 shadow-sm z-30">
+    <header className="relative w-full h-14 bg-white border-b border-slate-200/80 px-4 lg:px-5 flex items-center gap-2 lg:gap-4 shadow-sm z-[110]">
+      
+      {/* 📱 BOTÓN MENU (Solo móvil) */}
+      <button 
+        onClick={toggleSidebar}
+        className="lg:hidden p-2 rounded-xl bg-slate-50 text-slate-600 hover:bg-slate-100 transition-colors"
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
 
       {/* ── IZQUIERDA: Avatar + Nombre usuario ── */}
       <div className="flex items-center gap-3 min-w-0">

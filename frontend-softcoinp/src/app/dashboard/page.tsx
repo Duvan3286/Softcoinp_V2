@@ -244,6 +244,12 @@ export default function DashboardPage() {
   const handleBuscar = async () => {
     if (!identificacion.trim()) return;
 
+    // 📏 Validación de longitud (mínimo 7, máximo 10)
+    if (identificacion.length < 7 || identificacion.length > 10) {
+        showModal("El número de documento debe tener entre 7 y 10 dígitos.", "warning", "Documento Inválido");
+        return;
+    }
+
     setNombres("");
     setApellidos("");
     setDestino("");
@@ -414,6 +420,11 @@ export default function DashboardPage() {
                     value={identificacion}
                     onChange={(e) => setIdentificacion(e.target.value.replace(/[^0-9]/g, ""))}
                     onBlur={handleBuscar}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleBuscar();
+                      }
+                    }}
                     inputMode="numeric"
                     pattern="[0-9]*"
                     className={`w-full p-2 pt-6 pl-9 pr-12 border rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm text-sm font-bold transition-all ${

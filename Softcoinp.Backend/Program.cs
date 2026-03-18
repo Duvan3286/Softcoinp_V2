@@ -151,13 +151,14 @@ app.UseStaticFiles(new StaticFileOptions
     }
 }); 
 
-// Ejecutar seeder al iniciar
+/*
+// Inicializar base de datos al iniciar
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.EnsureCreated();
-    DbSeeder.Seed(db);
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.EnsureCreated(); // Crea la BD y aplica HasData() definido en AppDbContext
 }
+*/
 
 // Swagger solo en desarrollo
 if (app.Environment.IsDevelopment())

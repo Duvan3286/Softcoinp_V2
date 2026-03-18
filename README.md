@@ -51,5 +51,35 @@ El sistema está dividido en dos componentes principales:
 3. Inicia el entorno de desarrollo: `npm run dev`.
 4. Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
 
+## 🧹 Mantenimiento de Base de Datos
+
+El sistema incluye herramientas para realizar limpiezas controladas y reseteos globales de la información.
+
+### Limpieza Profunda y Re-sembrado (Recomendado)
+Este proceso elimina todos los datos operativos (Registros, Anotaciones, Auditoría y Personal) y restaura los valores iniciales del sistema.
+
+#### Opción A: Desde PowerShell (Más Rápido)
+Abre una terminal nueva (mientras el backend corre) y ejecuta:
+```powershell
+Invoke-RestMethod -Method Post -Uri "http://localhost:5004/api/Maintenance/deep-clean-and-seed"
+```
+
+#### Opción B: Desde Swagger (Visual)
+1. Ve a `http://localhost:5004/swagger/index.html`.
+2. Busca la sección **Maintenance**.
+3. Abre el POST de `deep-clean-and-seed`.
+4. Dale a **Try it out** y luego a **Execute**.
+
+#### Opción C: Desde Postman / Insomnia
+- **Método:** `POST`
+- **URL:** `http://localhost:5004/api/Maintenance/deep-clean-and-seed`
+
+**Resultado del Proceso:**
+- Base de datos vacía, con el usuario `admin@local` (Contraseña: `Admin123`) y los tipos de personal básicos (`Empleado`, `Visitante`) creados.
+
+### Limpieza de Datos Operativos
+Si solo deseas borrar los movimientos (entradas, salidas y reportes) pero conservar al personal creado y los usuarios:
+- Ejecuta: `POST http://localhost:5004/api/Maintenance/clear-operational-data`
+
 ---
 © 2026 SOFTCOINP - Sistema de Control y Auditoria

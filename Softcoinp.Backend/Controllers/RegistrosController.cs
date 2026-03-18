@@ -26,6 +26,104 @@ namespace Softcoinp.Backend.Controllers
             _audit = audit;
         }
 
+        // POST: api/registros/actualizar-datos
+        [HttpPost("actualizar-datos")]
+        public async Task<IActionResult> ActualizarDatos([FromBody] UpdateInfoBaseDto input)
+        {
+            if (string.IsNullOrWhiteSpace(input.Documento))
+                return BadRequest(ApiResponse<object>.Fail(null, "El documento es obligatorio."));
+
+            // ---------- Procesar foto personal (opcional) ----------
+            string? fotoUrlPersonal = null;
+            if (!string.IsNullOrWhiteSpace(input.Foto))
+            {
+                try
+                {
+                    var base64 = input.Foto.StartsWith("data:") ? input.Foto.Substring(input.Foto.IndexOf(',') + 1) : input.Foto;
+                    var bytes = Convert.FromBase64String(base64);
+                    var fileName = $"{input.Documento}_{DateTime.Now:yyyyMMddHHmmss}.jpeg";
+                    var folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "personal");
+                    if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+                    var path = Path.Combine(folder, fileName);
+                    await System.IO.File.WriteAllBytesAsync(path, bytes);
+                    fotoUrlPersonal = $"/uploads/personal/{fileName}";
+                }
+                catch { }
+            }
+
+            // ---------- Procesar foto vehículo (opcional) ----------
+            string? fotoUrlVehiculo = null;
+            if (!string.IsNullOrWhiteSpace(input.FotoVehiculo) && !string.IsNullOrWhiteSpace(input.Placa))
+            {
+                try
+                {
+                    var base64V = input.FotoVehiculo.StartsWith("data:") ? input.FotoVehiculo.Substring(input.FotoVehiculo.IndexOf(',') + 1) : input.FotoVehiculo;
+                    var bytesV = Convert.FromBase64String(base64V);
+                    var fileNameV = $"VEH_{input.Placa}_{DateTime.Now:yyyyMMddHHmmss}.jpeg";
+                    var folderV = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "vehiculos");
+                    if (!Directory.Exists(folderV)) Directory.CreateDirectory(folderV);
+                    var pathV = Path.Combine(folderV, fileNameV);
+                    await System.IO.File.WriteAllBytesAsync(pathV, bytesV);
+                    fotoUrlVehiculo = $"/uploads/vehiculos/{fileNameV}";
+                }
+                catch { }
+            }
+
+            // ---------- Actualizar Personal ----------
+            var persona = await _db.Personal.FirstOrDefaultAsync(p => p.Documento == input.Documento);
+            if (persona == null)
+                return NotFound(ApiResponse<object>.Fail(null, "La persona no existe en el sistema."));
+
+            persona.Nombre = string.IsNullOrWhiteSpace(input.Nombre) ? persona.Nombre : input.Nombre;
+            persona.Apellido = string.IsNullOrWhiteSpace(input.Apellido) ? persona.Apellido : input.Apellido;
+            persona.Tipo = string.IsNullOrWhiteSpace(input.Tipo) ? persona.Tipo : input.Tipo;
+            persona.Telefono = input.Telefono ?? persona.Telefono;
+            if (!string.IsNullOrWhiteSpace(fotoUrlPersonal))
+                persona.FotoUrl = fotoUrlPersonal;
+
+            // ---------- Actualizar Vehículo ----------
+            if (!string.IsNullOrWhiteSpace(input.Placa))
+            {
+                var placaNormalizada = input.Placa.ToUpper().Trim();
+                var vehiculo = await _db.Vehiculos.FirstOrDefaultAsync(v => v.Placa == placaNormalizada);
+                
+                if (vehiculo != null)
+                {
+                    // Asegurar que el vehículo esté vinculado a esta persona
+                    vehiculo.PersonalId = persona.Id;
+
+                    vehiculo.Marca = string.IsNullOrWhiteSpace(input.Marca) ? vehiculo.Marca : input.Marca;
+                    vehiculo.Modelo = string.IsNullOrWhiteSpace(input.Modelo) ? vehiculo.Modelo : input.Modelo;
+                    vehiculo.Color = string.IsNullOrWhiteSpace(input.Color) ? vehiculo.Color : input.Color;
+                    vehiculo.TipoVehiculo = string.IsNullOrWhiteSpace(input.TipoVehiculo) ? vehiculo.TipoVehiculo : input.TipoVehiculo;
+                    
+                    if (!string.IsNullOrWhiteSpace(fotoUrlVehiculo))
+                        vehiculo.FotoUrl = fotoUrlVehiculo;
+                }
+                else
+                {
+                    // Si no existe, lo creamos vinculado a la persona
+                    vehiculo = new Vehiculo
+                    {
+                        Id = Guid.NewGuid(),
+                        Placa = placaNormalizada,
+                        Marca = input.Marca,
+                        Modelo = input.Modelo,
+                        Color = input.Color,
+                        TipoVehiculo = input.TipoVehiculo,
+                        FotoUrl = fotoUrlVehiculo,
+                        PersonalId = persona.Id
+                    };
+                    _db.Vehiculos.Add(vehiculo);
+                }
+            }
+
+            await _db.SaveChangesAsync();
+            try { await _audit.LogAsync("DatosActualizados", "Personal", persona.Id, new { Documento = persona.Documento }); } catch { }
+
+            return Ok(ApiResponse<object>.SuccessResponse(null, "Datos actualizados correctamente sin generar registro de acceso."));
+        }
+
         // GET: api/registros
         [HttpGet]
         public IActionResult GetAll(
@@ -69,6 +167,7 @@ namespace Softcoinp.Backend.Controllers
                         Nombre = r.Nombre,
                         Apellido = r.Apellido,
                         Documento = r.Documento,
+                        Telefono = r.TelefonoPersona,
                         Tipo = r.Tipo,
                         IsBloqueado = r.Personal!.IsBloqueado,
                         MotivoBloqueo = r.Personal!.MotivoBloqueo
@@ -80,7 +179,13 @@ namespace Softcoinp.Backend.Controllers
                     HoraSalidaUtc = r.HoraSalidaUtc,
                     HoraSalidaLocal = r.HoraSalidaLocal,
                     RegistradoPor = r.RegistradoPor,
-                    FotoUrl = r.FotoUrl // 🆕 Asegúrate de incluir FotoUrl si es visible
+                    FotoUrl = r.FotoUrl, 
+                    PlacaVehiculo = r.PlacaVehiculo,
+                    MarcaVehiculo = r.MarcaVehiculo,
+                    ModeloVehiculo = r.ModeloVehiculo,
+                    ColorVehiculo = r.ColorVehiculo,
+                    TipoVehiculo = r.TipoVehiculo,
+                    FotoVehiculoUrl = r.FotoVehiculoUrl
                 })
                 .ToList();
 
@@ -98,20 +203,27 @@ namespace Softcoinp.Backend.Controllers
                 .Select(r => new RegistroDto
                 {
                     Id = r.Id,
-                    Nombre = r.Nombre,
-                    Apellido = r.Apellido,
-                    Documento = r.Documento,
+                    Nombre = r.Personal!.Nombre,
+                    Apellido = r.Personal!.Apellido,
+                    Documento = r.Personal!.Documento,
+                    Telefono = r.Personal!.Telefono,
                     Motivo = r.Motivo,
                     Destino = r.Destino,
-                    Tipo = r.Tipo,
+                    Tipo = r.Personal!.Tipo,
                     HoraIngresoUtc = r.HoraIngresoUtc,
                     HoraIngresoLocal = r.HoraIngresoLocal,
                     HoraSalidaUtc = r.HoraSalidaUtc,
                     HoraSalidaLocal = r.HoraSalidaLocal,
                     RegistradoPor = r.RegistradoPor,
-                    FotoUrl = r.FotoUrl, // 🆕 Incluir FotoUrl
+                    FotoUrl = r.Personal!.FotoUrl ?? r.FotoUrl, 
                     IsBloqueado = r.Personal!.IsBloqueado,
-                    MotivoBloqueo = r.Personal!.MotivoBloqueo
+                    MotivoBloqueo = r.Personal!.MotivoBloqueo,
+                    PlacaVehiculo = r.PlacaVehiculo,
+                    MarcaVehiculo = _db.Vehiculos.Where(v => v.Placa == r.PlacaVehiculo).Select(v => v.Marca).FirstOrDefault() ?? r.MarcaVehiculo,
+                    ModeloVehiculo = _db.Vehiculos.Where(v => v.Placa == r.PlacaVehiculo).Select(v => v.Modelo).FirstOrDefault() ?? r.ModeloVehiculo,
+                    ColorVehiculo = _db.Vehiculos.Where(v => v.Placa == r.PlacaVehiculo).Select(v => v.Color).FirstOrDefault() ?? r.ColorVehiculo,
+                    TipoVehiculo = _db.Vehiculos.Where(v => v.Placa == r.PlacaVehiculo).Select(v => v.TipoVehiculo).FirstOrDefault() ?? r.TipoVehiculo,
+                    FotoVehiculoUrl = _db.Vehiculos.Where(v => v.Placa == r.PlacaVehiculo).Select(v => v.FotoUrl).FirstOrDefault() ?? r.FotoVehiculoUrl
                 })
                 .FirstOrDefault();
 
@@ -135,20 +247,27 @@ namespace Softcoinp.Backend.Controllers
                 {
                     Id = r.Id,
                     PersonalId = r.PersonalId,
-                    Nombre = r.Nombre,
-                    Apellido = r.Apellido,
-                    Documento = r.Documento,
+                    Nombre = r.Personal!.Nombre,
+                    Apellido = r.Personal!.Apellido,
+                    Documento = r.Personal!.Documento,
+                    Telefono = r.Personal!.Telefono,
                     Motivo = r.Motivo,
                     Destino = r.Destino,
-                    Tipo = r.Tipo,
+                    Tipo = r.Personal!.Tipo,
                     HoraIngresoUtc = r.HoraIngresoUtc,
                     HoraIngresoLocal = r.HoraIngresoLocal,
                     HoraSalidaUtc = r.HoraSalidaUtc,
                     HoraSalidaLocal = r.HoraSalidaLocal,
                     RegistradoPor = r.RegistradoPor,
-                    FotoUrl = r.FotoUrl,
+                    FotoUrl = r.Personal!.FotoUrl ?? r.FotoUrl,
                     IsBloqueado = r.Personal!.IsBloqueado,
-                    MotivoBloqueo = r.Personal!.MotivoBloqueo
+                    MotivoBloqueo = r.Personal!.MotivoBloqueo,
+                    PlacaVehiculo = r.PlacaVehiculo,
+                    MarcaVehiculo = _db.Vehiculos.Where(v => v.Placa == r.PlacaVehiculo).Select(v => v.Marca).FirstOrDefault() ?? r.MarcaVehiculo,
+                    ModeloVehiculo = _db.Vehiculos.Where(v => v.Placa == r.PlacaVehiculo).Select(v => v.Modelo).FirstOrDefault() ?? r.ModeloVehiculo,
+                    ColorVehiculo = _db.Vehiculos.Where(v => v.Placa == r.PlacaVehiculo).Select(v => v.Color).FirstOrDefault() ?? r.ColorVehiculo,
+                    TipoVehiculo = _db.Vehiculos.Where(v => v.Placa == r.PlacaVehiculo).Select(v => v.TipoVehiculo).FirstOrDefault() ?? r.TipoVehiculo,
+                    FotoVehiculoUrl = _db.Vehiculos.Where(v => v.Placa == r.PlacaVehiculo).Select(v => v.FotoUrl).FirstOrDefault() ?? r.FotoVehiculoUrl
                 })
                 .FirstOrDefault();
 
@@ -338,6 +457,24 @@ namespace Softcoinp.Backend.Controllers
                 return StatusCode(500, ApiResponse<RegistroDto>.Fail(null, $"Error al guardar la foto: {ex.Message}"));
             }
 
+            // ---------- Procesar foto vehículo (opcional) ----------
+            string? fotoUrlVehiculo = null;
+            if (!string.IsNullOrWhiteSpace(input.FotoVehiculo))
+            {
+                try
+                {
+                    var base64V = input.FotoVehiculo.StartsWith("data:") ? input.FotoVehiculo.Substring(input.FotoVehiculo.IndexOf(',') + 1) : input.FotoVehiculo;
+                    var bytesV = Convert.FromBase64String(base64V);
+                    var fileNameV = $"VEH_{input.Placa}_{DateTime.Now:yyyyMMddHHmmss}.jpeg";
+                    var folderV = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "vehiculos");
+                    if (!Directory.Exists(folderV)) Directory.CreateDirectory(folderV);
+                    var pathV = Path.Combine(folderV, fileNameV);
+                    await System.IO.File.WriteAllBytesAsync(pathV, bytesV);
+                    fotoUrlVehiculo = $"/uploads/vehiculos/{fileNameV}";
+                }
+                catch { /* Ignorar errores en foto opcional para no romper el flujo principal */ }
+            }
+
             // ---------- Buscar o crear/actualizar Personal ----------
             var persona = await _db.Personal.FirstOrDefaultAsync(p => p.Documento == input.Documento);
             if (persona == null)
@@ -349,6 +486,7 @@ namespace Softcoinp.Backend.Controllers
                     Apellido = input.Apellido,
                     Documento = input.Documento,
                     Tipo = input.Tipo ?? "visitante",
+                    Telefono = input.Telefono,
                     FotoUrl = fotoUrlPersonal,
                     FechaCreacionUtc = DateTime.UtcNow
                 };
@@ -357,17 +495,47 @@ namespace Softcoinp.Backend.Controllers
             }
             else
             {
-                // Actualizar datos si el frontend envía nuevos (mantener si vienen vacíos)
                 persona.Nombre = string.IsNullOrWhiteSpace(input.Nombre) ? persona.Nombre : input.Nombre;
                 persona.Apellido = string.IsNullOrWhiteSpace(input.Apellido) ? persona.Apellido : input.Apellido;
                 persona.Tipo = string.IsNullOrWhiteSpace(input.Tipo) ? persona.Tipo : input.Tipo;
-                // Si llega foto nueva, actualizar FotoUrl
+                persona.Telefono = input.Telefono ?? persona.Telefono;
                 if (!string.IsNullOrWhiteSpace(fotoUrlPersonal))
                     persona.FotoUrl = fotoUrlPersonal;
                 await _db.SaveChangesAsync();
             }
 
-            // ---------- Crear Registro usando la foto guardada en Personal ----------
+            // ---------- Guardar/Actualizar Vehículo vinculado a Personal ----------
+            if (!string.IsNullOrWhiteSpace(input.Placa))
+            {
+                var vehiculo = await _db.Vehiculos.FirstOrDefaultAsync(v => v.Placa == input.Placa && v.PersonalId == persona.Id);
+                if (vehiculo == null)
+                {
+                    vehiculo = new Vehiculo
+                    {
+                        Id = Guid.NewGuid(),
+                        Placa = input.Placa.ToUpper(),
+                        Marca = input.Marca,
+                        Modelo = input.Modelo,
+                        Color = input.Color,
+                        TipoVehiculo = input.TipoVehiculo,
+                        FotoUrl = fotoUrlVehiculo,
+                        PersonalId = persona.Id
+                    };
+                    _db.Vehiculos.Add(vehiculo);
+                }
+                else
+                {
+                    vehiculo.Marca = input.Marca ?? vehiculo.Marca;
+                    vehiculo.Modelo = input.Modelo ?? vehiculo.Modelo;
+                    vehiculo.Color = input.Color ?? vehiculo.Color;
+                    vehiculo.TipoVehiculo = input.TipoVehiculo ?? vehiculo.TipoVehiculo;
+                    if (!string.IsNullOrWhiteSpace(fotoUrlVehiculo))
+                        vehiculo.FotoUrl = fotoUrlVehiculo;
+                }
+                await _db.SaveChangesAsync();
+            }
+
+            // ---------- Crear Registro ----------
             var registro = new Registro
             {
                 Id = Guid.NewGuid(),
@@ -375,11 +543,19 @@ namespace Softcoinp.Backend.Controllers
                 Nombre = persona.Nombre,
                 Apellido = persona.Apellido,
                 Documento = persona.Documento,
+                TelefonoPersona = persona.Telefono,
                 Destino = input.Destino,
                 Motivo = input.Motivo,
                 Tipo = persona.Tipo,
                 HoraIngresoUtc = nowUtc,
-                FotoUrl = persona.FotoUrl
+                FotoUrl = persona.FotoUrl,
+                // Datos del vehículo para el historial
+                PlacaVehiculo = input.Placa?.ToUpper(),
+                MarcaVehiculo = input.Marca,
+                ModeloVehiculo = input.Modelo,
+                ColorVehiculo = input.Color,
+                TipoVehiculo = input.TipoVehiculo,
+                FotoVehiculoUrl = fotoUrlVehiculo
             };
 
             var userIdClaim = User.FindFirst("id")?.Value;
@@ -398,7 +574,8 @@ namespace Softcoinp.Backend.Controllers
                     registro.Documento,
                     registro.Destino,
                     registro.Motivo,
-                    registro.Tipo
+                    registro.Tipo,
+                    registro.PlacaVehiculo
                 });
             }
             catch { }
@@ -409,6 +586,7 @@ namespace Softcoinp.Backend.Controllers
                 Nombre = registro.Nombre,
                 Apellido = registro.Apellido,
                 Documento = registro.Documento,
+                Telefono = registro.TelefonoPersona,
                 Motivo = registro.Motivo,
                 Destino = registro.Destino,
                 Tipo = registro.Tipo,
@@ -417,7 +595,7 @@ namespace Softcoinp.Backend.Controllers
                 HoraSalidaUtc = registro.HoraSalidaUtc,
                 HoraSalidaLocal = registro.HoraSalidaLocal,
                 RegistradoPor = registro.RegistradoPor,
-                FotoUrl = registro.FotoUrl
+                FotoUrl = registro.FotoUrl,
             };
 
             return CreatedAtAction(nameof(GetById), new { id = registro.Id },
@@ -459,6 +637,7 @@ namespace Softcoinp.Backend.Controllers
                 Nombre = registro.Nombre,
                 Apellido = registro.Apellido,
                 Documento = registro.Documento,
+                Telefono = registro.TelefonoPersona,
                 Motivo = registro.Motivo,
                 Destino = registro.Destino,
                 Tipo = registro.Tipo,
@@ -506,6 +685,7 @@ namespace Softcoinp.Backend.Controllers
                 Nombre = registro.Nombre,
                 Apellido = registro.Apellido,
                 Documento = registro.Documento,
+                Telefono = registro.TelefonoPersona,
                 Motivo = registro.Motivo,
                 Destino = registro.Destino,
                 Tipo = registro.Tipo,
@@ -571,6 +751,7 @@ namespace Softcoinp.Backend.Controllers
                     Nombre = r.Nombre,
                     Apellido = r.Apellido,
                     Documento = r.Documento,
+                    Telefono = r.TelefonoPersona,
                     Motivo = r.Motivo,
                     Destino = r.Destino,
                     Tipo = r.Tipo,

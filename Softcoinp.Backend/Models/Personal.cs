@@ -20,6 +20,7 @@ namespace Softcoinp.Backend.Models
 
         public string Tipo { get; set; } = "visitante";
 
+        public string? Telefono { get; set; }
         public string? FotoUrl { get; set; }
 
         public DateTime FechaCreacionUtc { get; set; } = DateTime.UtcNow;

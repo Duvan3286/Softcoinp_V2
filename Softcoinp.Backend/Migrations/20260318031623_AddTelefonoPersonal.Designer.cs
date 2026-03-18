@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Softcoinp.Backend;
@@ -11,9 +12,11 @@ using Softcoinp.Backend;
 namespace Softcoinp.Backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260318031623_AddTelefonoPersonal")]
+    partial class AddTelefonoPersonal
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -82,62 +85,6 @@ namespace Softcoinp.Backend.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("AuditLogs");
-                });
-
-            modelBuilder.Entity("Softcoinp.Backend.Models.Correspondencia", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Descripcion")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Destinatario")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid?>("EntregadoPor")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Estado")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("FechaEntregaLocal")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("FechaEntregaUtc")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("FechaRecepcionLocal")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("FechaRecepcionUtc")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("NotaEntrega")
-                        .HasColumnType("text");
-
-                    b.Property<string>("NumeroGuia")
-                        .HasColumnType("text");
-
-                    b.Property<string>("RecibidoPor")
-                        .HasColumnType("text");
-
-                    b.Property<Guid?>("RegistradoPor")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Remitente")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("TipoDocumento")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Correspondencias");
                 });
 
             modelBuilder.Entity("Softcoinp.Backend.Models.Personal", b =>

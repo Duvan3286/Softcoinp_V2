@@ -13,6 +13,8 @@ namespace Softcoinp.Backend
         public DbSet<Personal> Personal { get; set; }
         public DbSet<Anotacion> Anotaciones { get; set; }
         public DbSet<TipoPersonal> TiposPersonal { get; set; }
+        public DbSet<Vehiculo> Vehiculos { get; set; }
+        public DbSet<Correspondencia> Correspondencias { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -34,6 +36,13 @@ namespace Softcoinp.Backend
                 .WithMany(p => p.Anotaciones)
                 .HasForeignKey(a => a.PersonalId)
                 .OnDelete(DeleteBehavior.Cascade); // Si se elimina un personal, se borran sus reportes
+
+            // Relación 1:N entre Personal y Vehiculo
+            modelBuilder.Entity<Vehiculo>()
+                .HasOne(v => v.Personal)
+                .WithMany() // Una persona puede tener varios vehículos (historial)
+                .HasForeignKey(v => v.PersonalId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Seed initial Personal Types
             modelBuilder.Entity<TipoPersonal>().HasData(

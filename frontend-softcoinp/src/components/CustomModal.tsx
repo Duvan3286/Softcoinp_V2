@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 
 export type ModalType = "success" | "error" | "warning" | "info" | "confirm";
 
@@ -25,6 +25,25 @@ const CustomModal: React.FC<CustomModalProps> = ({
   confirmText = "Confirmar",
   cancelText = "Cancelar",
 }) => {
+  // ⌨️ Cerrar con Enter o Escape
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Enter") {
+        if (type === "confirm" && onConfirm) {
+          onConfirm();
+        }
+        onClose();
+      } else if (e.key === "Escape") {
+        onClose();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, type, onConfirm, onClose]);
+
   if (!isOpen) return null;
 
   const getStyle = () => {

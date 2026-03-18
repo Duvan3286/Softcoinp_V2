@@ -61,6 +61,7 @@ export default function DashboardPage() {
   const [identificacion, setIdentificacion] = useState("");
   const [nombres, setNombres] = useState("");
   const [apellidos, setApellidos] = useState("");
+  const [telefono, setTelefono] = useState("");
   const [tipo, setTipo] = useState("visitante");
   const [cargo, setCargo] = useState("");
   const [destino, setDestino] = useState("");
@@ -98,6 +99,18 @@ export default function DashboardPage() {
   // 🚫 Estado de Bloqueo
   const [isBloqueado, setIsBloqueado] = useState(false);
   const [motivoBloqueo, setMotivoBloqueo] = useState("");
+
+  // 🚗 ESTADOS para el Vehículo
+  const [placa, setPlaca] = useState("");
+  const [marca, setMarca] = useState("");
+  const [modelo, setModelo] = useState("");
+  const [color, setColor] = useState("");
+  const [tipoVehiculo, setTipoVehiculo] = useState("");
+  const [fotoVehiculoBase64, setFotoVehiculoBase64] = useState<string | null>(null);
+  const [isVehiculoCameraOpen, setIsVehiculoCameraOpen] = useState(false);
+
+  // 📸 Snapshot de datos originales (para detectar cambios en actualización)
+  const [datosOriginales, setDatosOriginales] = useState<Record<string, string | null>>({}); 
 
   const [usuario, setUsuario] = useState<UserPayload | null>(null);
 
@@ -189,12 +202,21 @@ export default function DashboardPage() {
           nombre: nombres,
           apellido: apellidos,
           documento: identificacion,
+          telefono: telefono,
           destino,
           motivo,
           tipo,
           foto: fotoBase64,
+          placa,
+          marca,
+          modelo,
+          color,
+          tipoVehiculo,
+          fotoVehiculo: fotoVehiculoBase64,
         });
         showModal("✅ Entrada registrada con éxito", "success");
+        // 🔄 Marcar como adentro para actualizar los botones inmediatamente
+        setRegistroActivo({ id: "activo" });
 
       } else if (accion === "salida") {
         if (!identificacion.trim() || !nombres.trim() || !apellidos.trim()) {
@@ -223,8 +245,11 @@ export default function DashboardPage() {
         showModal("🚪 Salida registrada con éxito", "success");
         setRegistroActivo(null);
       }
-
-
+    } catch (err: any) {
+      console.error("Error al registrar:", err);
+      const msg = err.response?.data?.message || "Error en el servidor al procesar el registro.";
+      showModal(`🛑 ${msg}`, "error");
+    } finally {
       // Limpiar campos después de registrar
       setIdentificacion("");
       setNombres("");
@@ -232,16 +257,76 @@ export default function DashboardPage() {
       setCargo("");
       setDestino("");
       setMotivo("");
-      setTipo("visitante");
+      setPlaca("");
+      setMarca("");
+      setModelo("");
+      setColor("");
+      setTipoVehiculo("");
       setFotoBase64(null);
       setFotoUrl(null);
+      setFotoVehiculoBase64(null);
+      setTelefono("");
+    }
+  };
 
+  const handleActualizarDatos = async () => {
+    if (!identificacion.trim()) {
+      showModal("🛑 El documento es obligatorio para actualizar datos.", "error");
+      return;
+    }
+
+    try {
+      setLoadingTipos(true);
+      await api.post("/registros/actualizar-datos", {
+        nombre: nombres,
+        apellido: apellidos,
+        documento: identificacion,
+        telefono: telefono,
+        tipo,
+        foto: fotoBase64,
+        placa,
+        marca,
+        modelo,
+        color,
+        tipoVehiculo,
+        fotoVehiculo: fotoVehiculoBase64,
+      });
+
+      const camposActualizados: string[] = [];
+      if (nombres.trim() && nombres !== datosOriginales.nombre)
+        camposActualizados.push(`👤 Nombre: ${nombres} ${apellidos}`);
+      if (telefono.trim() && telefono !== datosOriginales.telefono)
+        camposActualizados.push(`📞 Teléfono: ${telefono}`);
+      if (tipo.trim() && tipo !== datosOriginales.tipo)
+        camposActualizados.push(`🪪 Tipo: ${tipo}`);
+      if (fotoBase64 && fotoBase64 !== datosOriginales.fotoUrl)
+        camposActualizados.push(`📸 Foto de persona actualizada`);
+      if (placa.trim()) {
+        if (marca.trim() && marca !== datosOriginales.marca)
+          camposActualizados.push(`   • Marca: ${marca}`);
+        if (modelo.trim() && modelo !== datosOriginales.modelo)
+          camposActualizados.push(`   • Modelo: ${modelo}`);
+        if (color.trim() && color !== datosOriginales.color)
+          camposActualizados.push(`   • Color: ${color}`);
+        if (tipoVehiculo.trim() && tipoVehiculo !== datosOriginales.tipoVehiculo)
+          camposActualizados.push(`   • Tipo vehículo: ${tipoVehiculo}`);
+        if (fotoVehiculoBase64 && fotoVehiculoBase64 !== datosOriginales.fotoUrl)
+          camposActualizados.push(`   📸 Foto del vehículo actualizada`);
+      }
+
+      const resumen = camposActualizados.length > 0
+        ? `✅ Campos actualizados:\n${camposActualizados.join("\n")}`
+        : "✅ Datos guardados. No se detectaron cambios.";
+
+      showModal(resumen, "success");
+      // Refrescar datos desde el servidor para asegurar sincronía
+      handleBuscar();
     } catch (err: any) {
-      console.error("❌ Error al registrar:", err.response?.data || err);
-      const errorMessage =
-        err.response?.data?.title ||
-        "Error al registrar. Verifica los datos e intenta nuevamente.";
-      showModal(errorMessage, "error");
+      console.error("Error al actualizar datos:", err);
+      const msg = err.response?.data?.message || "Error al intentar actualizar la información.";
+      showModal(`🛑 ${msg}`, "error");
+    } finally {
+      setLoadingTipos(false);
     }
   };
 
@@ -256,6 +341,7 @@ export default function DashboardPage() {
 
     setNombres("");
     setApellidos("");
+    setTelefono("");
     setDestino("");
     setMotivo("");
     setTipo("visitante");
@@ -280,20 +366,48 @@ export default function DashboardPage() {
            showModal(`🚫 ACCESO DENEGADO: Esta persona se encuentra BLOQUEADA. Motivo: ${persona.motivoBloqueo}`, "error");
         }
 
-        if (persona.tieneEntradaActiva) {
-          setRegistroActivo({ id: persona.registroActivo.id });
-          showModal(
-            "⚠️ Esta persona ya tiene una entrada activa. Debe registrar la salida antes de volver a ingresar.",
-            "warning"
-          );
-          return;
+        // ✅ Verificar si tiene entrada activa usando el endpoint dedicado
+        try {
+          const activoRes = await api.get(`/registros/activo`, { params: { documento: identificacion } }) as any;
+          if (activoRes.data?.data) {
+            setRegistroActivo({ id: activoRes.data.data.id });
+          } else {
+            setRegistroActivo(null);
+          }
+        } catch {
+          // 404 significa que no hay entrada activa
+          setRegistroActivo(null);
         }
 
         setNombres(persona.nombre || "");
         setApellidos(persona.apellido || "");
+        setTelefono(persona.telefono || "");
         setDestino(persona.destino || "");
         setMotivo(persona.motivo || "");
         setTipo(persona.tipo || "visitante");
+
+        // Autocompletar vehículo si existe
+        if (persona.placaVehiculo) {
+          setPlaca(persona.placaVehiculo);
+          setMarca(persona.marcaVehiculo || "");
+          setModelo(persona.modeloVehiculo || "");
+          setColor(persona.colorVehiculo || "");
+          setTipoVehiculo(persona.tipoVehiculo || "");
+        }
+
+        // 📸 Guardar snapshot de los datos originales para detectar cambios
+        setDatosOriginales({
+          nombre: persona.nombre || "",
+          apellido: persona.apellido || "",
+          telefono: persona.telefono || "",
+          tipo: persona.tipo || "visitante",
+          placa: persona.placaVehiculo || "",
+          marca: persona.marcaVehiculo || "",
+          modelo: persona.modeloVehiculo || "",
+          color: persona.colorVehiculo || "",
+          tipoVehiculo: persona.tipoVehiculo || "",
+          fotoUrl: persona.fotoUrl || null,
+        });
 
         // 🔍 Verificar Novedades de Seguridad
         if (persona.personalId) {
@@ -326,6 +440,54 @@ export default function DashboardPage() {
           "error"
         );
       }
+    }
+  };
+
+  const handleBuscarPlaca = async () => {
+    if (!placa || placa.trim().length < 3) return;
+
+    try {
+      const res = (await api.get(`/vehiculos/placa/${placa}`)) as { data: { data?: any } };
+      const vehiculo = res.data?.data;
+
+      if (vehiculo) {
+        // Cargar datos del vehículo
+        setMarca(vehiculo.marca || "");
+        setModelo(vehiculo.modelo || "");
+        setColor(vehiculo.color || "");
+        setTipoVehiculo(vehiculo.tipoVehiculo || "");
+        
+        if (vehiculo.fotoUrl) {
+           setFotoVehiculoBase64(vehiculo.fotoUrl.startsWith('http') ? vehiculo.fotoUrl : `http://localhost:5004/static${vehiculo.fotoUrl}`);
+        }
+
+        // Cargar datos del propietario (si no están ya cargados)
+        if (!identificacion) {
+            setIdentificacion(vehiculo.propietarioDocumento || "");
+            setNombres(vehiculo.propietarioNombre || "");
+            setApellidos(vehiculo.propietarioApellido || "");
+            setTelefono(vehiculo.propietarioTelefono || "");
+            setTipo(vehiculo.propietarioTipo || "visitante");
+            
+            if (vehiculo.propietarioFotoUrl) {
+              setFotoUrl(vehiculo.propietarioFotoUrl);
+              const base64Image = await urlToBase64(vehiculo.propietarioFotoUrl);
+              if (base64Image) setFotoBase64(base64Image);
+            }
+            
+            // Buscar historial/novedades del propietario
+            if (vehiculo.propietarioId) {
+               const alerts = await anotacionService.getAnotacionesPorPersonal(vehiculo.propietarioId);
+               setAnotacionesAlerta(alerts);
+            }
+        }
+      }
+    } catch (err: any) {
+       if (err.response?.status === 404) {
+         showModal("⚠️ No se encontró registro previo de este vehículo. Por favor, ingrese los datos manualmente.", "warning");
+       } else {
+         console.error("Error al buscar placa:", err);
+       }
     }
   };
 
@@ -382,6 +544,16 @@ export default function DashboardPage() {
         />
       )}
 
+      {isVehiculoCameraOpen && (
+        <CameraCapture
+          onPhotoTaken={(base64) => {
+            setFotoVehiculoBase64(base64);
+            setIsVehiculoCameraOpen(false);
+          }}
+          onClose={() => setIsVehiculoCameraOpen(false)}
+        />
+      )}
+
       <CustomModal
         isOpen={modal.isOpen}
         onClose={closeModal}
@@ -426,7 +598,15 @@ export default function DashboardPage() {
                     onBlur={handleBuscar}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
-                        handleBuscar();
+                        if (nombres.trim()) {
+                          // 🟢 Ya hay persona cargada → ejecutar entrada o salida
+                          if (!isBloqueado) {
+                            handleRegistrar(registroActivo ? "salida" : "entrada");
+                          }
+                        } else {
+                          // 🔍 Primer Enter → buscar persona
+                          handleBuscar();
+                        }
                       }
                     }}
                     inputMode="numeric"
@@ -480,6 +660,13 @@ export default function DashboardPage() {
                 />
                 <input
                   type="text"
+                  placeholder="Teléfono"
+                  value={telefono}
+                  onChange={(e) => setTelefono(e.target.value.replace(/[^0-9]/g, ""))}
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm text-sm"
+                />
+                <input
+                  type="text"
                   placeholder="Cargo u Oficio (Opcional)"
                   value={cargo}
                   onChange={(e) => setCargo(e.target.value)}
@@ -521,6 +708,108 @@ export default function DashboardPage() {
                   rows={2}
                 />
 
+                {/* 🚗 Sección de Vehículo REDISEÑADA */}
+                <div className="md:col-span-2 bg-gray-100/50 p-4 rounded-xl border border-gray-200 shadow-sm transition-all hover:shadow-md">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                    <div className="flex items-center gap-2">
+                       <span className="text-xl">🚗</span>
+                       <h3 className="text-sm font-black text-gray-700 uppercase tracking-tighter">Información del Vehículo</h3>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => router.push("/vehiculos")}
+                      className="text-[10px] bg-blue-100 text-blue-700 px-3 py-1.5 rounded-full font-bold hover:bg-blue-200 transition-colors flex items-center gap-1 uppercase"
+                    >
+                      📂 Ver Registrados
+                    </button>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    {/* Botón Cámara de Vehículo */}
+                    <div className="col-span-2 md:col-span-1 flex flex-col items-center justify-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setIsVehiculoCameraOpen(true)}
+                        className={`w-full h-full min-h-[80px] border-2 border-dashed rounded-lg flex flex-col items-center justify-center transition-all ${
+                          fotoVehiculoBase64 ? 'border-green-400 bg-green-50' : 'border-gray-300 bg-white hover:border-blue-400 hover:bg-blue-50'
+                        }`}
+                      >
+                        {fotoVehiculoBase64 ? (
+                          <img src={fotoVehiculoBase64} alt="Vehículo" className="w-full h-full object-cover rounded-md" />
+                        ) : (
+                          <>
+                            <span className="text-xl">📸</span>
+                            <span className="text-[10px] font-bold text-gray-400 uppercase">Foto</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    <div className="col-span-2 md:col-span-4 grid grid-cols-2 md:grid-cols-2 gap-3">
+                      <div className="relative">
+                        <input
+                          type="text"
+                          placeholder="Placa"
+                          value={placa}
+                          onChange={(e) => setPlaca(e.target.value.toUpperCase())}
+                          onBlur={handleBuscarPlaca}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              handleBuscarPlaca();
+                            }
+                          }}
+                          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 text-sm font-black uppercase placeholder:font-normal"
+                        />
+                      </div>
+
+                      <div className="relative">
+                        <select
+                          value={tipoVehiculo}
+                          onChange={(e) => setTipoVehiculo(e.target.value)}
+                          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 text-sm bg-white appearance-none cursor-pointer"
+                        >
+                          <option value="">Tipo de Vehículo</option>
+                          <option value="carro">Carro</option>
+                          <option value="moto">Moto</option>
+                          <option value="camioneta">Camioneta</option>
+                          <option value="camion">Camión</option>
+                          <option value="bus">Bus / Microbús</option>
+                          <option value="bicicleta">Bicicleta</option>
+                          <option value="otro">Otro</option>
+                        </select>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                          <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 6.757 7.586 5.343 9l4.95 4.95z" /></svg>
+                        </div>
+                      </div>
+                      
+                      <input
+                        type="text"
+                        placeholder="Marca"
+                        value={marca}
+                        onChange={(e) => setMarca(e.target.value)}
+                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 text-sm"
+                      />
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <input
+                          type="text"
+                          placeholder="Modelo"
+                          value={modelo}
+                          onChange={(e) => setModelo(e.target.value)}
+                          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 text-sm"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Color"
+                          value={color}
+                          onChange={(e) => setColor(e.target.value)}
+                          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 text-sm"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </div>
 
@@ -551,10 +840,12 @@ export default function DashboardPage() {
               <div className="flex flex-col gap-2 w-full mb-3">
                 <button
                   onClick={() => handleRegistrar("entrada")}
-                  disabled={isBloqueado}
+                  disabled={isBloqueado || !!registroActivo}
                   className={`w-full text-white p-3 rounded-xl font-bold shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 ${
-                    isBloqueado 
-                      ? 'bg-gray-400 cursor-not-allowed grayscale' 
+                    isBloqueado
+                      ? 'bg-gray-400 cursor-not-allowed grayscale'
+                      : registroActivo
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200'
                   }`}
                 >
@@ -562,9 +853,21 @@ export default function DashboardPage() {
                 </button>
                 <button
                   onClick={() => handleRegistrar("salida")}
-                  className="bg-red-500 text-white w-full py-3 text-lg font-bold rounded-xl shadow-md hover:bg-red-600 transition duration-200"
+                  disabled={!registroActivo}
+                  className={`w-full py-3 text-lg font-bold rounded-xl shadow-md transition duration-200 ${
+                    registroActivo
+                      ? 'bg-red-500 text-white hover:bg-red-600'
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
                 >
                   🚪 REGISTRAR SALIDA
+                </button>
+                
+                <button
+                  onClick={handleActualizarDatos}
+                  className="mt-2 w-full bg-blue-100 text-blue-700 py-2 rounded-xl font-bold shadow-sm hover:bg-blue-200 transition-all active:scale-95 flex items-center justify-center gap-2 border border-blue-200 text-sm uppercase"
+                >
+                  🛠️ Actualizar Datos
                 </button>
               </div>
 
@@ -592,7 +895,7 @@ export default function DashboardPage() {
           <hr className="my-4 border-gray-200" />
 
           {/* Botones de Navegación Inferiores (sin cambios) */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3">
             {/* Solo Admin y SuperAdmin ven Reportes y Registros */}
             <button
               onClick={() => router.push("/reportes")}
@@ -610,6 +913,13 @@ export default function DashboardPage() {
               className="bg-yellow-500 text-white py-2 rounded-lg font-semibold shadow-md hover:bg-yellow-600 text-xs"
             >
               📜 Historial de Registros
+            </button>
+
+            <button
+              onClick={() => router.push("/correspondencia")}
+              className="bg-indigo-600 text-white py-2 rounded-lg font-semibold shadow-md hover:bg-indigo-700 text-xs"
+            >
+              📦 Correspondencia
             </button>
 
             <button

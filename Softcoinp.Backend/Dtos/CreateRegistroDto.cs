@@ -13,6 +13,8 @@ namespace Softcoinp.Backend.Dtos
         [Required(ErrorMessage = "El documento es obligatorio")]
         public string Documento { get; set; } = string.Empty;
 
+        public string? Telefono { get; set; }
+
         [Required(ErrorMessage = "El destino es obligatorio")]
         public string Destino { get; set; } = string.Empty;
 
@@ -23,5 +25,13 @@ namespace Softcoinp.Backend.Dtos
         // 📸 Foto en base64 → obligatoria para registrar
         [Required(ErrorMessage = "La fotografía es obligatoria para el registro.")]
         public string? Foto { get; set; }
+
+        // 🚗 Datos opcionales del vehículo
+        public string? Placa { get; set; }
+        public string? Marca { get; set; }
+        public string? Modelo { get; set; }
+        public string? Color { get; set; }
+        public string? TipoVehiculo { get; set; }
+        public string? FotoVehiculo { get; set; } // base64
     }
 }

@@ -22,6 +22,13 @@ interface Registro {
   horaIngresoLocal: string;
   horaSalidaUtc?: string;
   horaSalidaLocal?: string;
+  // 🚗 Vehículo
+  placaVehiculo?: string;
+  tipoVehiculo?: string;
+  marcaVehiculo?: string;
+  modeloVehiculo?: string;
+  colorVehiculo?: string;
+  fotoVehiculoUrl?: string;
 }
 
 interface PagedResponse<T> {
@@ -263,6 +270,10 @@ export default function RegistrosPage() {
                     <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Destino</th>
                     <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Fecha Ingreso</th>
                     <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Hora Ingreso</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-blue-200">Placa Veh.</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-blue-200">Tipo Veh.</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-blue-200">Marca Veh.</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-blue-200">Color Veh.</th>
                     <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Fecha Salida</th>
                     <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Hora Salida</th>
                   </tr>
@@ -270,7 +281,7 @@ export default function RegistrosPage() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {registros.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="px-4 py-6 text-center text-gray-500">
+                      <td colSpan={12} className="px-4 py-6 text-center text-gray-500">
                         No se encontraron registros con los filtros aplicados.
                       </td>
                     </tr>
@@ -301,6 +312,10 @@ export default function RegistrosPage() {
                           <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{r.destino}</td>
                           <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{ingreso.fecha}</td>
                           <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 font-mono">{ingreso.hora}</td>
+                          <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-blue-800 bg-blue-50/50">{r.placaVehiculo || "-"}</td>
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 capitalize">{r.tipoVehiculo || "-"}</td>
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{r.marcaVehiculo || "-"}</td>
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{r.colorVehiculo || "-"}</td>
                           <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{salida.fecha}</td>
                           <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 font-mono">
                             {isSalidaPending ? <span className="text-gray-500">-</span> : salida.hora}

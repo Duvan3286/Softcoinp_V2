@@ -20,6 +20,7 @@ namespace Softcoinp.Backend.Models
         public string Nombre { get; set; } = string.Empty;
         public string Apellido { get; set; } = string.Empty;
         public string Documento { get; set; } = string.Empty;
+        public string? TelefonoPersona { get; set; }
 
         public string Motivo { get; set; } = string.Empty;
         public string Destino { get; set; } = string.Empty;
@@ -43,6 +44,14 @@ namespace Softcoinp.Backend.Models
                 ? null
                 : TimeZoneInfo.ConvertTimeFromUtc(HoraSalidaUtc.Value,
                     TimeZoneInfo.FindSystemTimeZoneById("SA Pacific Standard Time"));
+
+        // Datos del vehículo al momento del registro (historial)
+        public string? PlacaVehiculo { get; set; }
+        public string? MarcaVehiculo { get; set; }
+        public string? ModeloVehiculo { get; set; }
+        public string? ColorVehiculo { get; set; }
+        public string? TipoVehiculo { get; set; }
+        public string? FotoVehiculoUrl { get; set; }
 
         // Foto tomada al momento de la entrada (selfie de validación)
         public string? FotoUrl { get; set; }

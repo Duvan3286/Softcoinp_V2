@@ -512,13 +512,13 @@ export default function DashboardPage() {
               {anotaciones.map((a: any) => (
                 <div key={a.id} className="relative pl-8">
                   <div className="absolute left-0 top-1.5 w-6 h-6 rounded-full bg-white border-4 border-red-500 shadow-sm z-10" />
-                  <div className="bg-white rounded-xl p-4 border border-red-100 shadow-sm">
+                  <div className="bg-white rounded-xl p-4 border border-red-100 shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex justify-between items-center mb-1">
                       <span className="text-[10px] font-bold text-gray-400 uppercase">
                         {new Date(a.fechaCreacionUtc).toLocaleString("es-CO", { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                       </span>
                       {a.registradoPorEmail && (
-                        <span className="text-[9px] text-red-400 font-bold uppercase italic">{a.registradoPorEmail.split('@')[0]}</span>
+                        <span className="text-[9px] text-red-500 font-bold uppercase italic">{a.registradoPorEmail.split('@')[0]}</span>
                       )}
                     </div>
                     <p className="text-sm text-gray-700 font-medium">{a.texto}</p>
@@ -527,8 +527,8 @@ export default function DashboardPage() {
               ))}
             </div>
           </div>
-          <div className="p-4 bg-white border-t flex justify-end">
-            <button onClick={onClose} className="bg-gray-800 text-white px-6 py-2 rounded-lg font-bold hover:bg-gray-900 transition-all">Cerrar</button>
+          <div className="p-4 bg-white border-t border-gray-100 flex justify-end">
+            <button onClick={onClose} className="bg-gray-800 text-white px-6 py-2 rounded-lg font-bold hover:bg-gray-900 transition-all shadow-sm">Cerrar</button>
           </div>
         </div>
       </div>
@@ -569,22 +569,27 @@ export default function DashboardPage() {
         nombre={`${nombres} ${apellidos}`}
       />
 
-      <div className="h-full w-full bg-gray-100 flex flex-col items-center px-4 md:px-6 py-4 md:py-6 overflow-y-auto custom-scrollbar">
+      <div className="h-[calc(100vh-48px)] w-full flex flex-col relative z-0 overflow-hidden">
+        
+        {/* Sutil halo decorativo centrado en pantalla */}
+        <div className="fixed top-0 left-0 w-full h-96 bg-gradient-to-b from-blue-50/50 to-transparent -z-10 pointer-events-none"></div>
 
-        <div className="bg-white rounded-3xl shadow-xl py-4 px-4 md:px-6 w-full max-w-[1400px] border border-gray-200 flex flex-col md:my-auto flex-shrink-0 min-h-max">
+        <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 h-full min-h-0 w-full max-w-[1600px] mx-auto p-4 md:p-6 lg:p-8">
 
-          <div className="flex flex-col lg:flex-row gap-4 lg:gap-5 flex-grow">
+        <div className="flex-1 flex flex-col bg-white/90 backdrop-blur-xl rounded-[1.5rem] shadow-[0_4px_24px_rgba(0,0,0,0.06)] border border-slate-200 p-4 md:p-5 lg:p-6 overflow-hidden min-h-0">
+          <h2 className="text-lg font-bold mb-4 text-slate-800 flex items-center gap-2 tracking-tight flex-shrink-0">
+            <div className="p-1.5 bg-blue-100 rounded-lg text-blue-600">
+               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+            </div>
+            Datos del Registro
+          </h2>
 
-            {/* 1. Formulario de Datos */}
-            <div className="w-full lg:w-2/3 flex flex-col">
-              <h2 className="text-base font-semibold mb-2 text-gray-600 border-b pb-1">
-                Datos de la Persona
-              </h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {/* Contenedor scrolleable solo internamente */}
+              <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 min-h-0">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pb-2">
 
                 <div className="relative">
-                  <span className="absolute left-2 top-2.5 text-xs text-gray-400 font-bold uppercase z-10">Identificación</span>
+                  <span className="absolute left-2 top-2.5 text-xs text-slate-500 font-bold uppercase z-10">Identificación</span>
                   <input
                     type="text"
                     value={identificacion}
@@ -605,12 +610,12 @@ export default function DashboardPage() {
                     }}
                     inputMode="numeric"
                     pattern="[0-9]*"
-                    className={`w-full p-2 pt-6 pl-9 pr-12 border rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm text-sm font-bold transition-all ${
-                        isBloqueado ? 'border-red-600 bg-red-50 ring-4 ring-red-100' :
-                        anotacionesAlerta.length > 0 ? 'border-yellow-400 bg-yellow-50 ring-2 ring-yellow-100' : 'border-gray-300'
+                    className={`w-full p-2 pt-6 pl-9 pr-12 border rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-sm text-sm font-black transition-all ${
+                        isBloqueado ? 'border-red-300 bg-red-50 text-red-900 ring-4 ring-red-500/10' :
+                        anotacionesAlerta.length > 0 ? 'border-yellow-300 bg-yellow-50 text-yellow-900 ring-2 ring-yellow-400/20' : 'border-slate-200 bg-slate-50 focus:bg-white text-slate-800'
                     }`}
                   />
-                  <svg className="absolute left-2 top-7 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 21h7a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 2 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                  <svg className="absolute left-2.5 top-6 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 21h7a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 2 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
                   
                   {(anotacionesAlerta.length > 0 || isBloqueado) && (
                     <button
@@ -626,60 +631,70 @@ export default function DashboardPage() {
                 </div>
 
                 {isBloqueado && (
-                  <div className="bg-red-600 text-white p-3 rounded-lg shadow-inner animate-in slide-in-from-top duration-300 overflow-hidden relative">
-                    <div className="flex items-center gap-3">
-                        <div className="text-2xl animate-spin-slow">🚫</div>
+                  <div className="bg-red-50 text-red-800 p-4 rounded-xl shadow-sm border border-red-200 animate-in slide-in-from-top duration-300 overflow-hidden relative">
+                    <div className="flex items-center gap-3 relative z-10">
+                        <div className="text-3xl animate-pulse">🛑</div>
                         <div>
-                            <p className="text-[10px] font-black uppercase tracking-widest leading-none mb-1">Entrada Prohibida - Usuario Bloqueado</p>
-                            <p className="text-xs font-bold italic">"{motivoBloqueo}"</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest leading-none mb-1.5 opacity-90 text-red-600">Acceso Denegado</p>
+                            <p className="text-sm font-bold shadow-sm">"{motivoBloqueo}"</p>
                         </div>
                     </div>
-                    <div className="absolute -right-4 -bottom-4 text-7xl opacity-10 font-black">BLOCK</div>
+                    <div className="absolute -right-4 -bottom-6 text-7xl opacity-[0.03] text-red-900 font-black rotate-[-10deg]">BLOCK</div>
                   </div>
                 )}
 
-                <input
-                  type="text"
-                  placeholder="Nombres"
-                  value={nombres}
-                  onChange={(e) => setNombres(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm text-sm"
-                />
-                <input
-                  type="text"
-                  placeholder="Apellidos"
-                  value={apellidos}
-                  onChange={(e) => setApellidos(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm text-sm"
-                />
-                <input
-                  type="text"
-                  placeholder="Teléfono"
-                  value={telefono}
-                  onChange={(e) => setTelefono(e.target.value.replace(/[^0-9]/g, ""))}
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm text-sm"
-                />
-                <input
-                  type="text"
-                  placeholder="Cargo u Oficio (Opcional)"
-                  value={cargo}
-                  onChange={(e) => setCargo(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm text-sm"
-                />
-                <input
-                  type="text"
-                  placeholder="Destino"
-                  value={destino}
-                  onChange={(e) => setDestino(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm text-sm"
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Nombres"
+                    value={nombres}
+                    onChange={(e) => setNombres(e.target.value)}
+                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium text-slate-800 transition-all placeholder:text-slate-400"
+                  />
+                </div>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Apellidos"
+                    value={apellidos}
+                    onChange={(e) => setApellidos(e.target.value)}
+                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium text-slate-800 transition-all placeholder:text-slate-400"
+                  />
+                </div>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Teléfono"
+                    value={telefono}
+                    onChange={(e) => setTelefono(e.target.value.replace(/[^0-9]/g, ""))}
+                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium text-slate-800 transition-all placeholder:text-slate-400"
+                  />
+                </div>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Cargo u Oficio (Opcional)"
+                    value={cargo}
+                    onChange={(e) => setCargo(e.target.value)}
+                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium text-slate-800 transition-all placeholder:text-slate-400"
+                  />
+                </div>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Destino"
+                    value={destino}
+                    onChange={(e) => setDestino(e.target.value)}
+                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium text-slate-800 transition-all placeholder:text-slate-400"
+                  />
+                </div>
 
                 <div className="relative">
                   <select
                     value={tipo}
                     onChange={(e) => setTipo(e.target.value)}
                     disabled={loadingTipos || tipos.length === 0}
-                    className="appearance-none w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm bg-white text-sm disabled:bg-gray-50"
+                    className="appearance-none w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium text-slate-800 disabled:opacity-50 transition-all cursor-pointer"
                   >
                     {tipos.length > 0 ? (
                       tipos.map(t => (
@@ -689,57 +704,60 @@ export default function DashboardPage() {
                       <option value="">{loadingTipos ? "Cargando..." : "Sin tipos disponibles"}</option>
                     )}
                   </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-600">
                     <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 6.757 7.586 5.343 9l4.95 4.95z" /></svg>
                   </div>
                 </div>
 
-                <textarea
-                  placeholder="Motivo de ingreso"
-                  value={motivo}
-                  onChange={(e) => setMotivo(e.target.value)}
-                  className="w-full p-2 py-1.5 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm md:col-span-2 text-sm resize-none"
-                  rows={1}
-                />
+                <div className="relative md:col-span-2">
+                  <textarea
+                    placeholder="Motivo de ingreso"
+                    value={motivo}
+                    onChange={(e) => setMotivo(e.target.value)}
+                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium text-slate-800 transition-all placeholder:text-slate-400 resize-none min-h-[40px]"
+                    rows={1}
+                  />
+                </div>
 
                 {/* 🚗 Sección de Vehículo REDISEÑADA */}
-                <div className="md:col-span-2 bg-gray-100/50 p-3 rounded-xl border border-gray-200 shadow-sm transition-all hover:shadow-md mt-1">
+                <div className="md:col-span-2 bg-white p-3 rounded-2xl border border-slate-200 shadow-[0_2px_10px_rgba(0,0,0,0.02)] mt-1 flex-shrink-0">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
                     <div className="flex items-center gap-2">
                        <span className="text-lg">🚗</span>
-                       <h3 className="text-xs font-black text-gray-700 uppercase tracking-tighter">Información del Vehículo</h3>
+                       <h3 className="text-xs font-bold text-slate-700 uppercase tracking-tight">Información del Vehículo</h3>
                     </div>
                     <button
                       type="button"
                       onClick={() => router.push("/vehiculos")}
-                      className="text-[10px] bg-blue-100 text-blue-700 px-3 py-1.5 rounded-full font-bold hover:bg-blue-200 transition-colors flex items-center gap-1 uppercase"
+                      className="text-[10px] bg-slate-50 text-blue-600 px-3 py-1.5 rounded-xl font-bold hover:bg-blue-50 hover:shadow-sm border border-slate-200 transition-all flex items-center gap-1 shadow-sm uppercase"
                     >
-                      📂 Ver Registrados
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                      Ver Registrados
                     </button>
                   </div>
                   
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                     {/* Botón Cámara de Vehículo */}
-                    <div className="col-span-2 md:col-span-1 flex flex-col items-center justify-center gap-1">
+                    <div className="col-span-2 md:col-span-1 flex flex-col items-center justify-center">
                       <button
                         type="button"
                         onClick={() => setIsVehiculoCameraOpen(true)}
-                        className={`w-full h-full min-h-[80px] border-2 border-dashed rounded-lg flex flex-col items-center justify-center transition-all ${
-                          fotoVehiculoBase64 ? 'border-green-400 bg-green-50' : 'border-gray-300 bg-white hover:border-blue-400 hover:bg-blue-50'
+                        className={`w-full h-full min-h-[70px] border-2 border-dashed rounded-xl flex flex-col items-center justify-center transition-all group ${
+                          fotoVehiculoBase64 ? 'border-emerald-300 bg-emerald-50' : 'border-slate-300 bg-slate-50 hover:border-blue-400 hover:bg-blue-50 border-spacing-2 hover:shadow-sm'
                         }`}
                       >
                         {fotoVehiculoBase64 ? (
-                          <img src={fotoVehiculoBase64} alt="Vehículo" className="w-full h-full object-cover rounded-md" />
+                          <img src={fotoVehiculoBase64} alt="Vehículo" className="w-full h-full object-cover rounded-lg" />
                         ) : (
                           <>
-                            <span className="text-xl">📸</span>
-                            <span className="text-[10px] font-bold text-gray-400 uppercase">Foto</span>
+                            <span className="text-2xl group-hover:scale-110 transition-transform">📸</span>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase mt-1">Foto</span>
                           </>
                         )}
                       </button>
                     </div>
 
-                    <div className="col-span-2 md:col-span-4 grid grid-cols-2 md:grid-cols-2 gap-3">
+                    <div className="col-span-2 md:col-span-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div className="relative">
                         <input
                           type="text"
@@ -752,7 +770,7 @@ export default function DashboardPage() {
                               handleBuscarPlaca();
                             }
                           }}
-                          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 text-sm font-black uppercase placeholder:font-normal"
+                          className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-black text-slate-700 uppercase placeholder:font-medium placeholder:normal-case placeholder:text-slate-400 transition-all"
                         />
                       </div>
 
@@ -760,7 +778,7 @@ export default function DashboardPage() {
                         <select
                           value={tipoVehiculo}
                           onChange={(e) => setTipoVehiculo(e.target.value)}
-                          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 text-sm bg-white appearance-none cursor-pointer"
+                          className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium text-slate-700 appearance-none cursor-pointer transition-all"
                         >
                           <option value="">Tipo de Vehículo</option>
                           <option value="carro">Carro</option>
@@ -771,76 +789,94 @@ export default function DashboardPage() {
                           <option value="bicicleta">Bicicleta</option>
                           <option value="otro">Otro</option>
                         </select>
-                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-600">
                           <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 6.757 7.586 5.343 9l4.95 4.95z" /></svg>
                         </div>
                       </div>
                       
-                      <input
-                        type="text"
-                        placeholder="Marca"
-                        value={marca}
-                        onChange={(e) => setMarca(e.target.value)}
-                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 text-sm"
-                      />
+                      <div className="relative">
+                        <input
+                          type="text"
+                          placeholder="Marca"
+                          value={marca}
+                          onChange={(e) => setMarca(e.target.value)}
+                          className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium text-slate-800 transition-all placeholder:text-slate-400"
+                        />
+                      </div>
 
                       <div className="grid grid-cols-2 gap-2">
-                        <input
-                          type="text"
-                          placeholder="Modelo"
-                          value={modelo}
-                          onChange={(e) => setModelo(e.target.value)}
-                          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 text-sm"
-                        />
-                        <input
-                          type="text"
-                          placeholder="Color"
-                          value={color}
-                          onChange={(e) => setColor(e.target.value)}
-                          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 text-sm"
-                        />
+                        <div className="relative">
+                          <input
+                            type="text"
+                            placeholder="Modelo"
+                            value={modelo}
+                            onChange={(e) => setModelo(e.target.value)}
+                            className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium text-slate-800 transition-all placeholder:text-slate-400"
+                          />
+                        </div>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            placeholder="Color"
+                            value={color}
+                            onChange={(e) => setColor(e.target.value)}
+                            className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium text-slate-800 transition-all placeholder:text-slate-400"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
               </div>
+              </div>
             </div>
 
-            {/* 2. Sección de Registro y Tiempo */}
-            <div className="w-full lg:w-1/3 flex flex-col items-center justify-between p-4 bg-blue-50/50 rounded-2xl border border-blue-100 h-full">
+            {/* 2. PANEL BIOMÉTRICO Y ACCIONES (Columna Derecha) */}
+            <div className="w-full lg:w-80 xl:w-96 flex flex-col items-center justify-between p-5 lg:p-6 bg-white text-slate-800 rounded-[1.5rem] shadow-[0_4px_24px_rgba(0,0,0,0.06)] border border-slate-200 overflow-hidden flex-shrink-0 relative">
+              {/* Decoración geométrica */}
+              <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-full blur-2xl -mr-12 -mt-12 pointer-events-none"></div>
+              <div className="absolute bottom-0 left-0 w-32 h-32 bg-slate-100/50 rounded-full blur-3xl -ml-16 -mb-16 pointer-events-none"></div>
 
               <div
-                className="flex flex-col items-center mb-2 w-full cursor-pointer group"
-                onClick={() => setIsCameraOpen(true)} // 👈 ABRIR CÁMARA AL HACER CLIC
+                className="flex flex-col items-center mb-4 w-full cursor-pointer group relative z-10"
+                onClick={() => setIsCameraOpen(true)}
               >
-                <div className={`
-                        w-28 h-28 lg:w-32 lg:h-32 border-4 rounded-full bg-blue-100 flex items-center justify-center mb-2 text-xl font-extrabold shadow-inner overflow-hidden
-                        ${fotoBase64 ? 'border-green-500' : 'border-blue-400 group-hover:border-blue-600'}
-                    `}>
-                  {fotoBase64 ? (
-                    // Muestra la foto (puede ser nueva o cargada desde la BD)
-                    <img src={fotoBase64} alt="Foto de la persona a registrar" className="w-full h-full object-cover" />
-                  ) : (
-                    // Muestra el icono si no hay foto
-                    <svg className="w-16 h-16 text-blue-500 group-hover:text-blue-700 transition duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.218A2 2 0 0110.125 4h3.75a2 2 0 011.664.89l.812 1.218A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                  )}
+                <div className="relative w-28 h-28 lg:w-32 lg:h-32 mb-2 mt-1">
+                  <div className={`
+                          absolute inset-0 rounded-full blur-md opacity-20 transition-all duration-500
+                          ${fotoBase64 ? 'bg-emerald-400' : 'bg-blue-400 group-hover:bg-blue-500 group-hover:blur-xl'}
+                      `}></div>
+                  <div className={`
+                          relative w-full h-full border-[3px] rounded-full flex items-center justify-center text-xl font-extrabold shadow-sm overflow-hidden bg-slate-50 transition-all duration-300
+                          ${fotoBase64 ? 'border-emerald-400' : 'border-slate-200 group-hover:border-blue-300'}
+                      `}>
+                    {fotoBase64 ? (
+                      <img src={fotoBase64} alt="Foto de la persona a registrar" className="w-full h-full object-cover" />
+                    ) : (
+                      <svg className="w-14 h-14 text-slate-300 group-hover:text-blue-500 transition duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.218A2 2 0 0110.125 4h3.75a2 2 0 011.664.89l.812 1.218A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    )}
+                  </div>
+                  {/* Badge fotográfico */}
+                  <div className="absolute -bottom-2 -right-2 bg-white border border-slate-200 p-2 rounded-full shadow-lg group-hover:bg-blue-50 transition-colors">
+                     <span className="text-sm">{fotoBase64 ? '🔄' : '📸'}</span>
+                  </div>
                 </div>
-                <p className="text-xs font-medium text-gray-500 group-hover:text-blue-600 transition duration-200">
-                  {fotoBase64 ? '✅ Foto Lista (Clic para cambiar)' : '📸 Clic para tomar foto'}
+                <p className="text-[11px] font-bold text-slate-400 group-hover:text-blue-600 transition duration-200 tracking-wide uppercase">
+                  {fotoBase64 ? 'Foto Lista (Clic para cambiar)' : 'Tomar Fotografía'}
                 </p>
               </div>
 
-              <div className="flex flex-col gap-2 w-full mb-2">
+              <div className="flex flex-col gap-2 w-full mb-4 relative z-10 mx-auto">
                 <button
                   onClick={() => handleRegistrar("entrada")}
                   disabled={isBloqueado || !!registroActivo}
-                  className={`w-full text-white py-2.5 px-3 rounded-xl font-bold shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 text-sm lg:text-base ${
+                  className={`w-full text-white py-2.5 px-4 rounded-xl font-bold shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-sm border ${
                     isBloqueado
-                      ? 'bg-gray-400 cursor-not-allowed grayscale'
+                      ? 'bg-red-50 border-red-200 text-red-500 cursor-not-allowed'
                       : registroActivo
-                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200'
+                      ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
+                      : 'bg-emerald-600 hover:bg-emerald-500 border-emerald-500 shadow-[0_0_15px_rgb(16,185,129,0.2)]'
                   }`}
                 >
                   {isBloqueado ? "🚫 INGRESO PROHIBIDO" : "✅ REGISTRAR ENTRADA"}
@@ -848,10 +884,10 @@ export default function DashboardPage() {
                 <button
                   onClick={() => handleRegistrar("salida")}
                   disabled={!registroActivo}
-                  className={`w-full py-2.5 text-base font-bold rounded-xl shadow-md transition duration-200 ${
+                  className={`w-full py-2.5 text-sm font-bold rounded-xl shadow-md transition-all active:scale-[0.98] flex items-center justify-center border ${
                     registroActivo
-                      ? 'bg-red-500 text-white hover:bg-red-600'
-                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      ? 'bg-rose-600 hover:bg-rose-500 text-white border-rose-500 shadow-[0_0_15px_rgb(225,29,72,0.2)]'
+                      : 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
                   }`}
                 >
                   🚪 REGISTRAR SALIDA
@@ -859,26 +895,30 @@ export default function DashboardPage() {
                 
                 <button
                   onClick={handleActualizarDatos}
-                  className="mt-1 w-full bg-blue-100 text-blue-700 py-1.5 rounded-xl font-bold shadow-sm hover:bg-blue-200 transition-all active:scale-95 flex items-center justify-center gap-2 border border-blue-200 text-xs uppercase"
+                  className="mt-1 w-full bg-blue-50 text-blue-600 py-2 rounded-xl font-bold hover:bg-blue-100 hover:text-blue-700 transition-all active:scale-[0.98] flex items-center justify-center gap-2 border border-blue-200 text-xs uppercase tracking-wider backdrop-blur-sm shadow-sm"
                 >
-                  🛠️ Actualizar Datos
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                  Actualizar Datos
                 </button>
               </div>
 
-              <div className="text-center w-full bg-gray-800 p-3 rounded-lg shadow-inner">
+              <div className="w-full bg-slate-50 p-4 rounded-2xl border border-slate-200 shadow-sm relative z-10 flex flex-col items-center justify-center">
                 {mounted ? (
                   <>
-                    <p className="text-base font-medium text-gray-300">
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">
                       {fechaHora.toLocaleDateString("es-CO", { year: 'numeric', month: 'short', day: 'numeric' })}
                     </p>
-                    <p className="text-4xl font-mono font-extrabold text-green-400 mt-1 tracking-wider">
-                      {fechaHora.toLocaleTimeString("es-CO")}
-                    </p>
+                    <div className="flex items-baseline gap-1 mt-1">
+                       <p className="text-4xl lg:text-5xl font-mono font-black text-transparent bg-clip-text bg-gradient-to-br from-blue-700 to-indigo-900 tracking-tight drop-shadow-sm">
+                         {fechaHora.toLocaleTimeString("es-CO", { hour: '2-digit', minute: '2-digit', hour12: false })}
+                       </p>
+                       <span className="text-xl font-mono font-bold text-blue-500 animate-pulse">:{fechaHora.getSeconds().toString().padStart(2, '0')}</span>
+                    </div>
                   </>
                 ) : (
                   <div className="animate-pulse flex flex-col items-center gap-2">
-                    <div className="h-4 w-32 bg-gray-700 rounded"></div>
-                    <div className="h-8 w-48 bg-gray-700 rounded"></div>
+                    <div className="h-4 w-24 bg-slate-200 rounded mb-2"></div>
+                    <div className="h-10 w-40 bg-slate-200 rounded"></div>
                   </div>
                 )}
               </div>
@@ -886,66 +926,6 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <hr className="my-3 border-gray-200" />
-
-          {/* Botones de Navegación Inferiores (sin cambios) */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3">
-            {/* Solo Admin y SuperAdmin ven Reportes y Registros */}
-            <button
-              onClick={() => router.push("/reportes")}
-              className={`text-white py-2 rounded-lg font-semibold shadow-md text-xs transition-all ${
-                anotacionesAlerta.length > 0 
-                  ? 'bg-red-600 animate-pulse-red shadow-red-200' 
-                  : 'bg-orange-500 hover:bg-orange-600'
-              }`}
-            >
-              📊 Reporte de Novedades
-            </button>
-
-            <button
-              onClick={() => router.push("/registros")}
-              className="bg-yellow-500 text-white py-2 rounded-lg font-semibold shadow-md hover:bg-yellow-600 text-xs"
-            >
-              📜 Historial de Registros
-            </button>
-
-            <button
-              onClick={() => router.push("/correspondencia")}
-              className="bg-indigo-600 text-white py-2 rounded-lg font-semibold shadow-md hover:bg-indigo-700 text-xs"
-            >
-              📦 Correspondencia
-            </button>
-
-            <button
-              onClick={() => router.push("/personal-activo")}
-              className="bg-purple-600 text-white py-2 rounded-lg font-semibold shadow-md hover:bg-purple-700 text-xs"
-            >
-              👥 Personal Con Registro Activo
-            </button>
-
-            {/* Solo Admin y SuperAdmin ven Configuraciones */}
-            {(usuario?.role === "admin" || usuario?.role === "superadmin") && (
-              <button
-                onClick={() => router.push("/configuraciones")}
-                className="bg-blue-800 text-white py-2 rounded-lg font-semibold shadow-md hover:bg-blue-900 text-xs"
-              >
-                🔑 Configuraciones
-              </button>
-            )}
-
-            {/* Solo SuperAdmin ve Mantenimiento */}
-            {usuario?.role === "superadmin" && (
-              <button
-                onClick={() => router.push("/configuraciones/general?mantenimiento=true")}
-                className="bg-red-700 text-white py-2 rounded-lg font-semibold shadow-md hover:bg-red-800 text-xs border-2 border-red-300 animate-pulse"
-              >
-                🛠️ Mantenimiento (DEV)
-              </button>
-            )}
-          </div>
-        </div>
-
-        <p className="mt-2 text-gray-500 text-xs">SOFTCOINP - Sistema de Control de Acceso</p>
       </div>
     </>
   );

@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import SessionGuard from "@/components/SessionGuard"; 
+import Sidebar from "@/components/Sidebar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,9 +34,12 @@ export default function RootLayout({
         <Header />
 
         {/* 📄 CONTENIDO */}
-        <main className="flex flex-col h-[calc(100vh-64px)] overflow-hidden">
+        <main className="flex flex-row h-[calc(100vh-48px)] w-full overflow-hidden">
           <SessionGuard>
-            {children}
+            <Sidebar />
+            <div className="flex-1 overflow-y-auto relative h-full bg-slate-50 w-full z-0">
+              {children}
+            </div>
           </SessionGuard>
         </main>
       </body>

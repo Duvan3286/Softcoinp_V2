@@ -55,27 +55,10 @@ export default function PersonalActivoPage() {
     <div className="h-screen w-full bg-gray-100 p-6 flex flex-col overflow-hidden items-center">
       <div className="w-full max-w-[1400px] h-full flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex-shrink-0 mt-4 flex justify-between items-center w-full">
-          <button
-            onClick={() => router.push("/dashboard")}
-            className="bg-blue-600 text-white py-1.5 px-3 rounded-lg shadow-md hover:bg-blue-700 transition duration-200 flex items-center text-sm font-semibold"
-          >
-            <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Menú Principal
-          </button>
-
+        <div className="flex-shrink-0 mt-4 flex justify-center items-center w-full border-b border-gray-100 pb-4">
           <h1 className="text-2xl font-extrabold text-blue-700 uppercase tracking-wide text-center">
             Personal Con Registro Activo
           </h1>
-
-          <button
-            onClick={() => router.push("/registros")}
-            className="bg-yellow-500 text-white py-2 px-4 rounded-xl shadow-md hover:bg-yellow-600 transition duration-200 flex items-center text-sm font-semibold"
-          >
-            Historial de Registros
-          </button>
         </div>
 
         {/* Content */}

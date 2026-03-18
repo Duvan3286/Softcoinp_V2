@@ -37,7 +37,7 @@ export default function RootLayout({
         <main className="flex flex-row h-[calc(100vh-56px)] w-full overflow-hidden">
           <SessionGuard>
             <Sidebar />
-            <div className="flex-1 overflow-y-auto relative h-full bg-slate-50 w-full z-0">
+            <div className="flex-1 overflow-y-auto h-full bg-slate-50 w-full">
               {children}
             </div>
           </SessionGuard>

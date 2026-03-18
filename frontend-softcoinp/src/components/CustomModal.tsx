@@ -25,27 +25,6 @@ const CustomModal: React.FC<CustomModalProps> = ({
   confirmText = "Confirmar",
   cancelText = "Cancelar",
 }) => {
-  // ⌨️ Cerrar con Enter o Escape
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Enter") {
-        if (type === "confirm" && onConfirm) {
-          onConfirm();
-        }
-        onClose();
-      } else if (e.key === "Escape") {
-        onClose();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, type, onConfirm, onClose]);
-
-  if (!isOpen) return null;
-
   const getStyle = () => {
     switch (type) {
       case "success":
@@ -93,6 +72,34 @@ const CustomModal: React.FC<CustomModalProps> = ({
   };
 
   const style = getStyle();
+  const primaryButtonRef = React.useRef<HTMLButtonElement>(null);
+
+  // ⌨️ Cerrar con Enter o Escape + Focus
+  useEffect(() => {
+    if (!isOpen) return;
+
+    // Auto-focus al abrir
+    setTimeout(() => {
+      primaryButtonRef.current?.focus();
+    }, 100);
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Enter") {
+        e.preventDefault(); // Evitar que el Enter se propague a otros elementos
+        if (type === "confirm" && onConfirm) {
+          onConfirm();
+        }
+        onClose();
+      } else if (e.key === "Escape") {
+        onClose();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, type, onConfirm, onClose]);
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
@@ -123,6 +130,7 @@ const CustomModal: React.FC<CustomModalProps> = ({
                   {cancelText}
                 </button>
                 <button
+                  ref={primaryButtonRef}
                   onClick={() => {
                     onConfirm?.();
                     onClose();
@@ -134,6 +142,7 @@ const CustomModal: React.FC<CustomModalProps> = ({
               </>
             ) : (
               <button
+                ref={primaryButtonRef}
                 onClick={onClose}
                 className={`px-10 py-2.5 rounded-xl text-white font-bold text-sm shadow-lg transition-all active:scale-95 ${style.btn}`}
               >

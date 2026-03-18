@@ -3,32 +3,68 @@
 import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { getCurrentUser } from "@/utils/auth";
+
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
   const [usuario, setUsuario] = useState<{ role?: string; id?: string } | null>(null);
-  const [hayNovedades, setHayNovedades] = useState(false); // Reservado para uso futuro global
+  const [hayNovedades, setHayNovedades] = useState(false);
+
+  // Estados para grupos colapsables
+  const [isHistorialOpen, setIsHistorialOpen] = useState(false);
+  const [isEnSitioOpen, setIsEnSitioOpen] = useState(false);
 
   useEffect(() => {
     if (pathname === "/login") return;
     setUsuario(getCurrentUser() as any);
+
+    // Auto-abrir grupos si la ruta actual pertenece a ellos
+    if (pathname.includes("registros")) setIsHistorialOpen(true);
+    if (pathname.includes("activo")) setIsEnSitioOpen(true);
   }, [pathname]);
 
   if (pathname === "/login") return null;
 
   return (
     <aside 
-      className={`bg-white text-slate-700 flex flex-col pt-2 pb-4 z-[100] flex-shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.05)] relative transition-all duration-300 ease-in-out border-r border-slate-200 ${isExpanded ? 'w-64' : 'w-[88px]'} hidden lg:flex h-full`}
+      className={`bg-white text-slate-700 flex flex-col pt-2 pb-4 z-[100] flex-shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.05)] relative transition-all duration-300 ease-in-out border-r border-slate-200 ${isExpanded ? 'w-72' : 'w-[88px]'} hidden lg:flex h-full`}
       onMouseEnter={() => setIsExpanded(true)}
-      onMouseLeave={() => setIsExpanded(false)}
+      onMouseLeave={() => {
+          setIsExpanded(false);
+          // Opcional: Cerrar grupos al colapsar el sidebar? 
+          // Mejor dejarlos para que cuando vuelva a expandir estén como antes
+      }}
     >
-      <nav className="flex flex-col gap-3 flex-grow px-4 overflow-y-auto overflow-x-hidden custom-scrollbar mt-4">
+      <nav className="flex flex-col gap-2 flex-grow px-4 overflow-y-auto overflow-x-hidden custom-scrollbar mt-4">
          <NavItem icon="🏢" text="Dashboard" path="/dashboard" currentPath={pathname} isExpanded={isExpanded} router={router} />
          <NavItem icon="📊" text="Reportes" path="/reportes" currentPath={pathname} isExpanded={isExpanded} alert={hayNovedades} router={router} />
-         <NavItem icon="📜" text="Registros" path="/registros" currentPath={pathname} isExpanded={isExpanded} router={router} />
+         
+         {/* Grupo Historial */}
+         <NavGroup 
+            icon="📜" 
+            text="Historial" 
+            isOpen={isHistorialOpen && isExpanded} 
+            isExpanded={isExpanded}
+            onToggle={() => setIsHistorialOpen(!isHistorialOpen)}
+         >
+            <NavItem icon="👥" text="Personas" path="/registros" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />
+            <NavItem icon="🚗" text="Vehículos" path="/registros-vehiculos" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />
+         </NavGroup>
+
+         {/* Grupo En Sitio */}
+         <NavGroup 
+            icon="📍" 
+            text="En Sitio" 
+            isOpen={isEnSitioOpen && isExpanded} 
+            isExpanded={isExpanded}
+            onToggle={() => setIsEnSitioOpen(!isEnSitioOpen)}
+         >
+            <NavItem icon="👤" text="Personas Activas" path="/personal-activo" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />
+            <NavItem icon="🚘" text="Vehículos Activos" path="/vehiculos-activos" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />
+         </NavGroup>
+
          <NavItem icon="📦" text="Correspondencia" path="/correspondencia" currentPath={pathname} isExpanded={isExpanded} router={router} />
-         <NavItem icon="👥" text="Registros Activos" path="/personal-activo" currentPath={pathname} isExpanded={isExpanded} router={router} />
 
          {(usuario?.role === "admin" || usuario?.role === "superadmin") && (
             <div className="mt-2 pt-2 border-t border-slate-200">
@@ -37,9 +73,10 @@ export default function Sidebar() {
          )}
 
          {usuario?.role === "superadmin" && (
-           <div className="mt-2">
-            <NavItem icon="🛠️" text="Mantenimiento (DEV)" path="/configuraciones/general?mantenimiento=true" currentPath={pathname} isExpanded={isExpanded} router={router} highlightRed />
-           </div>
+            <div className="mt-2 text-[10px] uppercase font-black text-slate-300 px-4 mb-1">Super Admin</div>
+         )}
+         {usuario?.role === "superadmin" && (
+            <NavItem icon="🛠️" text="Mantenimiento" path="/configuraciones/general?mantenimiento=true" currentPath={pathname} isExpanded={isExpanded} router={router} highlightRed />
          )}
       </nav>
 
@@ -54,10 +91,42 @@ export default function Sidebar() {
   );
 }
 
-function NavItem({ icon, text, path, currentPath, isExpanded, alert, highlightRed, router }: any) {
+function NavGroup({ icon, text, isOpen, isExpanded, onToggle, children }: any) {
+    return (
+        <div className="flex flex-col gap-1">
+            <button 
+                onClick={onToggle}
+                className={`flex items-center p-3 rounded-2xl transition-all duration-200 font-semibold border whitespace-nowrap overflow-hidden group relative w-full
+                    ${isOpen ? 'bg-slate-50 text-blue-700 border-slate-100' : 'text-slate-500 border-transparent hover:bg-slate-50 hover:text-slate-800'}
+                `}
+                title={text}
+            >
+                <span className="text-xl flex-shrink-0 flex items-center justify-center w-8 group-hover:scale-110 transition-transform">{icon}</span>
+                <span 
+                    className={`text-sm ml-3 transition-opacity duration-300 flex-1 text-left tracking-wide ${isExpanded ? 'opacity-100' : 'opacity-0 w-0 hidden'}`}
+                    style={{ display: isExpanded ? 'block' : 'none' }}
+                >
+                    {text}
+                </span>
+                {isExpanded && (
+                    <span className={`transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </span>
+                )}
+            </button>
+            {isOpen && (
+                <div className="flex flex-col gap-1 ml-4 border-l-2 border-slate-100 pl-2 animate-in slide-in-from-top-2 duration-200">
+                    {children}
+                </div>
+            )}
+        </div>
+    );
+}
+
+function NavItem({ icon, text, path, currentPath, isExpanded, alert, highlightRed, router, isSubItem }: any) {
   const isActive = currentPath === path || (currentPath !== '/dashboard' && currentPath.startsWith(path) && path !== '/dashboard');
   
-  let baseClass = `flex items-center p-3 rounded-2xl transition-all duration-200 font-semibold border whitespace-nowrap overflow-hidden group relative `;
+  let baseClass = `flex items-center ${isSubItem ? 'p-2' : 'p-3'} rounded-2xl transition-all duration-200 font-semibold border whitespace-nowrap overflow-hidden group relative `;
   
   if (highlightRed) {
      baseClass += `bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100 animate-pulse-red `;
@@ -71,9 +140,9 @@ function NavItem({ icon, text, path, currentPath, isExpanded, alert, highlightRe
 
   return (
     <button onClick={() => router.push(path)} className={baseClass} title={text}>
-       <span className={`text-xl flex-shrink-0 flex items-center justify-center w-8 group-hover:scale-110 transition-transform ${isActive ? 'drop-shadow-md' : ''}`}>{icon}</span>
+       <span className={`${isSubItem ? 'text-lg' : 'text-xl'} flex-shrink-0 flex items-center justify-center w-8 group-hover:scale-110 transition-transform ${isActive ? 'drop-shadow-md' : ''}`}>{icon}</span>
        <span 
-         className={`text-sm ml-3 transition-opacity duration-300 flex-1 text-left tracking-wide ${isExpanded ? 'opacity-100' : 'opacity-0 w-0 hidden'}`}
+         className={`${isSubItem ? 'text-xs' : 'text-sm'} ml-3 transition-opacity duration-300 flex-1 text-left tracking-wide ${isExpanded ? 'opacity-100' : 'opacity-0 w-0 hidden'}`}
          style={{ display: isExpanded ? 'block' : 'none' }}
        >
          {text}

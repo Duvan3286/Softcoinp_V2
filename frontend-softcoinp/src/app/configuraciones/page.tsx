@@ -75,16 +75,6 @@ export default function ConfiguracionesHubPage() {
         {/* Header con botón de regreso */}
         <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200 shrink-0">
           <div className="flex items-center gap-4">
-            <button
-               onClick={() => router.push("/dashboard")}
-               className="bg-blue-600 text-white py-1.5 px-3 rounded-lg font-semibold shadow-md hover:bg-blue-700 transition duration-200 flex items-center text-sm"
-               title="Volver al Menú Principal"
-            >
-              <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              Menú Principal
-            </button>
             <div>
               <h1 className="text-2xl font-extrabold text-gray-800 tracking-tight">Configuraciones</h1>
               <p className="text-sm text-gray-500 font-medium">Panel de administración y ajustes del sistema</p>

@@ -176,7 +176,7 @@ export default function CorrespondenciaPage() {
       
       {/* Modal Entregar */}
       {entregarModal.isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[160] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
             <h3 className="text-xl font-bold mb-4">Entregar Correspondencia</h3>
             <div className="space-y-4">
@@ -228,15 +228,7 @@ export default function CorrespondenciaPage() {
           <p className="text-sm text-gray-500">Recepción y entrega de paquetes y documentos.</p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => router.push("/dashboard")}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-md flex items-center gap-2 text-sm font-medium"
-          >
-            <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-            Menú Principal
-          </button>
-        </div>
+
       </div>
 
       {/* TABS */}

@@ -15,6 +15,7 @@ namespace Softcoinp.Backend
         public DbSet<TipoPersonal> TiposPersonal { get; set; }
         public DbSet<Vehiculo> Vehiculos { get; set; }
         public DbSet<Correspondencia> Correspondencias { get; set; }
+        public DbSet<RegistroVehiculo> RegistrosVehiculos { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

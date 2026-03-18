@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import api from "@/services/api";
 import { useRouter } from "next/navigation";
 import CameraCapture from "@/components/CameraCapture";
 import { tipoService, TipoPersonal } from "@/services/tipoService";
 import { anotacionService, AnotacionDto } from "@/services/anotacionService";
+import { registroVehiculoService } from "@/services/registroVehiculoService";
 import CustomModal, { ModalType } from "@/components/CustomModal";
 import { getCurrentUser, UserPayload } from "@/utils/auth";
 
@@ -58,6 +59,17 @@ const urlToBase64 = async (url: string): Promise<string> => {
 };
 
 export default function DashboardPage() {
+  const identificacionRef = useRef<HTMLInputElement>(null);
+  const nombresRef = useRef<HTMLInputElement>(null);
+  const apellidosRef = useRef<HTMLInputElement>(null);
+  const destinoRef = useRef<HTMLInputElement>(null);
+  const motivoRef = useRef<HTMLTextAreaElement>(null);
+  const placaRef = useRef<HTMLInputElement>(null);
+  const marcaRef = useRef<HTMLInputElement>(null);
+  const modeloRef = useRef<HTMLInputElement>(null);
+  const colorRef = useRef<HTMLInputElement>(null);
+  const tipoVehiculoRef = useRef<HTMLSelectElement>(null);
+
   const [identificacion, setIdentificacion] = useState("");
   const [nombres, setNombres] = useState("");
   const [apellidos, setApellidos] = useState("");
@@ -91,6 +103,7 @@ export default function DashboardPage() {
     type: "info",
   });
   const [registroActivo, setRegistroActivo] = useState<RegistroActivo | null>(null);
+  const [registroVehiculoActivo, setRegistroVehiculoActivo] = useState<RegistroActivo | null>(null);
 
   // 🔔 Alerta de Novedades
   const [anotacionesAlerta, setAnotacionesAlerta] = useState<AnotacionDto[]>([]);
@@ -111,6 +124,9 @@ export default function DashboardPage() {
 
   // 📸 Snapshot de datos originales (para detectar cambios en actualización)
   const [datosOriginales, setDatosOriginales] = useState<Record<string, string | null>>({}); 
+
+  // ⚠️ Estado para validación visual
+  const [camposErrores, setCamposErrores] = useState<string[]>([]);
 
   const [usuario, setUsuario] = useState<UserPayload | null>(null);
 
@@ -138,6 +154,12 @@ export default function DashboardPage() {
     setMounted(true);
     setUsuario(getCurrentUser());
     const timer = setInterval(() => setFechaHora(new Date()), 1000);
+    
+    // 🎯 Auto-focus en el campo de identificación al cargar
+    setTimeout(() => {
+      identificacionRef.current?.focus();
+    }, 100);
+
     return () => clearInterval(timer);
   }, []);
 
@@ -157,22 +179,64 @@ export default function DashboardPage() {
     showModal("Foto capturada con éxito.", "success");
   };
 
+  const limpiarFormulario = () => {
+    setIdentificacion("");
+    setNombres("");
+    setApellidos("");
+    setCargo("");
+    setDestino("");
+    setMotivo("");
+    setPlaca("");
+    setMarca("");
+    setModelo("");
+    setColor("");
+    setTipoVehiculo("");
+    setFotoBase64(null);
+    setFotoUrl(null);
+    setFotoVehiculoBase64(null);
+    setTelefono("");
+    setAnotacionesAlerta([]);
+    setIsBloqueado(false);
+    setMotivoBloqueo("");
+    setRegistroActivo(null);
+    setDatosOriginales({});
+    setCamposErrores([]);
+  };
+
+  const limpiarVehiculoFormulario = () => {
+    setPlaca("");
+    setMarca("");
+    setModelo("");
+    setColor("");
+    setTipoVehiculo("");
+    setFotoVehiculoBase64(null);
+    setRegistroVehiculoActivo(null);
+    setCamposErrores([]);
+  };
+
   const handleRegistrar = async (accion: "entrada" | "salida") => {
     try {
       if (accion === "entrada") {
         // Verificar campos obligatorios
-        const requiredFields = [
-          { value: identificacion, name: "Identificación" },
-          { value: nombres, name: "Nombres" },
-          { value: apellidos, name: "Apellidos" },
-          { value: destino, name: "Destino" },
-          { value: motivo, name: "Motivo de ingreso" },
+        const validation = [
+          { value: identificacion, name: "Identificación", ref: identificacionRef, id: "identificacion" },
+          { value: nombres, name: "Nombres", ref: nombresRef, id: "nombres" },
+          { value: apellidos, name: "Apellidos", ref: apellidosRef, id: "apellidos" },
+          { value: destino, name: "Destino", ref: destinoRef, id: "destino" },
+          { value: motivo, name: "Motivo de ingreso", ref: motivoRef, id: "motivo" },
         ];
-        const missingField = requiredFields.find(field => !field.value.trim());
-        if (missingField) {
-          showModal(`🛑 Debe diligenciar el campo obligatorio: "${missingField.name}"`, "error");
+
+        const missing = validation.filter(v => !v.value.trim());
+        
+        if (missing.length > 0) {
+          setCamposErrores(missing.map(m => m.id));
+          showModal(`🛑 Debe diligenciar los campos obligatorios: ${missing.map(m => `"${m.name}"`).join(", ")}`, "error");
+          
+          // Focus el primero que falte
+          setTimeout(() => missing[0].ref.current?.focus(), 100);
           return;
         }
+
         if (!fotoBase64) {
           showModal("🛑 Debe tomar una fotografía de la persona a registrar.", "error");
           return;
@@ -217,6 +281,7 @@ export default function DashboardPage() {
         showModal("✅ Entrada registrada con éxito", "success");
         // 🔄 Marcar como adentro para actualizar los botones inmediatamente
         setRegistroActivo({ id: "activo" });
+        limpiarFormulario();
 
       } else if (accion === "salida") {
         if (!identificacion.trim() || !nombres.trim() || !apellidos.trim()) {
@@ -243,29 +308,90 @@ export default function DashboardPage() {
         // Registrar salida
         await api.put(`/registros/${activeRegistroId}/salida`);
         showModal("🚪 Salida registrada con éxito", "success");
-        setRegistroActivo(null);
+        limpiarFormulario();
       }
     } catch (err: any) {
       console.error("Error al registrar:", err);
       const msg = err.response?.data?.message || "Error en el servidor al procesar el registro.";
       showModal(`🛑 ${msg}`, "error");
     } finally {
-      // Limpiar campos después de registrar
-      setIdentificacion("");
-      setNombres("");
-      setApellidos("");
-      setCargo("");
-      setDestino("");
-      setMotivo("");
-      setPlaca("");
-      setMarca("");
-      setModelo("");
-      setColor("");
-      setTipoVehiculo("");
-      setFotoBase64(null);
-      setFotoUrl(null);
-      setFotoVehiculoBase64(null);
-      setTelefono("");
+      // Ya no limpiamos aquí para evitar borrar el formulario en caso de error de validación
+    }
+  };
+
+  const handleRegistrarVehiculo = async (accion: "entrada" | "salida") => {
+    try {
+      if (accion === "entrada") {
+        const validation = [
+          { value: placa, name: "Placa", ref: placaRef, id: "placa" },
+          { value: tipoVehiculo, name: "Tipo de Vehículo", ref: tipoVehiculoRef, id: "tipoVehiculo" },
+          { value: marca, name: "Marca", ref: marcaRef, id: "marca" },
+          { value: modelo, name: "Modelo", ref: modeloRef, id: "modelo" },
+          { value: color, name: "Color", ref: colorRef, id: "color" },
+        ];
+
+        const missing = validation.filter(v => !v.value.trim());
+
+        if (missing.length > 0) {
+          setCamposErrores(missing.map(m => m.id));
+          showModal(`🛑 Debe diligenciar los campos obligatorios del vehículo: ${missing.map(m => `"${m.name}"`).join(", ")}`, "error");
+          setTimeout(() => missing[0].ref.current?.focus(), 100);
+          return;
+        }
+
+        if (!fotoVehiculoBase64) {
+          showModal("🛑 Debe tomar una fotografía del vehículo para el registro.", "error");
+          return;
+        }
+
+        // Verificar si ya tiene entrada activa
+        const activo = await registroVehiculoService.getActivo(placa);
+        if (activo?.data) {
+          showModal("⚠️ Este vehículo ya tiene una entrada activa.", "warning");
+          setRegistroVehiculoActivo({ id: activo.data.id });
+          return;
+        }
+
+        await registroVehiculoService.registrarEntrada({
+          placa,
+          marca,
+          modelo,
+          color,
+          tipoVehiculo,
+          fotoVehiculo: fotoVehiculoBase64 || undefined
+        });
+
+        showModal("✅ Entrada de vehículo registrada con éxito", "success");
+        setRegistroVehiculoActivo({ id: "activo" });
+        limpiarVehiculoFormulario();
+
+      } else {
+        if (!registroVehiculoActivo) {
+          showModal("🛑 No hay un registro de entrada activo para este vehículo.", "error");
+          return;
+        }
+
+        // Buscar el ID real si es necesario
+        let activeId = registroVehiculoActivo.id;
+        if (activeId === "activo") {
+          const res = await registroVehiculoService.getActivo(placa);
+          if (res?.data) activeId = res.data.id;
+          else {
+            showModal("🛑 No se pudo encontrar el registro activo para este vehículo.", "error");
+            return;
+          }
+        }
+
+        await registroVehiculoService.registrarSalida(activeId);
+        showModal("🚪 Salida de vehículo registrada con éxito", "success");
+        limpiarVehiculoFormulario();
+      }
+    } catch (err: any) {
+      console.error("Error al registrar vehículo:", err);
+      const msg = err.response?.data?.message || "Error al procesar el registro del vehículo.";
+      showModal(`🛑 ${msg}`, "error");
+    } finally {
+      // No limpiamos aquí para evitar borrar campos en caso de error de validación
     }
   };
 
@@ -382,8 +508,6 @@ export default function DashboardPage() {
         setNombres(persona.nombre || "");
         setApellidos(persona.apellido || "");
         setTelefono(persona.telefono || "");
-        setDestino(persona.destino || "");
-        setMotivo(persona.motivo || "");
         setTipo(persona.tipo || "visitante");
 
         // Autocompletar vehículo si existe
@@ -446,6 +570,9 @@ export default function DashboardPage() {
   const handleBuscarPlaca = async () => {
     if (!placa || placa.trim().length < 3) return;
 
+    setDestino("");
+    setMotivo("");
+
     try {
       const res = (await api.get(`/vehiculos/placa/${placa}`)) as { data: { data?: any } };
       const vehiculo = res.data?.data;
@@ -459,6 +586,18 @@ export default function DashboardPage() {
         
         if (vehiculo.fotoUrl) {
            setFotoVehiculoBase64(vehiculo.fotoUrl.startsWith('http') ? vehiculo.fotoUrl : `http://localhost:5004/static${vehiculo.fotoUrl}`);
+        }
+
+        // Verificar si tiene entrada activa
+        try {
+          const activo = await registroVehiculoService.getActivo(placa);
+          if (activo?.data) {
+            setRegistroVehiculoActivo({ id: activo.data.id });
+          } else {
+            setRegistroVehiculoActivo(null);
+          }
+        } catch {
+          setRegistroVehiculoActivo(null);
         }
 
         // Cargar datos del propietario (si no están ya cargados)
@@ -569,41 +708,299 @@ export default function DashboardPage() {
         nombre={`${nombres} ${apellidos}`}
       />
 
-      <div className="h-[calc(100vh-48px)] w-full flex flex-col relative z-0 overflow-hidden">
+      <div className="h-[calc(100vh-56px)] w-full flex flex-col relative z-0 overflow-hidden">
         
-        {/* Sutil halo decorativo centrado en pantalla */}
-        <div className="fixed top-0 left-0 w-full h-96 bg-gradient-to-b from-blue-50/50 to-transparent -z-10 pointer-events-none"></div>
+        {/* Halo decorativo */}
+        <div className="fixed top-0 left-0 w-full h-96 bg-gradient-to-b from-blue-50/40 to-transparent -z-10 pointer-events-none"></div>
 
-        <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 h-full min-h-0 w-full max-w-[1600px] mx-auto p-4 md:p-6 lg:p-8">
+        <div className="flex flex-col lg:flex-row gap-4 h-full min-h-0 w-full max-w-[1700px] mx-auto p-3 lg:p-4 overflow-y-auto lg:overflow-hidden">
 
-        <div className="flex-1 flex flex-col bg-white/90 backdrop-blur-xl rounded-[1.5rem] shadow-[0_4px_24px_rgba(0,0,0,0.06)] border border-slate-200 p-4 md:p-5 lg:p-6 overflow-hidden min-h-0">
-          <h2 className="text-lg font-bold mb-4 text-slate-800 flex items-center gap-2 tracking-tight flex-shrink-0">
-            <div className="p-1.5 bg-blue-100 rounded-lg text-blue-600">
-               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-            </div>
-            Datos del Registro
-          </h2>
+          {/* ══════════════════════════════════════════
+              COLUMNA IZQUIERDA: Reloj + Vehículo
+          ══════════════════════════════════════════ */}
+          <div className="w-full lg:w-96 xl:w-[26rem] flex flex-col gap-3 flex-shrink-0">
 
-              {/* Contenedor scrolleable solo internamente */}
-              <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 min-h-0">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pb-2">
+            {/* ── Bloque Vehículo ── */}
+            <div className="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm p-3 lg:p-4 flex flex-col gap-2.5 overflow-hidden">
+              <div className="flex items-center gap-3 mb-1 flex-shrink-0">
+                {/* Título — izquierda */}
+                <div className="flex flex-col justify-center flex-1 min-w-0">
+                  <h3 className="text-sm lg:text-base font-bold text-slate-700 flex items-center gap-2 tracking-tight">
+                    <div className="p-1 lg:p-1.5 bg-slate-100 rounded-lg text-slate-600 flex-shrink-0">
+                      <span className="text-sm lg:text-base">🚗</span>
+                    </div>
+                    Vehículo
+                  </h3>
+                  <p className="text-[10px] text-slate-400 mt-0.5 hidden lg:block">
+                    {fotoVehiculoBase64 ? '✅ Foto capturada — clic para cambiar' : 'Clic en el círculo para fotografía'}
+                  </p>
+                </div>
+
+                {/* Foto vehículo — derecha (circular y simétrica a la de persona) */}
+                <div
+                  className="flex flex-col items-center cursor-pointer group flex-shrink-0"
+                  onClick={() => setIsVehiculoCameraOpen(true)}
+                >
+                  <div className="relative w-20 lg:w-24 h-20 lg:h-24">
+                    <div className={`absolute inset-0 rounded-full blur-md opacity-20 transition-all duration-500 ${fotoVehiculoBase64 ? 'bg-emerald-400' : 'bg-slate-300 group-hover:bg-blue-400'}`}></div>
+                    <div className={`relative w-full h-full border-[2px] rounded-full flex items-center justify-center overflow-hidden bg-slate-50 transition-all duration-300 ${fotoVehiculoBase64 ? 'border-emerald-400' : 'border-slate-200 group-hover:border-blue-400'}`}>
+                      {fotoVehiculoBase64 ? (
+                        <img src={fotoVehiculoBase64} alt="Vehículo" className="w-full h-full object-cover" />
+                      ) : (
+                        <svg className="w-10 lg:w-12 h-10 lg:h-12 text-slate-300 group-hover:text-blue-400 transition duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.218A2 2 0 0110.125 4h3.75a2 2 0 011.664.89l.812 1.218A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                      )}
+                    </div>
+                    <div className="absolute -bottom-1 -right-1 bg-white border border-slate-200 p-1 rounded-full shadow group-hover:bg-blue-50 transition-colors">
+                      <span className="text-[10px]">{fotoVehiculoBase64 ? '🔄' : '📸'}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Campos del vehículo */}
+              <div className="flex-1 overflow-y-auto custom-scrollbar min-h-0 flex flex-col gap-2">
+                <input
+                  ref={placaRef}
+                  type="text"
+                  placeholder="Placa"
+                  value={placa}
+                  onChange={(e) => {
+                    setPlaca(e.target.value.toUpperCase());
+                    setCamposErrores(prev => prev.filter(err => err !== "placa"));
+                  }}
+                  onBlur={handleBuscarPlaca}
+                  onKeyDown={(e) => { 
+                    if (e.key === 'Enter') {
+                       if (marca.trim() || modelo.trim()) {
+                         handleRegistrarVehiculo(registroVehiculoActivo ? "salida" : "entrada");
+                       } else {
+                         handleBuscarPlaca();
+                       }
+                    }
+                  }}
+                  className={`w-full p-2 border rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-black uppercase transition-all ${
+                    camposErrores.includes("placa") ? 'border-red-500 bg-red-50 ring-2 ring-red-500/10' : 'border-slate-200 bg-slate-50 text-slate-700'
+                  } placeholder:font-medium placeholder:normal-case placeholder:text-slate-400`}
+                />
 
                 <div className="relative">
-                  <span className="absolute left-2 top-2.5 text-xs text-slate-500 font-bold uppercase z-10">Identificación</span>
+                  <select
+                    ref={tipoVehiculoRef}
+                    value={tipoVehiculo}
+                    onChange={(e) => {
+                      setTipoVehiculo(e.target.value);
+                      setCamposErrores(prev => prev.filter(err => err !== "tipoVehiculo"));
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleRegistrarVehiculo(registroVehiculoActivo ? "salida" : "entrada");
+                    }}
+                    className={`w-full p-2 border rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium appearance-none cursor-pointer transition-all ${
+                      camposErrores.includes("tipoVehiculo") ? 'border-red-500 bg-red-50 text-red-900 ring-2 ring-red-500/10' : 'border-slate-200 bg-slate-50 text-slate-700'
+                    }`}
+                  >
+                    <option value="">Tipo de Vehículo</option>
+                    <option value="carro">Carro</option>
+                    <option value="moto">Moto</option>
+                    <option value="camioneta">Camioneta</option>
+                    <option value="camion">Camión</option>
+                    <option value="bus">Bus / Microbús</option>
+                    <option value="bicicleta">Bicicleta</option>
+                    <option value="otro">Otro</option>
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 6.757 7.586 5.343 9l4.95 4.95z" /></svg>
+                  </div>
+                </div>
+
+                <input
+                  ref={marcaRef}
+                  type="text"
+                  placeholder="Marca"
+                  value={marca}
+                  onChange={(e) => {
+                    setMarca(e.target.value);
+                    setCamposErrores(prev => prev.filter(err => err !== "marca"));
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleRegistrarVehiculo(registroVehiculoActivo ? "salida" : "entrada");
+                  }}
+                  className={`w-full p-2 border rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium transition-all placeholder:text-slate-400 ${
+                    camposErrores.includes("marca") ? 'border-red-500 bg-red-50 text-red-900 ring-2 ring-red-500/10' : 'border-slate-200 bg-slate-50 text-slate-800'
+                  }`}
+                />
+
+                <div className="grid grid-cols-2 gap-2">
                   <input
+                    ref={modeloRef}
+                    type="text"
+                    placeholder="Modelo"
+                    value={modelo}
+                    onChange={(e) => {
+                      setModelo(e.target.value);
+                      setCamposErrores(prev => prev.filter(err => err !== "modelo"));
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleRegistrarVehiculo(registroVehiculoActivo ? "salida" : "entrada");
+                    }}
+                    className={`w-full p-2 border rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium transition-all placeholder:text-slate-400 ${
+                      camposErrores.includes("modelo") ? 'border-red-500 bg-red-50 text-red-900 ring-2 ring-red-500/10' : 'border-slate-200 bg-slate-50 text-slate-800'
+                    }`}
+                  />
+                  <input
+                    ref={colorRef}
+                    type="text"
+                    placeholder="Color"
+                    value={color}
+                    onChange={(e) => {
+                      setColor(e.target.value);
+                      setCamposErrores(prev => prev.filter(err => err !== "color"));
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleRegistrarVehiculo(registroVehiculoActivo ? "salida" : "entrada");
+                    }}
+                    className={`w-full p-2 border rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium transition-all placeholder:text-slate-400 ${
+                      camposErrores.includes("color") ? 'border-red-500 bg-red-50 text-red-900 ring-2 ring-red-500/10' : 'border-slate-200 bg-slate-50 text-slate-800'
+                    }`}
+                  />
+                </div>
+
+                {/* Botones de Entrada/Salida para Vehículo */}
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  <button
+                    onClick={() => handleRegistrarVehiculo("entrada")}
+                    disabled={!!registroVehiculoActivo}
+                    className={`flex-1 py-1.5 rounded-xl font-bold text-[10px] transition-all active:scale-[0.98] border shadow-sm ${
+                      registroVehiculoActivo 
+                      ? 'bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed' 
+                      : 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100'
+                    }`}
+                  >
+                    📥 ENTRADA VEH
+                  </button>
+                  <button
+                    onClick={() => handleRegistrarVehiculo("salida")}
+                    disabled={!registroVehiculoActivo}
+                    className={`flex-1 py-1.5 rounded-xl font-bold text-[10px] transition-all active:scale-[0.98] border shadow-sm ${
+                      !registroVehiculoActivo 
+                      ? 'bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed' 
+                      : 'bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100'
+                    }`}
+                  >
+                    📤 SALIDA VEH
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => router.push('/registros-vehiculos')}
+                  className="w-full mt-2 bg-slate-100 text-slate-600 py-2 rounded-xl font-bold hover:bg-slate-200 transition-all active:scale-[0.98] flex items-center justify-center gap-2 border border-slate-200 text-[10px] uppercase tracking-wider"
+                >
+                  <span className="text-base">📜</span>
+                  Ver Historial de Vehículos
+                </button>
+              </div>
+            </div>
+
+            {/* ── Bloque Reloj / Fecha ── */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col items-center justify-center gap-1 text-center">
+              {mounted ? (
+                <>
+                  <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-widest leading-tight">
+                    {fechaHora.toLocaleDateString("es-CO", { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' })}
+                  </p>
+                  <div className="flex items-baseline gap-0.5 mt-1">
+                    <p className="text-4xl font-mono font-black text-transparent bg-clip-text bg-gradient-to-br from-blue-700 to-indigo-900 tracking-tight leading-none">
+                      {fechaHora.toLocaleTimeString("es-CO", { hour: '2-digit', minute: '2-digit', hour12: false })}
+                    </p>
+                    <span className="text-xl font-mono font-bold text-blue-500 animate-pulse">:{fechaHora.getSeconds().toString().padStart(2, '0')}</span>
+                  </div>
+                </>
+              ) : (
+                <div className="animate-pulse flex flex-col items-center gap-2">
+                  <div className="h-2.5 w-28 bg-slate-200 rounded"></div>
+                  <div className="h-9 w-36 bg-slate-200 rounded"></div>
+                </div>
+              )}
+            </div>
+
+          </div>{/* fin columna izquierda */}
+
+          {/* ══════════════════════════════════════════
+              COLUMNA DERECHA: Formulario Persona + Acciones
+          ══════════════════════════════════════════ */}
+          <div className="flex-1 flex flex-col bg-white rounded-2xl border border-slate-200 shadow-sm p-4 lg:p-5 overflow-hidden min-h-0">
+            {/* Cabecera: Título izq + Foto derecha */}
+            <div className="flex items-center gap-3 mb-2 flex-shrink-0">
+
+              {/* Título — izquierda */}
+              <div className="flex flex-col justify-center flex-1 min-w-0">
+                <h2 className="text-sm lg:text-base font-bold text-slate-800 flex items-center gap-2 tracking-tight">
+                  <div className="p-1 lg:p-1.5 bg-blue-100 rounded-lg text-blue-600 flex-shrink-0">
+                    <svg className="w-3.5 h-3.5 lg:w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                  </div>
+                  Registro de Persona
+                </h2>
+                <p className="text-[10px] text-slate-400 mt-0.5 hidden lg:block">
+                  {fotoBase64 ? '✅ Foto capturada — clic para cambiar' : 'Clic en el avatar para tomar fotografía'}
+                </p>
+              </div>
+
+              {/* Foto persona — derecha (ajustada para ahorrar espacio vertical) */}
+              <div
+                className="flex flex-col items-center cursor-pointer group flex-shrink-0"
+                onClick={() => setIsCameraOpen(true)}
+              >
+                <div className="relative w-20 lg:w-24 h-20 lg:h-24">
+                  <div className={`absolute inset-0 rounded-full blur-md opacity-20 transition-all duration-500 ${fotoBase64 ? 'bg-emerald-400' : 'bg-blue-300 group-hover:bg-blue-500'}`}></div>
+                  <div className={`relative w-full h-full border-[2px] rounded-full flex items-center justify-center overflow-hidden bg-slate-50 transition-all duration-300 ${fotoBase64 ? 'border-emerald-400' : 'border-slate-200 group-hover:border-blue-400'}`}>
+                    {fotoBase64 ? (
+                      <img src={fotoBase64} alt="Foto" className="w-full h-full object-cover" />
+                    ) : (
+                      <svg className="w-10 lg:w-12 h-10 lg:h-12 text-slate-300 group-hover:text-blue-400 transition duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.218A2 2 0 0110.125 4h3.75a2 2 0 011.664.89l.812 1.218A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    )}
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 bg-white border border-slate-200 p-1 rounded-full shadow group-hover:bg-blue-50 transition-colors">
+                    <span className="text-[10px]">{fotoBase64 ? '🔄' : '📸'}</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Alerta bloqueo */}
+            {isBloqueado && (
+              <div className="bg-red-50 text-red-800 p-3 rounded-xl shadow-sm border border-red-200 animate-in slide-in-from-top duration-300 mb-3 flex-shrink-0 relative overflow-hidden">
+                <div className="flex items-center gap-3">
+                  <div className="text-2xl animate-pulse">🛑</div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-red-600">Acceso Denegado</p>
+                    <p className="text-sm font-bold">"{motivoBloqueo}"</p>
+                  </div>
+                </div>
+                <div className="absolute -right-4 -bottom-4 text-6xl opacity-[0.03] text-red-900 font-black rotate-[-10deg]">BLOCK</div>
+              </div>
+            )}
+
+            {/* Campos optimizados en grid de 3 columnas para PC */}
+            <div className="flex-1 overflow-y-auto lg:overflow-visible custom-scrollbar min-h-0 pr-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 pb-2">
+
+                {/* Identificación */}
+                <div className="relative sm:col-span-2 lg:col-span-1">
+                  <span className="absolute left-2 top-2.5 text-[10px] text-slate-500 font-bold uppercase z-10">Identificación</span>
+                  <input
+                    ref={identificacionRef}
                     type="text"
                     value={identificacion}
-                    onChange={(e) => setIdentificacion(e.target.value.replace(/[^0-9]/g, ""))}
+                    onChange={(e) => {
+                      setIdentificacion(e.target.value.replace(/[^0-9]/g, ""));
+                      setCamposErrores(prev => prev.filter(err => err !== "identificacion"));
+                    }}
                     onBlur={handleBuscar}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         if (nombres.trim()) {
-                          // 🟢 Ya hay persona cargada → ejecutar entrada o salida
-                          if (!isBloqueado) {
-                            handleRegistrar(registroActivo ? "salida" : "entrada");
-                          }
+                          if (!isBloqueado) handleRegistrar(registroActivo ? "salida" : "entrada");
                         } else {
-                          // 🔍 Primer Enter → buscar persona
                           handleBuscar();
                         }
                       }
@@ -611,321 +1008,142 @@ export default function DashboardPage() {
                     inputMode="numeric"
                     pattern="[0-9]*"
                     className={`w-full p-2 pt-6 pl-9 pr-12 border rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-sm text-sm font-black transition-all ${
-                        isBloqueado ? 'border-red-300 bg-red-50 text-red-900 ring-4 ring-red-500/10' :
-                        anotacionesAlerta.length > 0 ? 'border-yellow-300 bg-yellow-50 text-yellow-900 ring-2 ring-yellow-400/20' : 'border-slate-200 bg-slate-50 focus:bg-white text-slate-800'
+                      isBloqueado ? 'border-red-300 bg-red-50 text-red-900 ring-4 ring-red-500/10' :
+                      camposErrores.includes("identificacion") ? 'border-red-500 bg-red-50 ring-4 ring-red-500/10' :
+                      anotacionesAlerta.length > 0 ? 'border-yellow-300 bg-yellow-50 text-yellow-900 ring-2 ring-yellow-400/20' : 'border-slate-200 bg-slate-50 focus:bg-white text-slate-800'
                     }`}
                   />
-                  <svg className="absolute left-2.5 top-6 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 21h7a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 2 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                  
+                  <svg className="absolute left-2.5 top-6 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 21h7a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 2 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
                   {(anotacionesAlerta.length > 0 || isBloqueado) && (
                     <button
                       onClick={() => setIsTimelineOpen(true)}
-                      className={`absolute right-2 top-7 p-1.5 rounded-full shadow-lg transition-all flex items-center justify-center group ${
-                        isBloqueado ? 'bg-red-600 animate-bounce' : 'bg-yellow-500 animate-pulse-red'
-                      }`}
-                      title={isBloqueado ? "PERSONA BLOQUEADA - Clic para ver historial" : "¡ALERTA DE SEGURIDAD! Clic para ver detalles"}
+                      className={`absolute right-2 top-7 p-1.5 rounded-full shadow-lg transition-all ${isBloqueado ? 'bg-red-600 animate-bounce' : 'bg-yellow-500 animate-pulse-red'}`}
+                      title={isBloqueado ? "BLOQUEADO" : "¡ALERTA!"}
                     >
-                      <span className="text-[14px]">{isBloqueado ? "🚫" : "⚠️"}</span>
+                      <span className="text-[13px]">{isBloqueado ? "🚫" : "⚠️"}</span>
                     </button>
-                   )}
+                  )}
                 </div>
 
-                {isBloqueado && (
-                  <div className="bg-red-50 text-red-800 p-4 rounded-xl shadow-sm border border-red-200 animate-in slide-in-from-top duration-300 overflow-hidden relative">
-                    <div className="flex items-center gap-3 relative z-10">
-                        <div className="text-3xl animate-pulse">🛑</div>
-                        <div>
-                            <p className="text-[10px] font-black uppercase tracking-widest leading-none mb-1.5 opacity-90 text-red-600">Acceso Denegado</p>
-                            <p className="text-sm font-bold shadow-sm">"{motivoBloqueo}"</p>
-                        </div>
-                    </div>
-                    <div className="absolute -right-4 -bottom-6 text-7xl opacity-[0.03] text-red-900 font-black rotate-[-10deg]">BLOCK</div>
-                  </div>
-                )}
+                <input 
+                  ref={nombresRef}
+                  type="text" 
+                  placeholder="Nombres" 
+                  value={nombres} 
+                  onChange={(e) => {
+                    setNombres(e.target.value);
+                    setCamposErrores(prev => prev.filter(err => err !== "nombres"));
+                  }}
+                  className={`w-full p-2 border rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium transition-all placeholder:text-slate-400 ${
+                    camposErrores.includes("nombres") ? 'border-red-500 bg-red-50 ring-2 ring-red-500/10 text-red-900' : 'border-slate-200 bg-slate-50 text-slate-800'
+                  }`} />
+
+                <input 
+                  ref={apellidosRef}
+                  type="text" 
+                  placeholder="Apellidos" 
+                  value={apellidos} 
+                  onChange={(e) => {
+                    setApellidos(e.target.value);
+                    setCamposErrores(prev => prev.filter(err => err !== "apellidos"));
+                  }}
+                  className={`w-full p-2 border rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium transition-all placeholder:text-slate-400 ${
+                    camposErrores.includes("apellidos") ? 'border-red-500 bg-red-50 ring-2 ring-red-500/10 text-red-900' : 'border-slate-200 bg-slate-50 text-slate-800'
+                  }`} />
+
+                <input type="text" placeholder="Teléfono" value={telefono} onChange={(e) => setTelefono(e.target.value.replace(/[^0-9]/g, ""))}
+                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium text-slate-800 transition-all placeholder:text-slate-400" />
+
+                <input type="text" placeholder="Cargo u Oficio (Opcional)" value={cargo} onChange={(e) => setCargo(e.target.value)}
+                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium text-slate-800 transition-all placeholder:text-slate-400" />
+
+                <input 
+                  ref={destinoRef}
+                  type="text" 
+                  placeholder="Destino" 
+                  value={destino} 
+                  onChange={(e) => {
+                    setDestino(e.target.value);
+                    setCamposErrores(prev => prev.filter(err => err !== "destino"));
+                  }}
+                  className={`w-full p-2 border rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium transition-all placeholder:text-slate-400 ${
+                    camposErrores.includes("destino") ? 'border-red-500 bg-red-50 ring-2 ring-red-500/10 text-red-900' : 'border-slate-200 bg-slate-50 text-slate-800'
+                  }`} />
 
                 <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Nombres"
-                    value={nombres}
-                    onChange={(e) => setNombres(e.target.value)}
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium text-slate-800 transition-all placeholder:text-slate-400"
-                  />
-                </div>
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Apellidos"
-                    value={apellidos}
-                    onChange={(e) => setApellidos(e.target.value)}
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium text-slate-800 transition-all placeholder:text-slate-400"
-                  />
-                </div>
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Teléfono"
-                    value={telefono}
-                    onChange={(e) => setTelefono(e.target.value.replace(/[^0-9]/g, ""))}
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium text-slate-800 transition-all placeholder:text-slate-400"
-                  />
-                </div>
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Cargo u Oficio (Opcional)"
-                    value={cargo}
-                    onChange={(e) => setCargo(e.target.value)}
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium text-slate-800 transition-all placeholder:text-slate-400"
-                  />
-                </div>
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Destino"
-                    value={destino}
-                    onChange={(e) => setDestino(e.target.value)}
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium text-slate-800 transition-all placeholder:text-slate-400"
-                  />
-                </div>
-
-                <div className="relative">
-                  <select
-                    value={tipo}
-                    onChange={(e) => setTipo(e.target.value)}
-                    disabled={loadingTipos || tipos.length === 0}
-                    className="appearance-none w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium text-slate-800 disabled:opacity-50 transition-all cursor-pointer"
-                  >
-                    {tipos.length > 0 ? (
-                      tipos.map(t => (
-                        <option key={t.id} value={t.nombre.toLowerCase()}>{t.nombre}</option>
-                      ))
-                    ) : (
-                      <option value="">{loadingTipos ? "Cargando..." : "Sin tipos disponibles"}</option>
-                    )}
+                  <select value={tipo} onChange={(e) => setTipo(e.target.value)} disabled={loadingTipos || tipos.length === 0}
+                    className="appearance-none w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium text-slate-800 disabled:opacity-50 transition-all cursor-pointer">
+                    {tipos.length > 0 ? tipos.map(t => <option key={t.id} value={t.nombre.toLowerCase()}>{t.nombre}</option>) : <option value="">{loadingTipos ? "Cargando..." : "Sin tipos"}</option>}
                   </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-600">
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
                     <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 6.757 7.586 5.343 9l4.95 4.95z" /></svg>
                   </div>
                 </div>
 
-                <div className="relative md:col-span-2">
-                  <textarea
-                    placeholder="Motivo de ingreso"
-                    value={motivo}
-                    onChange={(e) => setMotivo(e.target.value)}
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium text-slate-800 transition-all placeholder:text-slate-400 resize-none min-h-[40px]"
-                    rows={1}
+                <div className="sm:col-span-2 lg:col-span-3 relative">
+                  <textarea 
+                    ref={motivoRef}
+                    placeholder="Motivo de ingreso" 
+                    value={motivo} 
+                    onChange={(e) => {
+                      setMotivo(e.target.value);
+                      setCamposErrores(prev => prev.filter(err => err !== "motivo"));
+                    }}
+                    maxLength={250}
+                    onInput={(e) => {
+                      const target = e.target as HTMLTextAreaElement;
+                      target.style.height = 'auto';
+                      target.style.height = `${target.scrollHeight}px`;
+                    }}
+                    className={`w-full p-2 border rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium transition-all placeholder:text-slate-400 resize-none overflow-hidden min-h-[42px] ${
+                      camposErrores.includes("motivo") ? 'border-red-500 bg-red-50 ring-2 ring-red-500/10 text-red-900' : 'border-slate-200 bg-slate-50 text-slate-800'
+                    }`}
+                    rows={1} 
                   />
-                </div>
-
-                {/* 🚗 Sección de Vehículo REDISEÑADA */}
-                <div className="md:col-span-2 bg-white p-3 rounded-2xl border border-slate-200 shadow-[0_2px_10px_rgba(0,0,0,0.02)] mt-1 flex-shrink-0">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-                    <div className="flex items-center gap-2">
-                       <span className="text-lg">🚗</span>
-                       <h3 className="text-xs font-bold text-slate-700 uppercase tracking-tight">Información del Vehículo</h3>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => router.push("/vehiculos")}
-                      className="text-[10px] bg-slate-50 text-blue-600 px-3 py-1.5 rounded-xl font-bold hover:bg-blue-50 hover:shadow-sm border border-slate-200 transition-all flex items-center gap-1 shadow-sm uppercase"
-                    >
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-                      Ver Registrados
-                    </button>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                    {/* Botón Cámara de Vehículo */}
-                    <div className="col-span-2 md:col-span-1 flex flex-col items-center justify-center">
-                      <button
-                        type="button"
-                        onClick={() => setIsVehiculoCameraOpen(true)}
-                        className={`w-full h-full min-h-[70px] border-2 border-dashed rounded-xl flex flex-col items-center justify-center transition-all group ${
-                          fotoVehiculoBase64 ? 'border-emerald-300 bg-emerald-50' : 'border-slate-300 bg-slate-50 hover:border-blue-400 hover:bg-blue-50 border-spacing-2 hover:shadow-sm'
-                        }`}
-                      >
-                        {fotoVehiculoBase64 ? (
-                          <img src={fotoVehiculoBase64} alt="Vehículo" className="w-full h-full object-cover rounded-lg" />
-                        ) : (
-                          <>
-                            <span className="text-2xl group-hover:scale-110 transition-transform">📸</span>
-                            <span className="text-[10px] font-bold text-slate-400 uppercase mt-1">Foto</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-
-                    <div className="col-span-2 md:col-span-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div className="relative">
-                        <input
-                          type="text"
-                          placeholder="Placa"
-                          value={placa}
-                          onChange={(e) => setPlaca(e.target.value.toUpperCase())}
-                          onBlur={handleBuscarPlaca}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              handleBuscarPlaca();
-                            }
-                          }}
-                          className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-black text-slate-700 uppercase placeholder:font-medium placeholder:normal-case placeholder:text-slate-400 transition-all"
-                        />
-                      </div>
-
-                      <div className="relative">
-                        <select
-                          value={tipoVehiculo}
-                          onChange={(e) => setTipoVehiculo(e.target.value)}
-                          className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium text-slate-700 appearance-none cursor-pointer transition-all"
-                        >
-                          <option value="">Tipo de Vehículo</option>
-                          <option value="carro">Carro</option>
-                          <option value="moto">Moto</option>
-                          <option value="camioneta">Camioneta</option>
-                          <option value="camion">Camión</option>
-                          <option value="bus">Bus / Microbús</option>
-                          <option value="bicicleta">Bicicleta</option>
-                          <option value="otro">Otro</option>
-                        </select>
-                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-600">
-                          <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 6.757 7.586 5.343 9l4.95 4.95z" /></svg>
-                        </div>
-                      </div>
-                      
-                      <div className="relative">
-                        <input
-                          type="text"
-                          placeholder="Marca"
-                          value={marca}
-                          onChange={(e) => setMarca(e.target.value)}
-                          className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium text-slate-800 transition-all placeholder:text-slate-400"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2">
-                        <div className="relative">
-                          <input
-                            type="text"
-                            placeholder="Modelo"
-                            value={modelo}
-                            onChange={(e) => setModelo(e.target.value)}
-                            className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium text-slate-800 transition-all placeholder:text-slate-400"
-                          />
-                        </div>
-                        <div className="relative">
-                          <input
-                            type="text"
-                            placeholder="Color"
-                            value={color}
-                            onChange={(e) => setColor(e.target.value)}
-                            className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium text-slate-800 transition-all placeholder:text-slate-400"
-                          />
-                        </div>
-                      </div>
-                    </div>
+                  <div className="absolute right-2 bottom-1 text-[8px] font-bold text-slate-300 pointer-events-none uppercase">
+                    {motivo.length}/250
                   </div>
                 </div>
-
-              </div>
               </div>
             </div>
 
-            {/* 2. PANEL BIOMÉTRICO Y ACCIONES (Columna Derecha) */}
-            <div className="w-full lg:w-80 xl:w-96 flex flex-col items-center justify-between p-5 lg:p-6 bg-white text-slate-800 rounded-[1.5rem] shadow-[0_4px_24px_rgba(0,0,0,0.06)] border border-slate-200 overflow-hidden flex-shrink-0 relative">
-              {/* Decoración geométrica */}
-              <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-full blur-2xl -mr-12 -mt-12 pointer-events-none"></div>
-              <div className="absolute bottom-0 left-0 w-32 h-32 bg-slate-100/50 rounded-full blur-3xl -ml-16 -mb-16 pointer-events-none"></div>
-
-              <div
-                className="flex flex-col items-center mb-4 w-full cursor-pointer group relative z-10"
-                onClick={() => setIsCameraOpen(true)}
-              >
-                <div className="relative w-28 h-28 lg:w-32 lg:h-32 mb-2 mt-1">
-                  <div className={`
-                          absolute inset-0 rounded-full blur-md opacity-20 transition-all duration-500
-                          ${fotoBase64 ? 'bg-emerald-400' : 'bg-blue-400 group-hover:bg-blue-500 group-hover:blur-xl'}
-                      `}></div>
-                  <div className={`
-                          relative w-full h-full border-[3px] rounded-full flex items-center justify-center text-xl font-extrabold shadow-sm overflow-hidden bg-slate-50 transition-all duration-300
-                          ${fotoBase64 ? 'border-emerald-400' : 'border-slate-200 group-hover:border-blue-300'}
-                      `}>
-                    {fotoBase64 ? (
-                      <img src={fotoBase64} alt="Foto de la persona a registrar" className="w-full h-full object-cover" />
-                    ) : (
-                      <svg className="w-14 h-14 text-slate-300 group-hover:text-blue-500 transition duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.218A2 2 0 0110.125 4h3.75a2 2 0 011.664.89l.812 1.218A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                    )}
-                  </div>
-                  {/* Badge fotográfico */}
-                  <div className="absolute -bottom-2 -right-2 bg-white border border-slate-200 p-2 rounded-full shadow-lg group-hover:bg-blue-50 transition-colors">
-                     <span className="text-sm">{fotoBase64 ? '🔄' : '📸'}</span>
-                  </div>
-                </div>
-                <p className="text-[11px] font-bold text-slate-400 group-hover:text-blue-600 transition duration-200 tracking-wide uppercase">
-                  {fotoBase64 ? 'Foto Lista (Clic para cambiar)' : 'Tomar Fotografía'}
-                </p>
-              </div>
-
-              <div className="flex flex-col gap-2 w-full mb-4 relative z-10 mx-auto">
+            {/* Botones de acción (fijos abajo) */}
+            <div className="flex-shrink-0 pt-3 border-t border-slate-100 flex flex-col gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => handleRegistrar("entrada")}
                   disabled={isBloqueado || !!registroActivo}
-                  className={`w-full text-white py-2.5 px-4 rounded-xl font-bold shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-sm border ${
-                    isBloqueado
-                      ? 'bg-red-50 border-red-200 text-red-500 cursor-not-allowed'
-                      : registroActivo
-                      ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
-                      : 'bg-emerald-600 hover:bg-emerald-500 border-emerald-500 shadow-[0_0_15px_rgb(16,185,129,0.2)]'
+                  className={`w-full text-white py-2.5 px-3 rounded-xl font-bold shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-sm border ${
+                    isBloqueado ? 'bg-red-50 border-red-200 text-red-500 cursor-not-allowed'
+                    : registroActivo ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
+                    : 'bg-emerald-600 hover:bg-emerald-500 border-emerald-500 shadow-[0_0_15px_rgb(16,185,129,0.2)]'
                   }`}
                 >
-                  {isBloqueado ? "🚫 INGRESO PROHIBIDO" : "✅ REGISTRAR ENTRADA"}
+                  {isBloqueado ? "🚫 PROHIBIDO" : "✅ ENTRADA"}
                 </button>
                 <button
                   onClick={() => handleRegistrar("salida")}
                   disabled={!registroActivo}
                   className={`w-full py-2.5 text-sm font-bold rounded-xl shadow-md transition-all active:scale-[0.98] flex items-center justify-center border ${
-                    registroActivo
-                      ? 'bg-rose-600 hover:bg-rose-500 text-white border-rose-500 shadow-[0_0_15px_rgb(225,29,72,0.2)]'
-                      : 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
+                    registroActivo ? 'bg-rose-600 hover:bg-rose-500 text-white border-rose-500 shadow-[0_0_15px_rgb(225,29,72,0.2)]'
+                    : 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
                   }`}
                 >
-                  🚪 REGISTRAR SALIDA
-                </button>
-                
-                <button
-                  onClick={handleActualizarDatos}
-                  className="mt-1 w-full bg-blue-50 text-blue-600 py-2 rounded-xl font-bold hover:bg-blue-100 hover:text-blue-700 transition-all active:scale-[0.98] flex items-center justify-center gap-2 border border-blue-200 text-xs uppercase tracking-wider backdrop-blur-sm shadow-sm"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                  Actualizar Datos
+                  🚪 SALIDA
                 </button>
               </div>
-
-              <div className="w-full bg-slate-50 p-4 rounded-2xl border border-slate-200 shadow-sm relative z-10 flex flex-col items-center justify-center">
-                {mounted ? (
-                  <>
-                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">
-                      {fechaHora.toLocaleDateString("es-CO", { year: 'numeric', month: 'short', day: 'numeric' })}
-                    </p>
-                    <div className="flex items-baseline gap-1 mt-1">
-                       <p className="text-4xl lg:text-5xl font-mono font-black text-transparent bg-clip-text bg-gradient-to-br from-blue-700 to-indigo-900 tracking-tight drop-shadow-sm">
-                         {fechaHora.toLocaleTimeString("es-CO", { hour: '2-digit', minute: '2-digit', hour12: false })}
-                       </p>
-                       <span className="text-xl font-mono font-bold text-blue-500 animate-pulse">:{fechaHora.getSeconds().toString().padStart(2, '0')}</span>
-                    </div>
-                  </>
-                ) : (
-                  <div className="animate-pulse flex flex-col items-center gap-2">
-                    <div className="h-4 w-24 bg-slate-200 rounded mb-2"></div>
-                    <div className="h-10 w-40 bg-slate-200 rounded"></div>
-                  </div>
-                )}
-              </div>
-
+              <button
+                onClick={handleActualizarDatos}
+                className="w-full bg-blue-50 text-blue-600 py-2 rounded-xl font-bold hover:bg-blue-100 transition-all active:scale-[0.98] flex items-center justify-center gap-2 border border-blue-200 text-xs uppercase tracking-wider shadow-sm"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                Actualizar Datos
+              </button>
             </div>
-          </div>
 
+          </div>{/* fin columna derecha */}
+
+        </div>
       </div>
     </>
   );

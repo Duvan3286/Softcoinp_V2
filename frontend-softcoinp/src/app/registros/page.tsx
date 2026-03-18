@@ -161,41 +161,11 @@ export default function RegistrosPage() {
         {/* 🚨 BOTÓN DE REGRESO AL DASHBOARD */}
 
         {/* 🔹 CABECERA COMPACTA */}
-        <div className="relative flex items-center mb-3 border-b pb-2">
-
-          {/* Botón izquierda */}
-          <button
-            onClick={() => router.push("/dashboard")}
-            className="absolute left-0 bg-blue-600 text-white py-1.5 px-3 rounded-lg font-semibold shadow-md hover:bg-blue-700 transition duration-200 flex items-center text-sm"
-          >
-            <svg
-              className="w-5 h-5 mr-1"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M10 19l-7-7m0 0l7-7m-7 7h18"
-              />
-            </svg>
-            Menú Principal
-          </button>
-
+        <div className="relative flex items-center mb-3 border-b pb-2 justify-center">
           {/* Título centrado */}
-          <h1 className="mx-auto text-xl font-extrabold text-blue-700">
+          <h1 className="text-xl font-extrabold text-blue-700">
             📜 Historial de Ingresos y Salidas
           </h1>
-
-          {/* Botón derecha - Personal Activo */}
-          <button
-            onClick={() => router.push("/personal-activo")}
-            className="absolute right-0 bg-yellow-500 text-white py-1.5 px-3 rounded-lg font-semibold shadow-md hover:bg-yellow-600 transition duration-200 flex items-center text-sm"
-          >
-            🏃 Personal Activo
-          </button>
         </div>
 
 

@@ -227,34 +227,19 @@ export default function ReportesPage() {
     <div className="h-screen bg-gray-50 p-6 overflow-hidden flex flex-col">
       <div className="max-w-7xl mx-auto w-full h-full flex flex-col">
         {/* Header */}
-        <div className="relative flex items-center justify-between mb-6">
-          {/* Botón izquierda - Menú Principal */}
-          <button
-            onClick={() => router.push("/dashboard")}
-            className="bg-blue-600 text-white py-1.5 px-3 rounded-lg font-semibold shadow-md hover:bg-blue-700 transition duration-200 flex items-center text-sm"
-          >
-            <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Menú Principal
-          </button>
-
-          {/* Título centrado */}
-          <div className="absolute left-1/2 -translate-x-1/2 text-center">
-            <h1 className="text-xl font-extrabold text-blue-700">🔍 Reportes de Seguridad</h1>
-          </div>
-
-          {/* Botón derecha - Historial */}
-          <button
-            onClick={() => router.push("/historial-novedades")}
-            className={`text-white py-1.5 px-3 rounded-lg shadow-md transition duration-200 flex items-center text-sm font-semibold ${
-                anotaciones.length > 0 
-                  ? 'bg-red-600 animate-pulse-red' 
-                  : 'bg-yellow-500 hover:bg-yellow-600'
-            }`}
-          >
-            📋 Historial de Novedades
-          </button>
+        <div className="relative flex justify-center items-center mb-6 pb-4 border-b border-gray-100">
+            <h1 className="text-xl font-extrabold text-blue-700 uppercase tracking-wide">🔍 Reportes de Seguridad</h1>
+            
+            <button
+              onClick={() => router.push("/historial-novedades")}
+              className={`absolute right-0 text-white py-1.5 px-3 rounded-lg shadow-md transition duration-200 flex items-center text-sm font-semibold ${
+                  anotaciones.length > 0 
+                    ? 'bg-red-600 animate-pulse-red' 
+                    : 'bg-yellow-500 hover:bg-yellow-600'
+              }`}
+            >
+              📋 Historial de Novedades
+            </button>
         </div>
 
         {/* Buscador */}

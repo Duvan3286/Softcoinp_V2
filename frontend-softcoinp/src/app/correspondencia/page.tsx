@@ -170,8 +170,9 @@ export default function CorrespondenciaPage() {
   };
 
   return (
-    <div className="h-screen w-full bg-slate-50 text-slate-800 flex flex-col overflow-hidden">
-      <CustomModal {...modal} onClose={() => setModal({ ...modal, isOpen: false })} />
+    <div className="h-screen w-full bg-gray-100 p-4 md:p-6 overflow-hidden flex flex-col items-center">
+      <div className="w-full max-w-[1400px] h-full flex flex-col overflow-hidden">
+        <CustomModal {...modal} onClose={() => setModal({ ...modal, isOpen: false })} />
       
       {/* Modal Entregar */}
       {entregarModal.isOpen && (
@@ -219,45 +220,43 @@ export default function CorrespondenciaPage() {
       )}
 
       {/* HEADER */}
-      <div className="bg-gradient-to-r from-blue-700 to-indigo-800 pb-20 pt-8 px-6 drop-shadow-lg relative overflow-hidden">
-        <div className="max-w-7xl mx-auto flex items-center justify-between relative z-10">
-          <div>
-            <h1 className="text-4xl font-extrabold text-white tracking-tight flex items-center gap-3">
-              📦 Gestión de Correspondencia
-            </h1>
-            <p className="text-blue-100 mt-2 font-medium opacity-90 text-lg">
-              Recepción y entrega de paquetes y documentos.
-            </p>
-          </div>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 shrink-0">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+            📦 Gestión de Correspondencia
+          </h1>
+          <p className="text-sm text-gray-500">Recepción y entrega de paquetes y documentos.</p>
+        </div>
+
+        <div className="flex items-center gap-3">
           <button
             onClick={() => router.push("/dashboard")}
-            className="bg-white/10 hover:bg-white/20 text-white p-3 rounded-full backdrop-blur-md transition-all shadow-lg"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-md flex items-center gap-2 text-sm font-medium"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            Menú Principal
           </button>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 -mt-10 relative z-20 w-full flex-grow flex flex-col min-h-0 pb-4">
-        
-        {/* TABS */}
-        <div className="flex shrink-0 gap-2 mb-4 backdrop-blur-md bg-white/30 p-1.5 rounded-2xl inline-flex shadow-sm border border-white/50 w-fit">
+      {/* TABS */}
+      <div className="flex shrink-0 gap-2 mb-4 bg-white p-1.5 rounded-xl shadow-sm border border-gray-200 w-fit">
           <button
             onClick={() => setActiveTab("lista")}
-            className={`px-6 py-2.5 rounded-xl font-bold transition-all ${
+            className={`px-6 py-2 rounded-lg font-bold transition-all text-sm ${
               activeTab === "lista" 
-                ? "bg-white text-blue-700 shadow-md" 
-                : "text-slate-600 hover:bg-white/50"
+                ? "bg-blue-50 text-blue-700 shadow-sm border border-blue-100" 
+                : "text-gray-500 hover:bg-gray-50"
             }`}
           >
             📋 Listado y Búsqueda
           </button>
           <button
             onClick={() => setActiveTab("nuevo")}
-            className={`px-6 py-2.5 rounded-xl font-bold transition-all ${
+            className={`px-6 py-2 rounded-lg font-bold transition-all text-sm ${
               activeTab === "nuevo" 
-                ? "bg-white text-blue-700 shadow-md" 
-                : "text-slate-600 hover:bg-white/50"
+                ? "bg-blue-50 text-blue-700 shadow-sm border border-blue-100" 
+                : "text-gray-500 hover:bg-gray-50"
             }`}
           >
             ➕ Registrar Recepción
@@ -265,8 +264,8 @@ export default function CorrespondenciaPage() {
         </div>
 
         {activeTab === "nuevo" && (
-          <div className="bg-white p-6 rounded-2xl shadow-xl border border-gray-100 flex-grow overflow-y-auto custom-scrollbar">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex-grow overflow-y-auto">
+            <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
               <span className="text-blue-500">📥</span> Nuevo Registro de Correspondencia
             </h2>
             
@@ -335,7 +334,7 @@ export default function CorrespondenciaPage() {
               <button
                 onClick={handleCreate}
                 disabled={loading}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-bold shadow-lg transition-all flex items-center gap-2"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg shadow-md transition-all flex items-center gap-2 text-sm font-medium"
               >
                 {loading ? "Guardando..." : "💾 Guardar Recepción"}
               </button>
@@ -346,7 +345,7 @@ export default function CorrespondenciaPage() {
         {activeTab === "lista" && (
           <div className="flex flex-col flex-grow min-h-0 space-y-4">
             {/* FILTROS */}
-            <div className="shrink-0 bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-wrap gap-4 items-end">
+            <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200 mb-2 shrink-0 flex flex-wrap gap-4 items-end">
               <div className="flex-1 min-w-[200px]">
                 <label className="text-xs font-bold text-gray-500 uppercase">Estado</label>
                 <select
@@ -383,26 +382,25 @@ export default function CorrespondenciaPage() {
               </div>
               <button 
                 onClick={handleBuscar}
-                className="bg-slate-800 hover:bg-slate-900 text-white px-6 py-2.5 rounded-lg font-bold shadow-md transition-all h-[46px]"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium shadow-sm transition-all h-[42px] text-sm flex-shrink-0"
               >
                 🔍 Buscar
               </button>
             </div>
 
             {/* TABLA DE RESULTADOS */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 flex-grow flex flex-col min-h-0 overflow-hidden">
-              <div className="overflow-y-auto custom-scrollbar flex-grow">
-                <table className="w-full text-left border-collapse whitespace-nowrap">
-                  <thead>
-                    <tr className="bg-slate-100 text-slate-500 text-xs uppercase tracking-wider border-b">
-                      <th className="p-4 font-bold">Estado / Fecha Rec.</th>
-                      <th className="p-4 font-bold">Destino / Remitente</th>
-                      <th className="p-4 font-bold">Detalle Paquete</th>
-                      <th className="p-4 font-bold">Datos Entrega</th>
-                      <th className="p-4 font-bold text-center">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
+            <div className="flex-1 overflow-y-auto shadow-md rounded-lg border border-gray-300 bg-white">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-blue-600 text-white sticky top-0 z-10">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Estado / Fecha Rec.</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Destino / Remitente</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Detalle Paquete</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Datos Entrega</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
                     {loading && lista.length === 0 ? (
                       <tr><td colSpan={5} className="text-center p-8 text-gray-500">Cargando correspondencia...</td></tr>
                     ) : lista.length === 0 ? (
@@ -497,7 +495,6 @@ export default function CorrespondenciaPage() {
                     )}
                   </tbody>
                 </table>
-              </div>
             </div>
           </div>
         )}

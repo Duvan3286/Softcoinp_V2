@@ -569,25 +569,19 @@ export default function DashboardPage() {
         nombre={`${nombres} ${apellidos}`}
       />
 
-      {/* <div className="h-screen w-screen bg-gray-100 flex flex-col items-center justify-center py-2 px-6"> */}
-      <div className="h-screen w-full bg-gray-100 flex flex-col items-center justify-center px-6 overflow-hidden">
+      <div className="h-full w-full bg-gray-100 flex flex-col items-center px-4 py-2 md:py-4 overflow-y-auto custom-scrollbar">
 
-        {/* <div className="bg-white rounded-3xl shadow-2xl py-5 px-6 w-full border border-gray-200 flex flex-col"> */}
-        <div className="bg-white rounded-3xl shadow-2xl py-4 px-6 w-full max-w-[1400px] border border-gray-200 flex flex-col">
+        <div className="bg-white rounded-3xl shadow-xl py-4 px-4 md:px-6 w-full max-w-[1400px] border border-gray-200 flex flex-col my-auto">
 
-          {/* <h1 className="text-2xl font-extrabold text-center mb-4 text-blue-700 uppercase tracking-wide">
-            Control de Acceso | SOFTCOINP
-          </h1> */}
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 flex-grow">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-5 flex-grow">
 
             {/* 1. Formulario de Datos */}
             <div className="lg:col-span-2">
-              <h2 className="text-lg font-semibold mb-3 text-gray-600 border-b pb-1">
+              <h2 className="text-base font-semibold mb-2 text-gray-600 border-b pb-1">
                 Datos de la Persona
               </h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
 
                 <div className="relative">
                   <span className="absolute left-2 top-2.5 text-xs text-gray-400 font-bold uppercase z-10">Identificación</span>
@@ -704,16 +698,16 @@ export default function DashboardPage() {
                   placeholder="Motivo de ingreso"
                   value={motivo}
                   onChange={(e) => setMotivo(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm md:col-span-2 text-sm"
-                  rows={2}
+                  className="w-full p-2 py-1.5 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm md:col-span-2 text-sm resize-none"
+                  rows={1}
                 />
 
                 {/* 🚗 Sección de Vehículo REDISEÑADA */}
-                <div className="md:col-span-2 bg-gray-100/50 p-4 rounded-xl border border-gray-200 shadow-sm transition-all hover:shadow-md">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <div className="md:col-span-2 bg-gray-100/50 p-3 rounded-xl border border-gray-200 shadow-sm transition-all hover:shadow-md mt-1">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
                     <div className="flex items-center gap-2">
-                       <span className="text-xl">🚗</span>
-                       <h3 className="text-sm font-black text-gray-700 uppercase tracking-tighter">Información del Vehículo</h3>
+                       <span className="text-lg">🚗</span>
+                       <h3 className="text-xs font-black text-gray-700 uppercase tracking-tighter">Información del Vehículo</h3>
                     </div>
                     <button
                       type="button"
@@ -814,14 +808,14 @@ export default function DashboardPage() {
             </div>
 
             {/* 2. Sección de Registro y Tiempo */}
-            <div className="lg:col-span-1 flex flex-col items-center justify-between p-3 bg-blue-50 rounded-xl border border-blue-200">
+            <div className="lg:col-span-1 flex flex-col items-center justify-between p-3 lg:p-4 bg-blue-50/50 rounded-2xl border border-blue-100 h-full">
 
               <div
-                className="flex flex-col items-center mb-3 w-full cursor-pointer group"
+                className="flex flex-col items-center mb-2 w-full cursor-pointer group"
                 onClick={() => setIsCameraOpen(true)} // 👈 ABRIR CÁMARA AL HACER CLIC
               >
                 <div className={`
-                        w-36 h-36 border-4 rounded-full bg-blue-100 flex items-center justify-center mb-2 text-xl font-extrabold shadow-inner overflow-hidden
+                        w-28 h-28 lg:w-32 lg:h-32 border-4 rounded-full bg-blue-100 flex items-center justify-center mb-2 text-xl font-extrabold shadow-inner overflow-hidden
                         ${fotoBase64 ? 'border-green-500' : 'border-blue-400 group-hover:border-blue-600'}
                     `}>
                   {fotoBase64 ? (
@@ -837,11 +831,11 @@ export default function DashboardPage() {
                 </p>
               </div>
 
-              <div className="flex flex-col gap-2 w-full mb-3">
+              <div className="flex flex-col gap-2 w-full mb-2">
                 <button
                   onClick={() => handleRegistrar("entrada")}
                   disabled={isBloqueado || !!registroActivo}
-                  className={`w-full text-white p-3 rounded-xl font-bold shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 ${
+                  className={`w-full text-white py-2.5 px-3 rounded-xl font-bold shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 text-sm lg:text-base ${
                     isBloqueado
                       ? 'bg-gray-400 cursor-not-allowed grayscale'
                       : registroActivo
@@ -854,7 +848,7 @@ export default function DashboardPage() {
                 <button
                   onClick={() => handleRegistrar("salida")}
                   disabled={!registroActivo}
-                  className={`w-full py-3 text-lg font-bold rounded-xl shadow-md transition duration-200 ${
+                  className={`w-full py-2.5 text-base font-bold rounded-xl shadow-md transition duration-200 ${
                     registroActivo
                       ? 'bg-red-500 text-white hover:bg-red-600'
                       : 'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -865,7 +859,7 @@ export default function DashboardPage() {
                 
                 <button
                   onClick={handleActualizarDatos}
-                  className="mt-2 w-full bg-blue-100 text-blue-700 py-2 rounded-xl font-bold shadow-sm hover:bg-blue-200 transition-all active:scale-95 flex items-center justify-center gap-2 border border-blue-200 text-sm uppercase"
+                  className="mt-1 w-full bg-blue-100 text-blue-700 py-1.5 rounded-xl font-bold shadow-sm hover:bg-blue-200 transition-all active:scale-95 flex items-center justify-center gap-2 border border-blue-200 text-xs uppercase"
                 >
                   🛠️ Actualizar Datos
                 </button>
@@ -892,7 +886,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <hr className="my-4 border-gray-200" />
+          <hr className="my-3 border-gray-200" />
 
           {/* Botones de Navegación Inferiores (sin cambios) */}
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3">

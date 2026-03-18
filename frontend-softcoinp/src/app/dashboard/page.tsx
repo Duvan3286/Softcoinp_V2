@@ -569,19 +569,19 @@ export default function DashboardPage() {
         nombre={`${nombres} ${apellidos}`}
       />
 
-      <div className="h-full w-full bg-gray-100 flex flex-col items-center px-4 py-2 md:py-4 overflow-y-auto custom-scrollbar">
+      <div className="h-full w-full bg-gray-100 flex flex-col items-center px-4 md:px-6 py-4 md:py-6 overflow-y-auto custom-scrollbar">
 
-        <div className="bg-white rounded-3xl shadow-xl py-4 px-4 md:px-6 w-full max-w-[1400px] border border-gray-200 flex flex-col my-auto">
+        <div className="bg-white rounded-3xl shadow-xl py-4 px-4 md:px-6 w-full max-w-[1400px] border border-gray-200 flex flex-col md:my-auto flex-shrink-0 min-h-max">
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-5 flex-grow">
+          <div className="flex flex-col lg:flex-row gap-4 lg:gap-5 flex-grow">
 
             {/* 1. Formulario de Datos */}
-            <div className="lg:col-span-2">
+            <div className="w-full lg:w-2/3 flex flex-col">
               <h2 className="text-base font-semibold mb-2 text-gray-600 border-b pb-1">
                 Datos de la Persona
               </h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
 
                 <div className="relative">
                   <span className="absolute left-2 top-2.5 text-xs text-gray-400 font-bold uppercase z-10">Identificación</span>
@@ -808,7 +808,7 @@ export default function DashboardPage() {
             </div>
 
             {/* 2. Sección de Registro y Tiempo */}
-            <div className="lg:col-span-1 flex flex-col items-center justify-between p-3 lg:p-4 bg-blue-50/50 rounded-2xl border border-blue-100 h-full">
+            <div className="w-full lg:w-1/3 flex flex-col items-center justify-between p-4 bg-blue-50/50 rounded-2xl border border-blue-100 h-full">
 
               <div
                 className="flex flex-col items-center mb-2 w-full cursor-pointer group"

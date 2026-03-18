@@ -29,7 +29,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-100 min-h-screen flex flex-col`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-100 lg:h-screen lg:overflow-hidden min-h-screen flex flex-col`}
       >
         <SidebarProvider>
           {/* 🔝 HEADER GLOBAL */}
@@ -39,7 +39,7 @@ export default function RootLayout({
           <main className="flex flex-row flex-1 w-full overflow-hidden relative">
             <SessionGuard>
               <Sidebar />
-              <div className="flex-1 overflow-y-auto bg-slate-50 w-full relative">
+              <div className="flex-1 lg:overflow-hidden overflow-y-auto bg-slate-50 w-full relative flex flex-col min-h-0">
                 {children}
               </div>
             </SessionGuard>

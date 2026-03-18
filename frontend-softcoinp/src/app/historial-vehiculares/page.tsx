@@ -2,41 +2,26 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import api, { ApiResponse } from "@/services/api";
+import api from "@/services/api";
 
 interface AnotacionItem {
   id: string;
-  personalId: string;
-  personalNombre?: string;
-  personalApellido?: string;
-  personalDocumento?: string;
+  vehiculoId: string;
+  vehiculoPlaca?: string;
   texto: string;
   fechaCreacionUtc: string;
   registradoPor: string;
   registradoPorEmail?: string;
 }
 
-interface PersonaAgrupada {
-  personalId: string;
-  nombreCompleto: string;
-  documento: string;
-  inicial: string;
+interface VehiculoAgrupado {
+  vehiculoId: string;
+  placa: string;
   novedades: AnotacionItem[];
   ultimaFecha: string;
 }
 
-interface PersonalBasic {
-  id: string;
-  nombre: string;
-  apellido: string;
-  documento: string;
-}
-
-interface AnotacionesResponse {
-  data: AnotacionItem[];
-}
-
-export default function HistorialNovedadesPage() {
+export default function HistorialVehicularesPage() {
   const router = useRouter();
   const [novedades, setNovedades] = useState<AnotacionItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -44,7 +29,7 @@ export default function HistorialNovedadesPage() {
   const [desdeFilter, setDesdeFilter] = useState("");
   const [hastaFilter, setHastaFilter] = useState("");
   const [reporterFilter, setReporterFilter] = useState("");
-  const [selectedPersona, setSelectedPersona] = useState<PersonaAgrupada | null>(null);
+  const [selectedVehiculo, setSelectedVehiculo] = useState<VehiculoAgrupado | null>(null);
 
   // Paginación
   const [currentPage, setCurrentPage] = useState(1);
@@ -59,8 +44,9 @@ export default function HistorialNovedadesPage() {
     setLoading(true);
     try {
       const res = await api.get<{ data: AnotacionItem[] }>("/anotaciones");
-      const onlyPersonas = (res.data.data || []).filter(a => a.personalId);
-      setNovedades(onlyPersonas);
+      // Filtro para traer SÓLO las de vehículos
+      const onlyVehiculos = (res.data.data || []).filter(a => a.vehiculoId);
+      setNovedades(onlyVehiculos);
     } catch {
       setNovedades([]);
     } finally {
@@ -74,8 +60,7 @@ export default function HistorialNovedadesPage() {
     if (q) {
       const matchesText = 
         n.texto.toLowerCase().includes(q) ||
-        n.personalNombre?.toLowerCase().includes(q) ||
-        n.personalApellido?.toLowerCase().includes(q) ||
+        n.vehiculoPlaca?.toLowerCase().includes(q) ||
         n.registradoPorEmail?.toLowerCase().includes(q);
       if (!matchesText) return false;
     }
@@ -107,24 +92,22 @@ export default function HistorialNovedadesPage() {
   // Obtener lista única de reportantes para el filtro
   const uniqueReporters = Array.from(new Set(novedades.map(n => n.registradoPorEmail).filter(Boolean)));
 
-  // AGRUPACIÓN POR PERSONA
-  const personasAgrupadas: PersonaAgrupada[] = Object.values(
-    novedadesFiltradas.reduce((acc: { [key: string]: PersonaAgrupada }, n) => {
-      const pid = n.personalId;
-      if (!acc[pid]) {
-        acc[pid] = {
-          personalId: pid,
-          nombreCompleto: `${n.personalNombre || "—"} ${n.personalApellido || ""}`.trim(),
-          documento: n.personalDocumento || "S/D",
-          inicial: (n.personalNombre?.[0] || "?").toUpperCase(),
+  // AGRUPACIÓN POR VEHÍCULO
+  const vehiculosAgrupados: VehiculoAgrupado[] = Object.values(
+    novedadesFiltradas.reduce((acc: { [key: string]: VehiculoAgrupado }, n) => {
+      const vid = n.vehiculoId;
+      if (!acc[vid]) {
+        acc[vid] = {
+          vehiculoId: vid,
+          placa: n.vehiculoPlaca || "S/D",
           novedades: [],
           ultimaFecha: n.fechaCreacionUtc
         };
       }
-      acc[pid].novedades.push(n);
+      acc[vid].novedades.push(n);
       // Mantener la fecha más reciente para ordenar
-      if (new Date(n.fechaCreacionUtc) > new Date(acc[pid].ultimaFecha)) {
-        acc[pid].ultimaFecha = n.fechaCreacionUtc;
+      if (new Date(n.fechaCreacionUtc) > new Date(acc[vid].ultimaFecha)) {
+        acc[vid].ultimaFecha = n.fechaCreacionUtc;
       }
       return acc;
     }, {})
@@ -139,9 +122,9 @@ export default function HistorialNovedadesPage() {
   };
 
   // Cálculo de paginación
-  const totalPages = Math.ceil(personasAgrupadas.length / itemsPerPage);
+  const totalPages = Math.ceil(vehiculosAgrupados.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const personasPaginadas = personasAgrupadas.slice(startIndex, startIndex + itemsPerPage);
+  const vehiculosPaginados = vehiculosAgrupados.slice(startIndex, startIndex + itemsPerPage);
 
   // Reset pagina al filtrar
   useEffect(() => {
@@ -158,13 +141,13 @@ export default function HistorialNovedadesPage() {
                <span className="text-xl">📋</span>
             </div>
             <div>
-              <h1 className="text-lg lg:text-xl font-black text-slate-800 uppercase tracking-tight leading-none">Historial de Novedades Con Personas</h1>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Gestión integral de anotaciones de seguridad</p>
+              <h1 className="text-lg lg:text-xl font-black text-slate-800 uppercase tracking-tight leading-none">Historial de Novedades Vehiculares</h1>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Gestión integral de anotaciones de seguridad vehicular</p>
             </div>
           </div>
           
           <button
-            onClick={() => router.push("/novedades")}
+            onClick={() => router.push("/novedades-vehiculares")}
             className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-xl shadow-lg transition-all duration-300 flex items-center justify-center gap-2 text-sm font-bold active:scale-95 whitespace-nowrap"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
@@ -183,8 +166,8 @@ export default function HistorialNovedadesPage() {
                 type="text"
                 value={filtroBusqueda}
                 onChange={e => setFiltroBusqueda(e.target.value)}
-                placeholder="Nombre, ID o palabras..."
-                className="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-100 rounded-xl text-[13px] font-bold focus:ring-4 focus:ring-blue-500/5 focus:border-blue-400 outline-none transition-all placeholder-slate-300"
+                placeholder="Placa o detalle..."
+                className="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-100 rounded-xl text-[13px] font-bold focus:ring-4 focus:ring-blue-500/5 focus:border-blue-400 outline-none transition-all placeholder-slate-300 uppercase tracking-widest"
               />
             </div>
           </div>
@@ -242,45 +225,44 @@ export default function HistorialNovedadesPage() {
         </div>
 
         {/* Conteo y Status */}
-        {/* Conteo y Status */}
         <div className="flex items-center justify-between mb-2 px-1 shrink-0">
           <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
             {loading ? "Cargando..." : (
-              personasAgrupadas.length === 0 
+              vehiculosAgrupados.length === 0 
                 ? "No se hallaron registros" 
-                : `Mostrando ${startIndex + 1}-${Math.min(startIndex + itemsPerPage, personasAgrupadas.length)} de ${personasAgrupadas.length} ciudadanos`
+                : `Mostrando ${startIndex + 1}-${Math.min(startIndex + itemsPerPage, vehiculosAgrupados.length)} de ${vehiculosAgrupados.length} vehículos`
             )}
           </p>
         </div>
 
-        {/* 📋 Lista de personas agrupadas (Con Scroll Interno) */}
+        {/* 📋 Lista de vehículos agrupados (Con Scroll Interno) */}
         <div className="flex-1 overflow-y-auto pr-1 min-h-0 custom-scrollbar pb-4 space-y-2">
           {loading ? (
             <div className="bg-white rounded-2xl p-20 flex flex-col items-center justify-center text-slate-400 gap-4 border border-slate-100">
                <div className="w-10 h-10 border-4 border-slate-200 border-t-blue-500 rounded-full animate-spin"></div>
                <p className="text-xs font-black uppercase tracking-widest">Sincronizando Historial...</p>
             </div>
-          ) : personasAgrupadas.length === 0 ? (
+          ) : vehiculosAgrupados.length === 0 ? (
             <div className="bg-white rounded-2xl py-20 text-center text-slate-300 border-2 border-dashed border-slate-100 flex flex-col items-center gap-3">
                <span className="text-5xl grayscale opacity-20">📭</span>
                <p className="text-xs font-black uppercase tracking-widest">No se encontraron resultados para los filtros aplicados</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-2">
-              {personasPaginadas.map(p => (
-                <div key={p.personalId} className="bg-white rounded-xl shadow-sm border border-slate-100 p-2.5 px-4 hover:border-blue-200 hover:shadow-md transition-all group">
+              {vehiculosPaginados.map(v => (
+                <div key={v.vehiculoId} className="bg-white rounded-xl shadow-sm border border-slate-100 p-2.5 px-4 hover:border-blue-200 hover:shadow-md transition-all group">
                   <div className="flex items-center justify-between gap-4">
-                    {/* Info de la Persona */}
+                    {/* Info del Vehículo */}
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center text-white font-black text-xs shrink-0 shadow-md">
-                        {p.inicial}
+                      <div className="w-9 h-9 text-2xl shrink-0 flex items-center justify-center">
+                        🚗
                       </div>
                       <div className="min-w-0">
                         <p className="text-[13px] font-black text-slate-800 truncate uppercase leading-none mb-1">
-                          {p.nombreCompleto}
+                          PLACA: <span className="text-blue-600">{v.placa}</span>
                         </p>
-                        <p className="text-[10px] text-blue-600 font-bold tracking-tighter uppercase">
-                           ID: {p.documento}
+                        <p className="text-[10px] text-slate-500 font-bold tracking-tighter uppercase">
+                           Vehículo
                         </p>
                       </div>
                     </div>
@@ -289,12 +271,12 @@ export default function HistorialNovedadesPage() {
                     <div className="flex-1 min-w-0 hidden md:block border-l border-slate-50 pl-4">
                       <div className="flex items-center gap-3">
                         <span className="text-[10px] font-black text-slate-700 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100 uppercase tracking-tighter">
-                          {p.novedades.length} Eventos
+                          {v.novedades.length} Eventos
                         </span>
                         <div className="flex items-center gap-1.5 opacity-60">
                            <span className="text-[10px]">📅</span>
                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">
-                              Último: {new Date(p.ultimaFecha).toLocaleDateString("es-CO", { day: '2-digit', month: 'short', year: 'numeric' })}
+                              Último: {new Date(v.ultimaFecha).toLocaleDateString("es-CO", { day: '2-digit', month: 'short', year: 'numeric' })}
                            </span>
                         </div>
                       </div>
@@ -303,7 +285,7 @@ export default function HistorialNovedadesPage() {
                     {/* Acciones */}
                     <div className="flex items-center gap-2 shrink-0">
                       <button
-                        onClick={() => setSelectedPersona(p)}
+                        onClick={() => setSelectedVehiculo(v)}
                         className="bg-slate-50 hover:bg-blue-600 hover:text-white text-blue-600 px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase tracking-widest border border-blue-100 shadow-sm active:scale-95"
                       >
                         Ver Detalle
@@ -370,32 +352,29 @@ export default function HistorialNovedadesPage() {
         )}
       </div>
 
-      {/* MODAL DE DETALLE (Línea de Tiempo por Persona) */}
-      {selectedPersona && (
+      {/* MODAL DE DETALLE (Línea de Tiempo por Vehículo) */}
+      {selectedVehiculo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[75vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200 border border-gray-200">
             {/* Header Modal */}
             <div className="bg-slate-900 p-4 flex items-center justify-between shrink-0 border-b border-white/10">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white text-xl font-black shadow-lg shadow-blue-500/20">
-                  {selectedPersona.inicial}
+                  🚗
                 </div>
                 <div>
                   <h3 className="text-white font-black text-lg tracking-tight uppercase leading-none">
-                    {selectedPersona.nombreCompleto}
+                    {selectedVehiculo.placa}
                   </h3>
                   <div className="flex items-center gap-3 mt-1.5">
-                    <span className="text-blue-100 text-[9px] font-black uppercase tracking-widest bg-blue-500/20 px-2 py-0.5 rounded border border-blue-500/30">
-                      ID: {selectedPersona.documento}
-                    </span>
                     <span className="text-slate-400 text-[10px] font-bold uppercase tracking-tight">
-                       {selectedPersona.novedades.length} Eventos registrados
+                       {selectedVehiculo.novedades.length} Eventos registrados
                     </span>
                   </div>
                 </div>
               </div>
               <button 
-                onClick={() => setSelectedPersona(null)}
+                onClick={() => setSelectedVehiculo(null)}
                 className="bg-white/5 hover:bg-white/10 text-white p-2 rounded-full transition-all outline-none active:scale-90"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
@@ -405,7 +384,7 @@ export default function HistorialNovedadesPage() {
             {/* Cuerpo Modal (Línea de tiempo scrollable) */}
             <div className="flex-1 overflow-y-auto p-5 custom-scrollbar bg-slate-50/30">
               <div className="space-y-4 relative before:content-[''] before:absolute before:left-[13px] before:top-2 before:bottom-0 before:w-0.5 before:bg-slate-200">
-                {selectedPersona.novedades
+                {selectedVehiculo.novedades
                   .sort((a, b) => new Date(b.fechaCreacionUtc).getTime() - new Date(a.fechaCreacionUtc).getTime())
                   .map((anot) => (
                   <div key={anot.id} className="relative pl-9 group">
@@ -441,7 +420,7 @@ export default function HistorialNovedadesPage() {
             {/* Footer Modal */}
             <div className="p-3 bg-white border-t border-slate-100 flex justify-end shrink-0">
               <button
-                onClick={() => setSelectedPersona(null)}
+                onClick={() => setSelectedVehiculo(null)}
                 className="bg-slate-800 hover:bg-slate-900 text-white px-8 py-2.5 rounded-xl font-black text-[10px] transition-all shadow-md active:scale-95 uppercase tracking-widest"
               >
                 Cerrar

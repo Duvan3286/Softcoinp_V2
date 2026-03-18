@@ -16,6 +16,7 @@ export default function Sidebar() {
   // Estados para grupos colapsables
   const [isHistorialOpen, setIsHistorialOpen] = useState(false);
   const [isEnSitioOpen, setIsEnSitioOpen] = useState(false);
+  const [isNovedadesOpen, setIsNovedadesOpen] = useState(false);
 
   useEffect(() => {
     if (pathname === "/login") return;
@@ -24,6 +25,7 @@ export default function Sidebar() {
     // Auto-abrir grupos si la ruta actual pertenece a ellos
     if (pathname.includes("registros")) setIsHistorialOpen(true);
     if (pathname.includes("activo")) setIsEnSitioOpen(true);
+    if (pathname.includes("reportes") || pathname.includes("novedades")) setIsNovedadesOpen(true);
     
     // Cerrar sidebar en móvil al navegar
     setIsOpen(false);
@@ -50,20 +52,31 @@ export default function Sidebar() {
         onMouseEnter={() => setIsExpanded(true)}
         onMouseLeave={() => setIsExpanded(false)}
       >
-        <nav className="flex flex-col gap-2 flex-grow px-4 overflow-y-auto overflow-x-hidden custom-scrollbar mt-4">
-           <NavItem icon="🏢" text="Dashboard" path="/dashboard" currentPath={pathname} isExpanded={isExpanded} router={router} />
-           <NavItem icon="📊" text="Reportes" path="/reportes" currentPath={pathname} isExpanded={isExpanded} alert={hayNovedades} router={router} />
-           
-           {/* Grupo Historial */}
+         <nav className="flex flex-col gap-2 flex-grow px-4 overflow-y-auto overflow-x-hidden custom-scrollbar mt-4">
+            <NavItem icon="🏢" text="Dashboard" path="/dashboard" currentPath={pathname} isExpanded={isExpanded} router={router} />
+            
+            {/* Grupo Novedades */}
+            <NavGroup 
+               icon="📁" 
+               text="Novedades" 
+               isOpen={isNovedadesOpen && isExpanded} 
+               isExpanded={isExpanded} 
+               onToggle={() => setIsNovedadesOpen(!isNovedadesOpen)}
+            >
+               <NavItem icon="👥" text="Novedades Personas" path="/novedades" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />
+               <NavItem icon="🚗" text="Novedades Vehicular" path="/novedades-vehiculares" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />
+            </NavGroup>
+            
+            {/* Grupo Historial */}
            <NavGroup 
               icon="📜" 
-              text="Historial" 
+              text="Historial De Ingresos" 
               isOpen={isHistorialOpen && isExpanded} 
               isExpanded={isExpanded}
               onToggle={() => setIsHistorialOpen(!isHistorialOpen)}
            >
-              <NavItem icon="👥" text="Personas" path="/registros" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />
-              <NavItem icon="🚗" text="Vehículos" path="/registros-vehiculos" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />
+              <NavItem icon="👥" text="Historial Personas" path="/registros" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />
+              <NavItem icon="🚗" text="Historial Vehículos" path="/registros-vehiculos" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />
            </NavGroup>
 
            {/* Grupo En Sitio */}

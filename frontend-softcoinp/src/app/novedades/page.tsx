@@ -25,13 +25,10 @@ interface PersonalResult {
   motivoBloqueo?: string;
 }
 
-export default function ReportesPage() {
+export default function NovedadesPersonasPage() {
   const router = useRouter();
-
   const [usuario, setUsuario] = useState<UserPayload | null>(null);
 
-  // 🔒 Seguridad: Todos los roles autenticados pueden entrar, 
-  // pero dentro se filtran acciones.
   React.useEffect(() => {
     const user = getCurrentUser();
     if (!user) {
@@ -58,10 +55,8 @@ export default function ReportesPage() {
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
-
   const [isTimelineOpen, setIsTimelineOpen] = useState(false);
 
-  // 🔄 Estado de los Modales Custom
   const [modalConfig, setModalConfig] = useState<{
     isOpen: boolean;
     title: string;
@@ -97,7 +92,6 @@ export default function ReportesPage() {
       const p = res.data.data;
       setPersona(p);
 
-      // Cargar anotaciones del personal por su ID real de la tabla Personal
       if (p.personalId) {
         const aList = await anotacionService.getAnotacionesPorPersonal(p.personalId);
         setAnotaciones(aList);
@@ -121,7 +115,7 @@ export default function ReportesPage() {
 
     try {
       const nueva = await anotacionService.createAnotacion({
-        personalId: persona.personalId!, // ID real de la tabla Personal
+        personalId: persona.personalId!,
         texto: textoAnotacion.trim(),
       });
       setAnotaciones([nueva, ...anotaciones]);
@@ -173,29 +167,6 @@ export default function ReportesPage() {
     );
   };
 
-  const handleBlockPerson = async () => {
-    if (!motivoBloqueo.trim() || !persona?.personalId) return;
-
-    setIsBlocking(true);
-    setErrorGuardar(null);
-    setSuccessMsg(null);
-
-    try {
-      await personalService.bloquear(persona.personalId, motivoBloqueo.trim());
-      setPersona({ ...persona, isBloqueado: true, motivoBloqueo: motivoBloqueo.trim() });
-      setSuccessMsg("Persona bloqueada correctamente.");
-      setShowBlockModal(false);
-      setMotivoBloqueo("");
-      // Recargar anotaciones para ver la de bloqueo
-      const nuevasAnotaciones = await anotacionService.getAnotacionesPorPersonal(persona.personalId);
-      setAnotaciones(nuevasAnotaciones);
-    } catch (err: any) {
-      setErrorGuardar(err.response?.data?.message || "Error al bloquear a la persona.");
-    } finally {
-      setIsBlocking(false);
-    }
-  };
-
   const handleUnblockPerson = async () => {
     if (!motivoBloqueo.trim() || !persona?.personalId) return;
 
@@ -209,7 +180,6 @@ export default function ReportesPage() {
       setSuccessMsg("Persona desbloqueada correctamente.");
       setShowUnblockModal(false);
       setMotivoBloqueo("");
-      // Recargar anotaciones para ver la de desbloqueo
       const nuevasAnotaciones = await anotacionService.getAnotacionesPorPersonal(persona.personalId);
       setAnotaciones(nuevasAnotaciones);
     } catch (err: any) {
@@ -224,41 +194,44 @@ export default function ReportesPage() {
     : null;
 
   return (
-    <div className="h-screen bg-gray-50 p-6 overflow-hidden flex flex-col">
-      <div className="max-w-7xl mx-auto w-full h-full flex flex-col">
-        {/* Header */}
-        <div className="relative flex justify-center items-center mb-6 pb-4 border-b border-gray-100">
-            <h1 className="text-xl font-extrabold text-blue-700 uppercase tracking-wide">🔍 Reportes de Seguridad</h1>
-            
-            <button
-              onClick={() => router.push("/historial-novedades")}
-              className={`absolute right-0 text-white py-1.5 px-3 rounded-lg shadow-md transition duration-200 flex items-center text-sm font-semibold ${
-                  anotaciones.length > 0 
-                    ? 'bg-red-600 animate-pulse-red' 
-                    : 'bg-yellow-500 hover:bg-yellow-600'
-              }`}
-            >
-              📋 Historial de Novedades
-            </button>
+    <div className="flex-1 h-auto lg:h-full flex flex-col min-h-0 bg-gray-50 p-2 lg:p-4 lg:overflow-hidden">
+      <div className="max-w-[1700px] mx-auto w-full h-full flex flex-col min-h-0">
+        
+        {/* 📋 Header Section */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2 mb-3 shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-600 rounded-xl text-white shadow-md shadow-blue-100">
+               <span className="text-xl">🔍</span>
+            </div>
+            <h1 className="text-lg lg:text-xl font-black text-slate-800 uppercase tracking-tight">Novedades Con Personas</h1> 
+          </div>
+          
+          <button
+            onClick={() => router.push("/historial-novedades")}
+            className={`text-white py-2 px-4 rounded-xl shadow-lg transition-all duration-300 flex items-center justify-center gap-2 text-sm font-bold active:scale-95 ${
+                anotaciones.length > 0 
+                  ? 'bg-red-600 animate-pulse-red' 
+                  : 'bg-yellow-500 hover:bg-yellow-600'
+            }`}
+          >
+            📋 Historial de Novedades
+          </button>
         </div>
 
-        {/* Buscador */}
-        <form onSubmit={handleBuscar} className="flex gap-3 mb-6">
+        {/* 🕵️‍♂️ Buscador Section */}
+        <form onSubmit={handleBuscar} className="flex gap-2 mb-3 flex-shrink-0">
           <div className="relative flex-1">
-            <svg
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
-              fill="none" stroke="currentColor" viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
-            </svg>
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" /></svg>
+            </div>
             <input
               type="text"
               value={documento}
               onChange={(e) => setDocumento(e.target.value.replace(/[^0-9]/g, ""))}
-              placeholder="Número de documento..."
+              placeholder="Ingrese número de documento para buscar..."
               inputMode="numeric"
-              className={`w-full pl-10 pr-12 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none shadow-sm text-sm transition-all ${
-                anotaciones.length > 0 ? 'border-red-400 bg-red-50 ring-2 ring-red-50' : 'border-gray-300'
+              className={`w-full pl-11 pr-12 py-2.5 border rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none shadow-sm text-sm font-bold transition-all ${
+                anotaciones.length > 0 ? 'border-red-400 bg-red-50 ring-2 ring-red-50' : 'border-slate-200 bg-white'
               }`}
             />
             
@@ -266,8 +239,8 @@ export default function ReportesPage() {
                 <button
                 type="button"
                 onClick={() => setIsTimelineOpen(true)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-red-600 text-white rounded-full shadow-lg animate-pulse-red hover:bg-red-700 transition-all flex items-center justify-center group z-20"
-                title="Ver Novedades en Modal"
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-red-600 text-white rounded-full shadow-lg animate-pulse hover:bg-red-700 transition-all flex items-center justify-center z-20"
+                title="Ver Línea de Tiempo"
                 >
                 <span className="text-xs">⚠️</span>
                 </button>
@@ -276,127 +249,139 @@ export default function ReportesPage() {
           <button
             type="submit"
             disabled={buscando || !documento.trim()}
-            className="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2.5 rounded-lg font-medium shadow-sm transition-colors text-sm disabled:opacity-50"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-black shadow-lg shadow-blue-100 transition-all active:scale-95 text-[10px] uppercase disabled:opacity-50"
           >
-            {buscando ? "Buscando..." : "Buscar"}
+            {buscando ? "..." : "Buscar"}
           </button>
         </form>
 
         {errorBusqueda && (
-          <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg mb-6 text-sm">
-            {errorBusqueda}
+          <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl mb-4 text-sm font-bold flex items-center gap-2">
+            <span>❌</span> {errorBusqueda}
           </div>
         )}
 
         {persona && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-grow overflow-hidden pb-4">
-            {/* Tarjeta de Persona (izquierda) */}
-            <div className="lg:col-span-1 overflow-y-auto pr-1 custom-scrollbar">
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col items-center text-center">
-                <div className="w-28 h-28 rounded-full overflow-hidden bg-gray-200 mb-4 border-4 border-blue-100 flex-shrink-0">
-                  {fotoSrc ? (
-                    <img src={fotoSrc} alt="Foto" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-4xl text-gray-400">👤</div>
-                  )}
+          <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 min-h-0 min-w-0 overflow-y-auto lg:overflow-hidden pb-2">
+            
+            {/* 👤 LEFT COLUMN: Perfil (3 Cols) */}
+            <div className="lg:col-span-3 flex flex-col min-h-0">
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-3 flex flex-col items-center text-center overflow-hidden flex-1 lg:overflow-y-auto custom-scrollbar">
+                <div className="relative mb-2 group">
+                  <div className="absolute inset-0 bg-blue-400 blur-lg opacity-10 rounded-full group-hover:opacity-20 transition-opacity"></div>
+                  <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-sm bg-slate-50">
+                    {fotoSrc ? (
+                      <img src={fotoSrc} alt="Foto" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-2xl text-slate-300 italic font-black">?</div>
+                    )}
+                  </div>
                 </div>
-                <h2 className="text-lg font-bold text-gray-800">{persona.nombre} {persona.apellido}</h2>
-                <p className="text-sm text-gray-500 mt-1">Doc: <span className="font-medium text-gray-700">{persona.documento}</span></p>
-                <span className={`mt-2 inline-flex px-3 py-1 rounded-full text-xs font-semibold ${
-                  persona.tipo === "empleado" 
-                    ? "bg-green-100 text-green-800" 
-                    : "bg-blue-100 text-blue-800"
-                }`}>
-                  {persona.tipo === "empleado" ? "Empleado" : "Visitante"}
-                </span>
+
+                <h2 className="text-base font-black text-slate-800 tracking-tight leading-tight">{persona.nombre} {persona.apellido}</h2>
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">ID: <span className="text-slate-700">{persona.documento}</span></p>
+                
+                <div className="flex flex-wrap justify-center gap-2 mt-2">
+                  <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-sm border ${
+                    persona.tipo === "empleado" 
+                      ? "bg-emerald-50 text-emerald-600 border-emerald-100" 
+                      : "bg-blue-50 text-blue-600 border-blue-100"
+                  }`}>
+                    {persona.tipo}
+                  </span>
+                </div>
 
                  {persona.tieneEntradaActiva && (
-                  <div className="mt-3 w-full bg-yellow-50 border border-yellow-200 rounded-lg p-2 text-xs text-yellow-700 font-medium text-center">
-                    ⚠️ Tiene entrada activa
+                  <div className="mt-2 w-full bg-amber-50 border border-amber-200 rounded-lg p-1.5 text-[9px] text-amber-800 font-bold text-center flex items-center justify-center gap-1 shadow-sm uppercase">
+                    <span>⚠️</span> EN SITIO
                   </div>
                 )}
 
                 {persona.isBloqueado && (
-                  <div className="mt-3 w-full bg-red-100 border border-red-300 rounded-lg p-3 text-red-800 animate-pulse">
-                    <p className="text-[10px] font-bold uppercase mb-1">🚫 PERSONA BLOQUEADA</p>
-                    <p className="text-xs font-semibold italic">"{persona.motivoBloqueo}"</p>
+                  <div className="mt-2 w-full bg-rose-50 border border-rose-200 rounded-lg p-2 text-center shadow-sm">
+                    <p className="text-[8px] font-black text-rose-600 uppercase tracking-tighter leading-none mb-1">🚫 DENEGADO</p>
+                    <p className="text-[10px] font-bold text-rose-800 leading-tight">"{persona.motivoBloqueo}"</p>
                   </div>
                 )}
 
-                <div className="mt-6 w-full space-y-3">
+                <div className="mt-3 w-full">
                   {!persona.isBloqueado ? (
                     <button
                       onClick={() => setShowBlockModal(true)}
-                      className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-lg text-xs transition-all shadow-md active:scale-95 flex items-center justify-center gap-2"
+                      className="w-full bg-slate-900 hover:bg-rose-600 text-white font-black py-2 rounded-lg text-[9px] tracking-widest transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 uppercase group"
                     >
-                      <span>🚫</span> BLOQUEAR PERSONA
+                      <span>🚫</span> BLOQUEAR
                     </button>
                   ) : (
                     <button
                       onClick={() => setShowUnblockModal(true)}
-                      className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 rounded-lg text-xs transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 uppercase"
+                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-2 rounded-lg text-[9px] tracking-widest transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 uppercase"
                     >
-                       <span>🔓</span> Desbloquear Acceso
+                       <span>🔓</span> Rehabilitar
                     </button>
                   )}
                 </div>
 
-                <div className="mt-4 w-full border-t border-gray-100 pt-4 text-left space-y-2">
+                <div className="mt-auto w-full border-t border-slate-100 pt-4 text-left grid grid-cols-1 gap-2">
                   {persona.destino && (
-                    <div>
-                      <span className="text-xs text-gray-400 uppercase tracking-wide">Destino habitual</span>
-                      <p className="text-sm text-gray-700">{persona.destino}</p>
+                    <div className="p-2 bg-slate-50 rounded-lg border border-slate-100">
+                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block leading-none mb-1">Destino habitual</span>
+                      <p className="text-[11px] font-bold text-slate-700 leading-tight truncate">{persona.destino}</p>
                     </div>
                   )}
                   {persona.motivo && (
-                    <div>
-                      <span className="text-xs text-gray-400 uppercase tracking-wide">Motivo habitual</span>
-                      <p className="text-sm text-gray-700">{persona.motivo}</p>
+                    <div className="p-2 bg-slate-50 rounded-lg border border-slate-100">
+                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block leading-none mb-1">Motivo recurrente</span>
+                      <p className="text-[11px] font-bold text-slate-700 leading-tight truncate">{persona.motivo}</p>
                     </div>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* Área de Novedades: 2 Columnas internas (Historial + Formulario) */}
-            <div className="lg:col-span-2 grid grid-cols-1 xl:grid-cols-2 gap-6 overflow-hidden">
-              
-              {/* BLOQUE IZQUIERDO: Historial (Timeline) */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-hidden">
-                <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between bg-white shrink-0">
-                  <h3 className="text-sm font-bold text-gray-700 flex items-center gap-2">
-                    <span className="text-xl">🕓</span> Historial de Novedades
+            {/* 📋 CENTER COLUMN: Historial (5 Cols) */}
+            <div className="lg:col-span-5 flex flex-col min-h-0 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
+                  <h3 className="text-xs font-black text-slate-700 flex items-center gap-1.5 uppercase tracking-tight leading-none">
+                    <span className="text-lg">🕓</span> Historial
                   </h3>
-                  <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100 uppercase">
-                    {anotaciones.length} Registros
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[9px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded-full border border-blue-100 uppercase tracking-tighter">
+                      {anotaciones.length} Eventos
+                    </span>
+                  </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-5 custom-scrollbar bg-gray-50/20">
+                <div className="flex-1 overflow-y-auto p-4 custom-scrollbar bg-slate-50/20">
                   {anotaciones.length === 0 ? (
-                    <div className="h-full flex flex-col items-center justify-center text-gray-400 gap-3 opacity-50">
-                      <div className="text-5xl">📄</div>
-                      <p className="text-sm font-medium italic">Sin anotaciones de seguridad</p>
+                    <div className="h-full flex flex-col items-center justify-center text-slate-300 gap-3">
+                      <div className="text-5xl grayscale opacity-20">📄</div>
+                      <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Sin registros</p>
                     </div>
                   ) : (
-                    <div className="space-y-6 relative before:content-[''] before:absolute before:left-[11px] before:top-0 before:bottom-0 before:w-0.5 before:bg-blue-100">
+                    <div className="space-y-4 relative before:content-[''] before:absolute before:left-[11px] before:top-0 before:bottom-0 before:w-0.5 before:bg-slate-100 before:rounded-full">
                       {anotaciones.map((a) => (
                         <div key={a.id} className="relative pl-8">
-                          {/* Punto de la línea de tiempo */}
-                          <div className="absolute left-0 top-1.5 w-6 h-6 rounded-full bg-white border-4 border-blue-500 shadow-sm z-10" />
+                          <div className={`absolute left-0 top-1.5 w-6 h-6 rounded-full bg-white border-[3px] shadow-sm z-10 transition-colors flex items-center justify-center ${a.texto.toUpperCase().includes('BLOQUEO') ? 'border-rose-500' : 'border-blue-500'}`} />
                           
-                          <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                          <div className={`bg-white rounded-xl p-3 border shadow-sm hover:shadow-md transition-all duration-300 ${a.texto.toUpperCase().includes('BLOQUEO') ? 'border-rose-100' : 'border-slate-100'}`}>
                             <div className="flex items-center justify-between mb-2">
-                              <span className="text-[10px] font-bold text-gray-400 uppercase">
-                                {new Date(a.fechaCreacionUtc).toLocaleString("es-CO", {
-                                  day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit"
-                                })}
-                              </span>
-                              <div className="flex gap-2">
+                              <div className="p-0.5 px-2 bg-slate-50 rounded border border-slate-100">
+                                <span className="text-[9px] font-black text-slate-500 uppercase tracking-tighter">
+                                  {new Date(a.fechaCreacionUtc).toLocaleString("es-CO", {
+                                    day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit"
+                                  })}
+                                </span>
+                              </div>
+                              <div className="flex gap-1.5">
                                 {editingId !== a.id && (usuario?.role === "admin" || usuario?.role === "superadmin") && (
                                   <>
-                                    <button onClick={() => handleStartEdit(a)} className="text-[10px] font-bold text-blue-500 hover:text-blue-700 uppercase">Editar</button>
-                                    <button onClick={() => handleDelete(a.id)} className="text-[10px] font-bold text-red-400 hover:text-red-600 uppercase">Eliminar</button>
+                                    <button onClick={() => handleStartEdit(a)} className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors" title="Editar">
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                    </button>
+                                    <button onClick={() => handleDelete(a.id)} className="p-1.5 bg-rose-50 text-rose-600 rounded-lg hover:bg-rose-100 transition-colors" title="Eliminar">
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                    </button>
                                   </>
                                 )}
                               </div>
@@ -408,20 +393,23 @@ export default function ReportesPage() {
                                   value={editText}
                                   onChange={(e) => setEditText(e.target.value)}
                                   rows={3}
-                                  className="w-full px-3 py-2 border-2 border-blue-200 rounded-lg text-sm focus:border-blue-500 outline-none resize-none"
+                                  className="w-full px-3 py-2 bg-slate-50 border-2 border-blue-100 rounded-lg text-[13px] font-medium focus:border-blue-500 outline-none resize-none transition-all"
                                 />
                                 <div className="flex justify-end gap-2">
-                                  <button onClick={handleCancelEdit} className="px-3 py-1 text-[10px] font-bold text-gray-500 bg-gray-50 rounded-lg uppercase">Cancelar</button>
-                                  <button onClick={() => handleSaveEdit(a.id)} className="px-3 py-1 text-[10px] font-bold text-white bg-blue-600 rounded-lg uppercase">Guardar</button>
+                                  <button onClick={handleCancelEdit} className="px-3 py-1 text-[9px] font-black text-slate-500 bg-slate-100 rounded-lg uppercase tracking-tight hover:bg-slate-200">Canc</button>
+                                  <button onClick={() => handleSaveEdit(a.id)} className="px-5 py-1 text-[9px] font-black text-white bg-blue-600 rounded-lg uppercase tracking-tight hover:bg-blue-700 shadow-sm">Guardar</button>
                                 </div>
                               </div>
                             ) : (
                               <>
-                                <p className="text-sm text-gray-700 leading-relaxed font-medium mb-2">{a.texto}</p>
+                                <p className="text-[13px] text-slate-700 leading-snug font-bold mb-2">{a.texto}</p>
                                 {a.registradoPorEmail && (
-                                  <div className="pt-2 border-t border-gray-50 flex items-center gap-1.5">
-                                    <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Reportado por:</span>
-                                    <span className="text-[9px] text-blue-500 font-bold italic">{a.registradoPorEmail.split('@')[0]}</span>
+                                  <div className="pt-2 border-t border-slate-50 flex items-center justify-between">
+                                    <div className="flex items-center gap-1">
+                                      <div className="w-1 h-1 rounded-full bg-blue-300"></div>
+                                      <span className="text-[8px] text-slate-400 font-black uppercase tracking-widest leading-none">Autor:</span>
+                                    </div>
+                                    <span className="text-[9px] text-blue-600 font-black bg-blue-50 px-1.5 py-0.5 rounded uppercase leading-none">{a.registradoPorEmail.split('@')[0]}</span>
                                   </div>
                                 )}
                               </>
@@ -432,58 +420,52 @@ export default function ReportesPage() {
                     </div>
                   )}
                 </div>
-              </div>
+            </div>
 
-              {/* BLOQUE DERECHO: Nueva Anotación (Sticky Form) */}
-              <div className="bg-white rounded-2xl shadow-sm border-2 border-blue-100 flex flex-col overflow-hidden h-fit">
-                <div className="bg-blue-600 px-5 py-4 flex items-center gap-3">
-                  <span className="text-xl">✍️</span>
-                  <h3 className="text-sm font-bold text-white uppercase tracking-tight">Registar Nueva Novedad</h3>
+            {/* ✍️ RIGHT COLUMN: Formulario (4 Cols) */}
+            <div className="lg:col-span-4 flex flex-col gap-4 min-h-0 lg:overflow-y-auto custom-scrollbar">
+              <div className="bg-white rounded-2xl shadow-sm border-2 border-slate-100 flex flex-col overflow-hidden">
+                <div className="bg-slate-800 px-4 py-3 flex items-center gap-2.5 shrink-0">
+                  <div className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center text-white">
+                    <span className="text-lg">✍️</span>
+                  </div>
+                  <h3 className="text-xs font-black text-white uppercase tracking-tight">Nueva Novedad</h3>
                 </div>
                 
-                <div className="p-4 space-y-3">
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Detalles del Incidente</label>
+                <div className="p-3 space-y-2">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Nueva Novedad</label>
                     <textarea
                       value={textoAnotacion}
                       onChange={(e) => setTextoAnotacion(e.target.value)}
                       placeholder="Escriba aquí los detalles..."
-                      rows={4}
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-blue-100 focus:border-blue-500 focus:bg-white outline-none transition-all resize-none placeholder-gray-400"
+                      rows={3}
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold focus:ring-4 focus:ring-blue-500/5 focus:border-blue-400 outline-none transition-all resize-none placeholder-slate-300"
                     />
                   </div>
 
                   {errorGuardar && (
-                    <div className="bg-red-50 border border-red-100 p-2 rounded-lg text-red-600 text-[10px] font-bold flex items-center gap-2 animate-bounce">
-                      <span>⚠️</span> {errorGuardar}
+                    <div className="bg-rose-50 border border-rose-100 p-2 rounded-lg text-rose-600 text-[9px] font-black flex items-center gap-1.5">
+                      <span className="text-sm">⚠️</span> {errorGuardar}
                     </div>
                   )}
                   {successMsg && (
-                    <div className="bg-green-50 border border-green-100 p-2 rounded-lg text-green-600 text-[10px] font-bold flex items-center gap-2">
-                      <span>✅</span> {successMsg}
+                    <div className="bg-emerald-50 border border-emerald-100 p-2 rounded-lg text-emerald-600 text-[9px] font-black flex items-center gap-1.5">
+                      <span className="text-sm">✅</span> {successMsg}
                     </div>
                   )}
 
                   <button
                     onClick={handleGuardarAnotacion}
                     disabled={guardando || !textoAnotacion.trim()}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-xl font-bold shadow-lg shadow-blue-200 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3 text-sm"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-xl font-black shadow-lg shadow-blue-100 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2 text-xs tracking-widest uppercase"
                   >
                     {guardando ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                        Guardando...
-                      </>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                     ) : (
-                      <>💾 GUARDAR ANOTACIÓN</>
+                      <>💾 Registrar</>
                     )}
                   </button>
-
-                  <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100 mt-1">
-                    <p className="text-[9px] text-blue-700 leading-normal italic font-medium">
-                      * Este registro quedará vinculado permanentemente para auditoría.
-                    </p>
-                  </div>
                 </div>
               </div>
             </div>
@@ -499,7 +481,7 @@ export default function ReportesPage() {
                   <span className="text-2xl">⚠️</span>
                   <div>
                     <h3 className="text-lg font-bold uppercase tracking-tight leading-none">Antecedentes Detectados</h3>
-                    <p className="text-xs text-gray-400 font-bold mt-1 uppercase tracking-wider">{persona.nombre} {persona.apellido}</p>
+                    <p className="text-xs text-slate-400 font-bold mt-1 uppercase tracking-wider">{persona.nombre} {persona.apellido}</p>
                   </div>
                 </div>
                 <button onClick={() => setIsTimelineOpen(false)} className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-colors">
@@ -573,7 +555,6 @@ export default function ReportesPage() {
                             setSuccessMsg("Persona bloqueada exitosamente.");
                             setShowBlockModal(false);
                             setMotivoBloqueo("");
-                            // Recargar anotaciones
                             const novas = await anotacionService.getAnotacionesPorPersonal(persona.personalId);
                             setAnotaciones(novas);
                         }
@@ -593,49 +574,7 @@ export default function ReportesPage() {
             </div>
           </div>
         )}
-        {/* Modal de Desbloqueo */}
-        {showUnblockModal && persona && (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-300">
-              <div className="bg-green-600 p-5 text-white">
-                <h3 className="text-xl font-bold flex items-center gap-2 uppercase tracking-tight">
-                    🔓 Confirmar Desbloqueo
-                </h3>
-                <p className="text-green-100 text-xs mt-1 font-medium italic">Se restaurará el acceso para {persona.nombre} {persona.apellido}.</p>
-              </div>
-              <div className="p-6">
-                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2">Motivo del Desbloqueo (Obligatorio)</label>
-                <textarea
-                  value={motivoBloqueo}
-                  onChange={(e) => setMotivoBloqueo(e.target.value)}
-                  placeholder="Ej: Error en el reporte, compromiso de buen comportamiento, etc..."
-                  className="w-full p-4 border border-green-200 rounded-xl bg-green-50 focus:ring-2 focus:ring-green-500 outline-none text-sm min-h-[120px]"
-                  autoFocus
-                />
-                <div className="mt-6 flex gap-3">
-                  <button
-                    onClick={() => {
-                        setShowUnblockModal(false);
-                        setMotivoBloqueo("");
-                    }}
-                    className="flex-1 bg-gray-100 text-gray-600 py-3 rounded-xl font-bold hover:bg-gray-200 transition-all text-sm"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    onClick={handleUnblockPerson}
-                    disabled={isBlocking || !motivoBloqueo.trim()}
-                    className="flex-1 bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 transition-all shadow-lg active:scale-95 disabled:bg-green-300 text-sm"
-                  >
-                    {isBlocking ? "Desbloqueando..." : "Confirmar Desbloqueo"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Modal Único de Alertas/Confirmaciones */}
+        
         <CustomModal
           isOpen={modalConfig.isOpen}
           onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}

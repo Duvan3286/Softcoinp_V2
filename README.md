@@ -9,8 +9,9 @@ El sistema está dividido en dos componentes principales:
 ### 1. Frontend (`/frontend-softcoinp`)
 - **Tecnología:** Next.js 14+ (App Router)
 - **Lenguaje:** TypeScript
-- **Estilos:** Tailwind CSS (Diseño "Single-Page" sin scroll global)
-- **Estado:** React Hooks & Context API
+- **Estilos:** Tailwind CSS (Diseño adaptable de alto rendimiento)
+- **Responsive:** Sidebar tipo "Drawer" en móviles y diseño optimizado para tablets/celulares.
+- **Estado:** React Hooks & Context API (SidebarContext para navegación móvil)
 - **Cliente API:** Axios (Centralizado en `src/services/api.ts`)
 
 ### 2. Backend (`/Softcoinp.Backend`)
@@ -19,18 +20,19 @@ El sistema está dividido en dos componentes principales:
 - **Seguridad:** Autenticación JWT (JSON Web Tokens)
 - **Patrones:** Repository/Service, DTOs, Middlewares personalizados
 
-## ✨ Funcionalidades Principales
+## ✨ Funcionalidades Destacadas
 
-- **Dashboard:** Panel central con estadísticas en tiempo real y visualización de ingresos.
-- **Gestión de Registros:** Control de entradas y salidas con soporte para captura de fotos.
-- **Personal Activo:** Monitoreo en tiempo real de quién se encuentra en las instalaciones.
-- **Reportes:** Módulo avanzado de consulta con exportación a Excel y CSV.
-- **Auditoría (Bitácora):** Registro detallado de todas las acciones del sistema, incluyendo:
-  - Nombres de usuario reales.
-  - Acciones en español legible.
-  - Filtros por acción y rango de fechas.
-  - Extracción de detalles relevantes (ej: nombre de la persona afectada).
-- **Configuración:** Administración de usuarios, tipos de personal y parámetros generales.
+- **Dashboard Inteligente:** Panel interactivo con reloj en tiempo real, búsqueda rápida y visualización dual (Persona/Vehículo).
+- **Gestión de Registros (Entradas/Salidas):** 
+  - Formulario unificado con validación avanzada (asistencia visual en rojo y auto-foco).
+  - Soporte para **Captura de Fotos** mediante webcam para personal y vehículos.
+  - Limpieza automática de campos sensibles ("Motivo" y "Destino") para garantizar datos precisos.
+- **Control de Personal y Vehículos Activos:** Monitoreo en tiempo real de quién y qué vehículo se encuentra en las instalaciones.
+- **Seguridad y Antecedentes:** Sistema de alertas para personas con novedades de seguridad, incluyendo un modal de línea de tiempo con historial detallado.
+- **Reportes Avanzados:** Módulo de consulta con filtros por fecha, tipo y documento, con exportación a Excel y CSV.
+- **Auditoría Integral (Bitácora):** Rastreo de cada acción realizada en el sistema con descripciones amigables en español y nombres de usuario.
+- **Optimización de UX:** Navegación por teclado completa (soporte de tecla `Enter`), modales de retroalimentación inmediata y carga fluida de datos.
+- **Diseño Responsive:** Interfaz adaptable que garantiza la visibilidad del sidebar y la usabilidad de los formularios incluso en dispositivos móviles pequeños.
 
 ## 🛠️ Instalación y Ejecución
 

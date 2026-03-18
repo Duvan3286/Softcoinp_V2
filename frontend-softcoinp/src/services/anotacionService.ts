@@ -1,15 +1,18 @@
 import api, { ApiResponse } from "./api";
 
 export interface CreateAnotacionDto {
-  personalId: string;
+  personalId?: string;
+  vehiculoId?: string;
   texto: string;
 }
 
 export interface AnotacionDto {
   id: string;
-  personalId: string;
+  personalId?: string;
   personalNombre?: string;
   personalApellido?: string;
+  vehiculoId?: string;
+  vehiculoPlaca?: string;
   texto: string;
   fechaCreacionUtc: string;
   registradoPor: string;
@@ -19,6 +22,11 @@ export interface AnotacionDto {
 export const anotacionService = {
   getAnotacionesPorPersonal: async (personalId: string): Promise<AnotacionDto[]> => {
     const response = await api.get<ApiResponse<AnotacionDto[]>>(`/anotaciones/personal/${personalId}`);
+    return response.data.data;
+  },
+
+  getAnotacionesPorVehiculo: async (vehiculoId: string): Promise<AnotacionDto[]> => {
+    const response = await api.get<ApiResponse<AnotacionDto[]>>(`/anotaciones/vehiculo/${vehiculoId}`);
     return response.data.data;
   },
 

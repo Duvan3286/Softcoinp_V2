@@ -31,21 +31,20 @@ namespace Softcoinp.Backend.Controllers
         {
             var anotaciones = await _db.Anotaciones
                 .OrderByDescending(a => a.FechaCreacionUtc)
-                .Join(_db.Users,
-                      a => a.RegistradoPor,
-                      u => u.Id,
-                      (a, u) => new AnotacionDto
-                      {
-                          Id = a.Id,
-                          PersonalId = a.PersonalId,
-                          PersonalNombre = a.Personal!.Nombre,
-                          PersonalApellido = a.Personal!.Apellido,
-                          PersonalDocumento = a.Personal!.Documento,
-                          Texto = a.Texto,
-                          FechaCreacionUtc = a.FechaCreacionUtc,
-                          RegistradoPor = a.RegistradoPor,
-                          RegistradoPorEmail = u.Email
-                      })
+                .Select(a => new AnotacionDto
+                {
+                    Id = a.Id,
+                    PersonalId = a.PersonalId,
+                    PersonalNombre = a.Personal != null ? a.Personal.Nombre : null,
+                    PersonalApellido = a.Personal != null ? a.Personal.Apellido : null,
+                    PersonalDocumento = a.Personal != null ? a.Personal.Documento : null,
+                    VehiculoId = a.VehiculoId,
+                    VehiculoPlaca = a.Vehiculo != null ? a.Vehiculo.Placa : null,
+                    Texto = a.Texto,
+                    FechaCreacionUtc = a.FechaCreacionUtc,
+                    RegistradoPor = a.RegistradoPor,
+                    RegistradoPorEmail = _db.Users.Where(u => u.Id == a.RegistradoPor).Select(u => u.Email).FirstOrDefault()
+                })
                 .ToListAsync();
 
             return Ok(ApiResponse<List<AnotacionDto>>.SuccessResponse(anotaciones));
@@ -58,9 +57,22 @@ namespace Softcoinp.Backend.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ApiResponse<AnotacionDto>.Fail(null, "Error de validación", ModelState));
 
-            var personalExists = await _db.Personal.AnyAsync(p => p.Id == input.PersonalId);
-            if (!personalExists)
-                return NotFound(ApiResponse<AnotacionDto>.Fail(null, "Persona no encontrada en el sistema."));
+            if (!input.PersonalId.HasValue && !input.VehiculoId.HasValue)
+                return BadRequest(ApiResponse<AnotacionDto>.Fail(null, "Debe proporcionar un ID de Personal o un ID de Vehículo."));
+
+            if (input.PersonalId.HasValue)
+            {
+                var personalExists = await _db.Personal.AnyAsync(p => p.Id == input.PersonalId);
+                if (!personalExists)
+                    return NotFound(ApiResponse<AnotacionDto>.Fail(null, "Persona no encontrada en el sistema."));
+            }
+
+            if (input.VehiculoId.HasValue)
+            {
+                var vehiculoExists = await _db.Vehiculos.AnyAsync(v => v.Id == input.VehiculoId);
+                if (!vehiculoExists)
+                    return NotFound(ApiResponse<AnotacionDto>.Fail(null, "Vehículo no encontrado en el sistema."));
+            }
 
             var userIdClaim = User.FindFirst("id")?.Value;
             if (!Guid.TryParse(userIdClaim, out var userId))
@@ -70,6 +82,7 @@ namespace Softcoinp.Backend.Controllers
             {
                 Id = Guid.NewGuid(),
                 PersonalId = input.PersonalId,
+                VehiculoId = input.VehiculoId,
                 Texto = input.Texto,
                 FechaCreacionUtc = DateTime.UtcNow,
                 RegistradoPor = userId
@@ -83,6 +96,7 @@ namespace Softcoinp.Backend.Controllers
                 await _audit.LogAsync("AnotacionCreated", "Anotacion", anotacion.Id, new
                 {
                     anotacion.PersonalId,
+                    anotacion.VehiculoId,
                     anotacion.RegistradoPor
                 });
             }
@@ -92,13 +106,35 @@ namespace Softcoinp.Backend.Controllers
             {
                 Id = anotacion.Id,
                 PersonalId = anotacion.PersonalId,
+                VehiculoId = anotacion.VehiculoId,
                 Texto = anotacion.Texto,
                 FechaCreacionUtc = anotacion.FechaCreacionUtc,
                 RegistradoPor = anotacion.RegistradoPor
             };
 
-            return CreatedAtAction(nameof(GetAnotacionesByPersonal), new { personalId = anotacion.PersonalId }, 
-                ApiResponse<AnotacionDto>.SuccessResponse(dto, "Anotación guardada correctamente"));
+            return Ok(ApiResponse<AnotacionDto>.SuccessResponse(dto, "Anotación guardada correctamente"));
+        }
+
+        // GET: api/anotaciones/vehiculo/{vehiculoId}
+        [HttpGet("vehiculo/{vehiculoId}")]
+        public async Task<IActionResult> GetAnotacionesByVehiculo(Guid vehiculoId)
+        {
+            var anotaciones = await _db.Anotaciones
+                .Where(a => a.VehiculoId == vehiculoId)
+                .OrderByDescending(a => a.FechaCreacionUtc)
+                .Select(a => new AnotacionDto
+                {
+                    Id = a.Id,
+                    VehiculoId = a.VehiculoId,
+                    VehiculoPlaca = a.Vehiculo != null ? a.Vehiculo.Placa : null,
+                    Texto = a.Texto,
+                    FechaCreacionUtc = a.FechaCreacionUtc,
+                    RegistradoPor = a.RegistradoPor,
+                    RegistradoPorEmail = _db.Users.Where(u => u.Id == a.RegistradoPor).Select(u => u.Email).FirstOrDefault()
+                })
+                .ToListAsync();
+
+            return Ok(ApiResponse<List<AnotacionDto>>.SuccessResponse(anotaciones));
         }
 
         // GET: api/anotaciones/personal/{personalId}
@@ -108,21 +144,18 @@ namespace Softcoinp.Backend.Controllers
             var anotaciones = await _db.Anotaciones
                 .Where(a => a.PersonalId == personalId)
                 .OrderByDescending(a => a.FechaCreacionUtc)
-                .Join(_db.Users, 
-                      a => a.RegistradoPor, 
-                      u => u.Id, 
-                      (a, u) => new AnotacionDto
-                      {
-                          Id = a.Id,
-                          PersonalId = a.PersonalId,
-                          PersonalNombre = a.Personal!.Nombre,       // Entity Framework maneja los includes implícitos para selecciones simples si la relación existe
-                          PersonalApellido = a.Personal!.Apellido,
-                          PersonalDocumento = a.Personal!.Documento,
-                          Texto = a.Texto,
-                          FechaCreacionUtc = a.FechaCreacionUtc,
-                          RegistradoPor = a.RegistradoPor,
-                          RegistradoPorEmail = u.Email               // Sacamos el email del usuario que guardó el reporte
-                      })
+                .Select(a => new AnotacionDto
+                {
+                    Id = a.Id,
+                    PersonalId = a.PersonalId,
+                    PersonalNombre = a.Personal != null ? a.Personal.Nombre : null,
+                    PersonalApellido = a.Personal != null ? a.Personal.Apellido : null,
+                    PersonalDocumento = a.Personal != null ? a.Personal.Documento : null,
+                    Texto = a.Texto,
+                    FechaCreacionUtc = a.FechaCreacionUtc,
+                    RegistradoPor = a.RegistradoPor,
+                    RegistradoPorEmail = _db.Users.Where(u => u.Id == a.RegistradoPor).Select(u => u.Email).FirstOrDefault()
+                })
                 .ToListAsync();
 
             return Ok(ApiResponse<List<AnotacionDto>>.SuccessResponse(anotaciones));
@@ -143,12 +176,13 @@ namespace Softcoinp.Backend.Controllers
             anotacion.Texto = input.Texto;
             await _db.SaveChangesAsync();
 
-            try { await _audit.LogAsync("AnotacionUpdated", "Anotacion", id, new { anotacion.PersonalId }); } catch { }
+            try { await _audit.LogAsync("AnotacionUpdated", "Anotacion", id, new { anotacion.PersonalId, anotacion.VehiculoId }); } catch { }
 
             var dto = new AnotacionDto
             {
                 Id = anotacion.Id,
                 PersonalId = anotacion.PersonalId,
+                VehiculoId = anotacion.VehiculoId,
                 Texto = anotacion.Texto,
                 FechaCreacionUtc = anotacion.FechaCreacionUtc,
                 RegistradoPor = anotacion.RegistradoPor
@@ -169,7 +203,7 @@ namespace Softcoinp.Backend.Controllers
             _db.Anotaciones.Remove(anotacion);
             await _db.SaveChangesAsync();
 
-            try { await _audit.LogAsync("AnotacionDeleted", "Anotacion", id, new { anotacion.PersonalId }); } catch { }
+            try { await _audit.LogAsync("AnotacionDeleted", "Anotacion", id, new { anotacion.PersonalId, anotacion.VehiculoId }); } catch { }
 
             return Ok(ApiResponse<object>.SuccessResponse(null!, "Anotación eliminada correctamente."));
         }

@@ -9,19 +9,23 @@ namespace Softcoinp.Backend.Models
         [Key]
         public Guid Id { get; set; } = Guid.NewGuid();
 
-        [Required]
-        public Guid PersonalId { get; set; }
-
+        public Guid? PersonalId { get; set; }
+ 
+        public Guid? VehiculoId { get; set; }
+ 
         [Required(ErrorMessage = "El texto de la anotación es obligatorio.")]
         public string Texto { get; set; } = string.Empty;
-
+ 
         public DateTime FechaCreacionUtc { get; set; } = DateTime.UtcNow;
-
+ 
         [Required]
         public Guid RegistradoPor { get; set; } // ID del usuario (admin/security) que crea el reporte
-
-        // Propiedad de navegación
+ 
+        // Propiedades de navegación
         [ForeignKey("PersonalId")]
         public Personal? Personal { get; set; }
+ 
+        [ForeignKey("VehiculoId")]
+        public Vehiculo? Vehiculo { get; set; }
     }
 }

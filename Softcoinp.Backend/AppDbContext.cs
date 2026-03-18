@@ -31,12 +31,19 @@ namespace Softcoinp.Backend
                 .HasForeignKey(r => r.PersonalId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Relación 1:N entre Personal y Anotacion
+            // Relación Personal - Anotacion
             modelBuilder.Entity<Anotacion>()
                 .HasOne(a => a.Personal)
                 .WithMany(p => p.Anotaciones)
                 .HasForeignKey(a => a.PersonalId)
-                .OnDelete(DeleteBehavior.Cascade); // Si se elimina un personal, se borran sus reportes
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Relación Vehiculo - Anotacion
+            modelBuilder.Entity<Anotacion>()
+                .HasOne(a => a.Vehiculo)
+                .WithMany() // Opcional: podrías agregar ICollection<Anotacion> en Vehiculo
+                .HasForeignKey(a => a.VehiculoId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Relación 1:N entre Personal y Vehiculo
             modelBuilder.Entity<Vehiculo>()

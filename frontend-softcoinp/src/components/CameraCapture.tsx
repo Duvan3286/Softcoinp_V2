@@ -85,21 +85,48 @@ const CameraCapture: React.FC<CameraCaptureProps> = ({ onPhotoTaken, onClose }) 
         {/* El canvas se usa para capturar el fotograma, se mantiene oculto */}
         <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>
 
-        <div className="flex justify-end gap-3 mt-4">
-          <button
-            onClick={onClose}
-            className="bg-gray-300 text-gray-800 py-2 px-6 rounded-lg font-semibold hover:bg-gray-400 transition duration-200"
-            disabled={!stream}
-          >
-            Cancelar
-          </button>
-          <button
-            onClick={takePhoto}
-            className="bg-green-600 text-white py-2 px-6 rounded-lg font-semibold hover:bg-green-700 transition duration-200"
-            disabled={!stream}
-          >
-            📸 Tomar Foto
-          </button>
+        <div className="flex flex-wrap justify-between items-center gap-3 mt-4">
+          <div className="flex gap-2">
+            <input
+              type="file"
+              id="fileCapture"
+              className="hidden"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  const reader = new FileReader();
+                  reader.onloadend = () => {
+                    onPhotoTaken(reader.result as string);
+                    onClose();
+                  };
+                  reader.readAsDataURL(file);
+                }
+              }}
+            />
+            <button
+              onClick={() => document.getElementById('fileCapture')?.click()}
+              className="bg-blue-50 text-blue-700 py-2.5 px-6 rounded-xl font-bold hover:bg-blue-100 transition duration-200 flex items-center gap-2 border border-blue-200"
+            >
+              <span>📁</span> Cargar archivo
+            </button>
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              onClick={onClose}
+              className="bg-slate-100 text-slate-600 py-2.5 px-6 rounded-xl font-bold hover:bg-slate-200 transition duration-200"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={takePhoto}
+              className="bg-slate-900 text-white py-2.5 px-6 rounded-xl font-bold hover:bg-slate-800 transition duration-200 disabled:opacity-30 flex items-center gap-2"
+              disabled={!stream}
+            >
+              <span className="text-lg">📸</span> Tomar Foto
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -165,7 +165,7 @@ export default function NovedadesVehicularesPage() {
                   : 'bg-yellow-500 hover:bg-yellow-600'
             }`}
           >
-            📋 Historial Vehicular
+            📋 Historial de Novedades
           </button>
         </div>
 

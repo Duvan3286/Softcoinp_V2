@@ -9,6 +9,7 @@ import { anotacionService, AnotacionDto } from "@/services/anotacionService";
 import { registroVehiculoService } from "@/services/registroVehiculoService";
 import CustomModal, { ModalType } from "@/components/CustomModal";
 import { getCurrentUser, UserPayload } from "@/utils/auth";
+import ImageZoomModal from "@/components/ImageZoomModal";
 
 
 // CONFIGURACIÓN CRÍTICA: La URL base de tu API de C#.
@@ -127,8 +128,8 @@ export default function DashboardPage() {
 
   // ⚠️ Estado para validación visual
   const [camposErrores, setCamposErrores] = useState<string[]>([]);
-
   const [usuario, setUsuario] = useState<UserPayload | null>(null);
+  const [fotoZoomUrl, setFotoZoomUrl] = useState<string | null>(null);
 
   const router = useRouter();
 
@@ -420,14 +421,20 @@ export default function DashboardPage() {
 
       const camposActualizados: string[] = [];
       if (nombres.trim() && nombres !== datosOriginales.nombre)
-        camposActualizados.push(`👤 Nombre: ${nombres} ${apellidos}`);
+        camposActualizados.push(`👤 Nombre: ${nombres}`);
+      if (apellidos.trim() && apellidos !== datosOriginales.apellido)
+        camposActualizados.push(`👤 Apellido: ${apellidos}`);
       if (telefono.trim() && telefono !== datosOriginales.telefono)
         camposActualizados.push(`📞 Teléfono: ${telefono}`);
       if (tipo.trim() && tipo !== datosOriginales.tipo)
         camposActualizados.push(`🪪 Tipo: ${tipo}`);
-      if (fotoBase64 && fotoBase64 !== datosOriginales.fotoUrl)
+      if (fotoBase64 && fotoBase64 !== datosOriginales.fotoBase64)
         camposActualizados.push(`📸 Foto de persona actualizada`);
+      
       if (placa.trim()) {
+        const pModificada = placa.trim() !== (datosOriginales.placa || "").trim();
+        if (pModificada) camposActualizados.push(`🚗 Placa: ${placa}`);
+        
         if (marca.trim() && marca !== datosOriginales.marca)
           camposActualizados.push(`   • Marca: ${marca}`);
         if (modelo.trim() && modelo !== datosOriginales.modelo)
@@ -436,7 +443,7 @@ export default function DashboardPage() {
           camposActualizados.push(`   • Color: ${color}`);
         if (tipoVehiculo.trim() && tipoVehiculo !== datosOriginales.tipoVehiculo)
           camposActualizados.push(`   • Tipo vehículo: ${tipoVehiculo}`);
-        if (fotoVehiculoBase64 && fotoVehiculoBase64 !== datosOriginales.fotoUrl)
+        if (fotoVehiculoBase64 && fotoVehiculoBase64 !== datosOriginales.fotoVehiculoBase64)
           camposActualizados.push(`   📸 Foto del vehículo actualizada`);
       }
 
@@ -473,6 +480,12 @@ export default function DashboardPage() {
     setTipo("visitante");
     setFotoBase64(null);
     setFotoUrl(null);
+    setPlaca("");
+    setMarca("");
+    setModelo("");
+    setColor("");
+    setTipoVehiculo("");
+    setFotoVehiculoBase64(null);
     setRegistroActivo(null);
     setAnotacionesAlerta([]);
     setIsBloqueado(false);
@@ -519,7 +532,21 @@ export default function DashboardPage() {
           setTipoVehiculo(persona.tipoVehiculo || "");
         }
 
-        // 📸 Guardar snapshot de los datos originales para detectar cambios
+        // 📸 Carga de fotos para el snapshot y la vista
+        let pBase64 = null;
+        if (persona.fotoUrl) {
+          setFotoUrl(persona.fotoUrl);
+          pBase64 = await urlToBase64(persona.fotoUrl);
+          if (pBase64) setFotoBase64(pBase64);
+        }
+
+        let vBase64 = null;
+        if (persona.fotoVehiculoUrl) {
+          vBase64 = await urlToBase64(persona.fotoVehiculoUrl);
+          if (vBase64) setFotoVehiculoBase64(vBase64);
+        }
+
+        // 📸 Guardar snapshot de los datos originales con base64 para detectar cambios
         setDatosOriginales({
           nombre: persona.nombre || "",
           apellido: persona.apellido || "",
@@ -530,7 +557,8 @@ export default function DashboardPage() {
           modelo: persona.modeloVehiculo || "",
           color: persona.colorVehiculo || "",
           tipoVehiculo: persona.tipoVehiculo || "",
-          fotoUrl: persona.fotoUrl || null,
+          fotoBase64: pBase64,
+          fotoVehiculoBase64: vBase64,
         });
 
         // 🔍 Verificar Novedades de Seguridad
@@ -539,13 +567,8 @@ export default function DashboardPage() {
           setAnotacionesAlerta(alerts);
         }
 
-        if (persona.fotoUrl) {
-          setFotoUrl(persona.fotoUrl);
-          const base64Image = await urlToBase64(persona.fotoUrl);
-          if (base64Image) setFotoBase64(base64Image);
-          else showModal("Persona encontrada. No se pudo cargar la foto anterior. Tome una nueva.", "warning");
-        } else {
-          showModal("Persona encontrada. Tome una foto para el registro.", "info");
+        if (!persona.fotoUrl) {
+           showModal("Persona encontrada. Tome una foto para el registro.", "info");
         }
       } else {
         showModal("⚠️ No se encontró persona con ese documento. Diligencie los datos.", "warning");
@@ -584,8 +607,10 @@ export default function DashboardPage() {
         setColor(vehiculo.color || "");
         setTipoVehiculo(vehiculo.tipoVehiculo || "");
         
+        let vBase64_local = null;
         if (vehiculo.fotoUrl) {
-           setFotoVehiculoBase64(vehiculo.fotoUrl.startsWith('http') ? vehiculo.fotoUrl : `http://localhost:5004/static${vehiculo.fotoUrl}`);
+           vBase64_local = await urlToBase64(vehiculo.fotoUrl);
+           if (vBase64_local) setFotoVehiculoBase64(vBase64_local);
         }
 
         // Verificar si tiene entrada activa
@@ -600,7 +625,7 @@ export default function DashboardPage() {
           setRegistroVehiculoActivo(null);
         }
 
-        // Cargar datos del propietario (si no están ya cargados)
+        let pBase64_local = null;
         if (!identificacion) {
             setIdentificacion(vehiculo.propietarioDocumento || "");
             setNombres(vehiculo.propietarioNombre || "");
@@ -610,8 +635,8 @@ export default function DashboardPage() {
             
             if (vehiculo.propietarioFotoUrl) {
               setFotoUrl(vehiculo.propietarioFotoUrl);
-              const base64Image = await urlToBase64(vehiculo.propietarioFotoUrl);
-              if (base64Image) setFotoBase64(base64Image);
+              pBase64_local = await urlToBase64(vehiculo.propietarioFotoUrl);
+              if (pBase64_local) setFotoBase64(pBase64_local);
             }
             
             // Buscar historial/novedades del propietario
@@ -620,6 +645,21 @@ export default function DashboardPage() {
                setAnotacionesAlerta(alerts);
             }
         }
+
+        // 📸 Snapshot para búsqueda por placa usando variables locales
+        setDatosOriginales({
+          nombre: nombres || vehiculo.propietarioNombre || "",
+          apellido: apellidos || vehiculo.propietarioApellido || "",
+          telefono: telefono || vehiculo.propietarioTelefono || "",
+          tipo: tipo || vehiculo.propietarioTipo || "visitante",
+          placa: placa || "",
+          marca: vehiculo.marca || "",
+          modelo: vehiculo.modelo || "",
+          color: vehiculo.color || "",
+          tipoVehiculo: vehiculo.tipoVehiculo || "",
+          fotoBase64: pBase64_local,
+          fotoVehiculoBase64: vBase64_local,
+        });
       }
     } catch (err: any) {
        if (err.response?.status === 404) {
@@ -708,15 +748,22 @@ export default function DashboardPage() {
         nombre={`${nombres} ${apellidos}`}
       />
 
+      <ImageZoomModal
+        isOpen={!!fotoZoomUrl}
+        onClose={() => setFotoZoomUrl(null)}
+        imageUrl={fotoZoomUrl}
+        title={fotoZoomUrl === (fotoBase64 || (fotoUrl ? (fotoUrl.startsWith('http') ? fotoUrl : `${BACKEND_BASE_URL}${fotoUrl}`) : null)) ? "Persona" : "Vehículo"}
+      />
+
       <div className="flex-1 w-full flex flex-col relative z-0 lg:overflow-hidden">
         
         {/* Halo decorativo */}
         <div className="fixed top-0 left-0 w-full h-96 bg-gradient-to-b from-blue-50/40 to-transparent -z-10 pointer-events-none"></div>
 
-        <div className="flex flex-col lg:flex-row gap-4 flex-1 min-h-0 w-full max-w-[1700px] mx-auto p-3 lg:p-4 overflow-y-auto lg:overflow-hidden">
+        <div className="flex flex-col-reverse lg:flex-row-reverse gap-4 flex-1 min-h-0 w-full max-w-[1700px] mx-auto p-3 lg:p-4 overflow-y-auto lg:overflow-hidden">
 
           {/* ══════════════════════════════════════════
-              COLUMNA IZQUIERDA: Reloj + Vehículo
+              SECCIÓN DERECHA: Reloj + Vehículo
           ══════════════════════════════════════════ */}
           <div className="w-full lg:w-96 xl:w-[26rem] flex flex-col gap-3 flex-shrink-0">
 
@@ -736,23 +783,51 @@ export default function DashboardPage() {
                   </p>
                 </div>
 
-                {/* Foto vehículo — derecha (circular y simétrica a la de persona) */}
-                <div
-                  className="flex flex-col items-center cursor-pointer group flex-shrink-0"
-                  onClick={() => setIsVehiculoCameraOpen(true)}
-                >
-                  <div className="relative w-20 lg:w-24 h-20 lg:h-24">
-                    <div className={`absolute inset-0 rounded-full blur-md opacity-20 transition-all duration-500 ${fotoVehiculoBase64 ? 'bg-emerald-400' : 'bg-slate-300 group-hover:bg-blue-400'}`}></div>
-                    <div className={`relative w-full h-full border-[2px] rounded-full flex items-center justify-center overflow-hidden bg-slate-50 transition-all duration-300 ${fotoVehiculoBase64 ? 'border-emerald-400' : 'border-slate-200 group-hover:border-blue-400'}`}>
-                      {fotoVehiculoBase64 ? (
-                        <img src={fotoVehiculoBase64} alt="Vehículo" className="w-full h-full object-cover" />
-                      ) : (
-                        <svg className="w-10 lg:w-12 h-10 lg:h-12 text-slate-300 group-hover:text-blue-400 transition duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.218A2 2 0 0110.125 4h3.75a2 2 0 011.664.89l.812 1.218A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                      )}
+                {/* Foto vehículo — derecha */}
+                <div className="flex items-center gap-2">
+                  <div
+                    className="flex flex-col items-center cursor-pointer group flex-shrink-0"
+                    onClick={() => {
+                        if (fotoVehiculoBase64) setFotoZoomUrl(fotoVehiculoBase64);
+                        else setIsVehiculoCameraOpen(true);
+                    }}
+                    title={fotoVehiculoBase64 ? "Ver en grande" : "Tomar Foto"}
+                  >
+                    <div className="relative w-20 lg:w-24 h-20 lg:h-24 transition-transform hover:scale-105">
+                      <div className={`absolute inset-0 rounded-full blur-md opacity-20 transition-all duration-500 ${fotoVehiculoBase64 ? 'bg-emerald-400' : 'bg-slate-300 group-hover:bg-blue-400'}`}></div>
+                      <div className={`relative w-full h-full border-[2px] rounded-full flex items-center justify-center overflow-hidden bg-slate-50 transition-all duration-300 ${fotoVehiculoBase64 ? 'border-emerald-400' : 'border-slate-200 group-hover:border-blue-400'}`}>
+                        {fotoVehiculoBase64 ? (
+                          <img src={fotoVehiculoBase64} alt="Vehículo" className="w-full h-full object-cover" />
+                        ) : (
+                          <svg className="w-10 lg:w-12 h-10 lg:h-12 text-slate-300 group-hover:text-blue-400 transition duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.218A2 2 0 0110.125 4h3.75a2 2 0 011.664.89l.812 1.218A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        )}
+                      </div>
+                      <div className="absolute -bottom-1 -right-1 bg-white border border-slate-200 p-1 rounded-full shadow group-hover:bg-blue-50 transition-colors">
+                        <span className="text-[10px]">{fotoVehiculoBase64 ? '🔍' : '📸'}</span>
+                      </div>
                     </div>
-                    <div className="absolute -bottom-1 -right-1 bg-white border border-slate-200 p-1 rounded-full shadow group-hover:bg-blue-50 transition-colors">
-                      <span className="text-[10px]">{fotoVehiculoBase64 ? '🔄' : '📸'}</span>
-                    </div>
+                  </div>
+
+                  {/* Botones Acciones Vehículo */}
+                  <div className="flex flex-col gap-2">
+                    {fotoVehiculoBase64 && (
+                      <>
+                        <button
+                          onClick={() => setIsVehiculoCameraOpen(true)}
+                          className="p-2 bg-white border border-slate-200 rounded-xl shadow-sm hover:bg-slate-50 hover:text-blue-600 transition-all active:scale-90 group"
+                          title="Cambiar foto"
+                        >
+                           <svg className="w-5 h-5 text-slate-400 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.218A2 2 0 0110.125 4h3.75a2 2 0 011.664.89l.812 1.218A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        </button>
+                        <button
+                          onClick={() => setFotoVehiculoBase64(null)}
+                          className="p-2 bg-white border border-slate-200 rounded-xl shadow-sm hover:bg-red-50 hover:text-red-600 transition-all active:scale-90 group"
+                          title="Eliminar foto"
+                        >
+                           <svg className="w-5 h-5 text-slate-400 group-hover:text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
@@ -922,10 +997,10 @@ export default function DashboardPage() {
               )}
             </div>
 
-          </div>{/* fin columna izquierda */}
+          </div>{/* fin sección derecha */}
 
           {/* ══════════════════════════════════════════
-              COLUMNA DERECHA: Formulario Persona + Acciones
+              SECCIÓN IZQUIERDA: Formulario Persona + Acciones
           ══════════════════════════════════════════ */}
           <div className="flex-1 flex flex-col bg-white rounded-2xl border border-slate-200 shadow-sm p-4 lg:p-5 lg:overflow-hidden min-h-0">
             {/* Cabecera: Título izq + Foto derecha */}
@@ -945,22 +1020,54 @@ export default function DashboardPage() {
               </div>
 
               {/* Foto persona — derecha (ajustada para ahorrar espacio vertical) */}
-              <div
-                className="flex flex-col items-center cursor-pointer group flex-shrink-0"
-                onClick={() => setIsCameraOpen(true)}
-              >
-                <div className="relative w-20 lg:w-24 h-20 lg:h-24">
-                  <div className={`absolute inset-0 rounded-full blur-md opacity-20 transition-all duration-500 ${fotoBase64 ? 'bg-emerald-400' : 'bg-blue-300 group-hover:bg-blue-500'}`}></div>
-                  <div className={`relative w-full h-full border-[2px] rounded-full flex items-center justify-center overflow-hidden bg-slate-50 transition-all duration-300 ${fotoBase64 ? 'border-emerald-400' : 'border-slate-200 group-hover:border-blue-400'}`}>
-                    {fotoBase64 ? (
-                      <img src={fotoBase64} alt="Foto" className="w-full h-full object-cover" />
-                    ) : (
-                      <svg className="w-10 lg:w-12 h-10 lg:h-12 text-slate-300 group-hover:text-blue-400 transition duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.218A2 2 0 0110.125 4h3.75a2 2 0 011.664.89l.812 1.218A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                    )}
+              {/* Foto persona — derecha */}
+              <div className="flex items-center gap-3">
+                <div
+                  className="flex flex-col items-center cursor-pointer group flex-shrink-0"
+                  onClick={() => {
+                      const currentFullUrl = fotoBase64 || (fotoUrl ? (fotoUrl.startsWith('http') ? fotoUrl : `${BACKEND_BASE_URL}${fotoUrl}`) : null);
+                      if (currentFullUrl) setFotoZoomUrl(currentFullUrl);
+                      else setIsCameraOpen(true);
+                  }}
+                  title={(fotoBase64 || fotoUrl) ? "Ver en grande" : "Tomar Foto"}
+                >
+                  <div className="relative w-20 lg:w-24 h-20 lg:h-24 transition-transform hover:scale-105">
+                    <div className={`absolute inset-0 rounded-full blur-md opacity-20 transition-all duration-500 ${(fotoBase64 || fotoUrl) ? 'bg-emerald-400' : 'bg-blue-300 group-hover:bg-blue-500'}`}></div>
+                    <div className={`relative w-full h-full border-[2px] rounded-full flex items-center justify-center overflow-hidden bg-slate-50 transition-all duration-300 ${(fotoBase64 || fotoUrl) ? 'border-emerald-400' : 'border-slate-200 group-hover:border-blue-400'}`}>
+                      {fotoBase64 ? (
+                        <img src={fotoBase64} alt="Foto" className="w-full h-full object-cover" />
+                      ) : fotoUrl ? (
+                        <img src={fotoUrl.startsWith('http') ? fotoUrl : `${BACKEND_BASE_URL}${fotoUrl}`} alt="Foto" className="w-full h-full object-cover" />
+                      ) : (
+                        <svg className="w-10 lg:w-12 h-10 lg:h-12 text-slate-300 group-hover:text-blue-400 transition duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.218A2 2 0 0110.125 4h3.75a2 2 0 011.664.89l.812 1.218A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                      )}
+                    </div>
+                    <div className="absolute -bottom-1 -right-1 bg-white border border-slate-200 p-1 rounded-full shadow group-hover:bg-blue-50 transition-colors">
+                      <span className="text-[10px]">{(fotoBase64 || fotoUrl) ? '🔍' : '📸'}</span>
+                    </div>
                   </div>
-                  <div className="absolute -bottom-1 -right-1 bg-white border border-slate-200 p-1 rounded-full shadow group-hover:bg-blue-50 transition-colors">
-                    <span className="text-[10px]">{fotoBase64 ? '🔄' : '📸'}</span>
-                  </div>
+                </div>
+
+                {/* Botones Acciones Persona */}
+                <div className="flex flex-col gap-2">
+                  {(fotoBase64 || fotoUrl) && (
+                    <>
+                      <button
+                        onClick={() => setIsCameraOpen(true)}
+                        className="p-2 bg-white border border-slate-200 rounded-xl shadow-sm hover:bg-slate-50 hover:text-blue-600 transition-all active:scale-90 group"
+                        title="Cambiar foto"
+                      >
+                         <svg className="w-5 h-5 text-slate-400 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.218A2 2 0 0110.125 4h3.75a2 2 0 011.664.89l.812 1.218A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                      </button>
+                      <button
+                        onClick={() => { setFotoBase64(null); setFotoUrl(null); }}
+                        className="p-2 bg-white border border-slate-200 rounded-xl shadow-sm hover:bg-red-50 hover:text-red-600 transition-all active:scale-90 group"
+                        title="Eliminar foto"
+                      >
+                         <svg className="w-5 h-5 text-slate-400 group-hover:text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -1141,7 +1248,7 @@ export default function DashboardPage() {
               </button>
             </div>
 
-          </div>{/* fin columna derecha */}
+          </div>{/* fin sección izquierda */}
 
         </div>
       </div>

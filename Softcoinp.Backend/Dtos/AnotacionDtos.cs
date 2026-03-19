@@ -19,9 +19,11 @@ namespace Softcoinp.Backend.Dtos
         public string? PersonalNombre { get; set; }
         public string? PersonalApellido { get; set; }
         public string? PersonalDocumento { get; set; }
+        public string? PersonalFotoUrl { get; set; }
         
         public Guid? VehiculoId { get; set; }
         public string? VehiculoPlaca { get; set; }
+        public string? VehiculoFotoUrl { get; set; }
         
         public string Texto { get; set; } = string.Empty;
         public DateTime FechaCreacionUtc { get; set; }

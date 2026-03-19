@@ -14,6 +14,7 @@ interface AnotacionItem {
   fechaCreacionUtc: string;
   registradoPor: string;
   registradoPorEmail?: string;
+  personalFotoUrl?: string; // 📸 Nueva propiedad
 }
 
 interface PersonaAgrupada {
@@ -21,6 +22,7 @@ interface PersonaAgrupada {
   nombreCompleto: string;
   documento: string;
   inicial: string;
+  fotoUrl?: string; // 📸 Nueva propiedad
   novedades: AnotacionItem[];
   ultimaFecha: string;
 }
@@ -35,6 +37,8 @@ interface PersonalBasic {
 interface AnotacionesResponse {
   data: AnotacionItem[];
 }
+
+const BACKEND_BASE_URL = "http://localhost:5004/static";
 
 export default function HistorialNovedadesPage() {
   const router = useRouter();
@@ -120,6 +124,7 @@ export default function HistorialNovedadesPage() {
           nombreCompleto: `${n.personalNombre || "—"} ${n.personalApellido || ""}`.trim(),
           documento: n.personalDocumento || "S/D",
           inicial: (n.personalNombre?.[0] || "?").toUpperCase(),
+          fotoUrl: n.personalFotoUrl || undefined,
           novedades: [],
           ultimaFecha: n.fechaCreacionUtc
         };
@@ -275,8 +280,16 @@ export default function HistorialNovedadesPage() {
                   <div className="flex items-center justify-between gap-4">
                     {/* Info de la Persona */}
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center text-white font-black text-xs shrink-0 shadow-md">
-                        {p.inicial}
+                      <div className="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center text-white font-black text-xs shrink-0 shadow-md overflow-hidden border border-slate-200">
+                        {p.fotoUrl ? (
+                          <img 
+                            src={p.fotoUrl.startsWith('http') ? p.fotoUrl : `${BACKEND_BASE_URL}${p.fotoUrl}`} 
+                            alt={p.nombreCompleto}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          p.inicial
+                        )}
                       </div>
                       <div className="min-w-0">
                         <p className="text-[13px] font-black text-slate-800 truncate uppercase leading-none mb-1">
@@ -380,8 +393,16 @@ export default function HistorialNovedadesPage() {
             {/* Header Modal */}
             <div className="bg-slate-900 p-4 flex items-center justify-between shrink-0 border-b border-white/10">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white text-xl font-black shadow-lg shadow-blue-500/20">
-                  {selectedPersona.inicial}
+                <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white text-xl font-black shadow-lg shadow-blue-500/20 overflow-hidden border-2 border-white/20">
+                  {selectedPersona.fotoUrl ? (
+                    <img 
+                      src={selectedPersona.fotoUrl.startsWith('http') ? selectedPersona.fotoUrl : `${BACKEND_BASE_URL}${selectedPersona.fotoUrl}`} 
+                      alt={selectedPersona.nombreCompleto}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    selectedPersona.inicial
+                  )}
                 </div>
                 <div>
                   <h3 className="text-white font-black text-lg tracking-tight uppercase leading-none">

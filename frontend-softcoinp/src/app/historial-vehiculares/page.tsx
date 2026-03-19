@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/services/api";
 
+const BACKEND_BASE_URL = "http://localhost:5004/static";
+
 interface AnotacionItem {
   id: string;
   vehiculoId: string;
@@ -12,11 +14,13 @@ interface AnotacionItem {
   fechaCreacionUtc: string;
   registradoPor: string;
   registradoPorEmail?: string;
+  vehiculoFotoUrl?: string; // 📸 Nueva propiedad
 }
 
 interface VehiculoAgrupado {
   vehiculoId: string;
   placa: string;
+  fotoUrl?: string; // 📸 Nueva propiedad
   novedades: AnotacionItem[];
   ultimaFecha: string;
 }
@@ -103,6 +107,7 @@ export default function HistorialVehicularesPage() {
         acc[vid] = {
           vehiculoId: vid,
           placa: n.vehiculoPlaca || "S/D",
+          fotoUrl: n.vehiculoFotoUrl || undefined,
           novedades: [],
           ultimaFecha: n.fechaCreacionUtc
         };
@@ -257,8 +262,16 @@ export default function HistorialVehicularesPage() {
                   <div className="flex items-center justify-between gap-4">
                     {/* Info del Vehículo */}
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-9 h-9 text-2xl shrink-0 flex items-center justify-center">
-                        🚗
+                      <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-white font-black text-xs shrink-0 shadow-md overflow-hidden border border-slate-200">
+                        {v.fotoUrl ? (
+                          <img 
+                            src={v.fotoUrl.startsWith('http') ? v.fotoUrl : `${BACKEND_BASE_URL}${v.fotoUrl}`} 
+                            alt={v.placa}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          "🚗"
+                        )}
                       </div>
                       <div className="min-w-0">
                         <p className="text-[13px] font-black text-slate-800 truncate uppercase leading-none mb-1">
@@ -362,8 +375,16 @@ export default function HistorialVehicularesPage() {
             {/* Header Modal */}
             <div className="bg-slate-900 p-4 flex items-center justify-between shrink-0 border-b border-white/10">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white text-xl font-black shadow-lg shadow-blue-500/20">
-                  🚗
+                <div className="w-14 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white text-xl font-black shadow-lg shadow-blue-500/20 overflow-hidden border-2 border-white/20">
+                  {selectedVehiculo.fotoUrl ? (
+                    <img 
+                      src={selectedVehiculo.fotoUrl.startsWith('http') ? selectedVehiculo.fotoUrl : `${BACKEND_BASE_URL}${selectedVehiculo.fotoUrl}`} 
+                      alt={selectedVehiculo.placa}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    "🚗"
+                  )}
                 </div>
                 <div>
                   <h3 className="text-white font-black text-lg tracking-tight uppercase leading-none">

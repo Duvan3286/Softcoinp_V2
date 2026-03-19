@@ -256,8 +256,39 @@ export default function NovedadesPersonasPage() {
         </form>
 
         {errorBusqueda && (
-          <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl mb-4 text-sm font-bold flex items-center gap-2">
+          <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl mb-4 text-sm font-bold flex items-center gap-2 animate-in slide-in-from-top duration-300">
             <span>❌</span> {errorBusqueda}
+          </div>
+        )}
+
+        {!persona && !buscando && !errorBusqueda && (
+          <div className="flex-1 flex flex-col items-center justify-center p-8 bg-white rounded-3xl border-2 border-dashed border-slate-200 animate-in fade-in zoom-in duration-500">
+            <div className="relative mb-6">
+                <div className="absolute inset-0 bg-blue-500 blur-3xl opacity-10 animate-pulse"></div>
+                <div className="relative w-32 h-32 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white shadow-2xl shadow-blue-200">
+                    <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                </div>
+                <div className="absolute -bottom-2 -right-2 bg-white p-2 rounded-2xl shadow-lg">
+                    <span className="text-2xl">🔍</span>
+                </div>
+            </div>
+            <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tight mb-2">Control de Novedades</h2>
+            <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px] text-center max-w-sm leading-relaxed">
+                Ingrese un número de documento arriba para gestionar el historial de novedades, bloqueos y alertas de seguridad de una persona.
+            </p>
+            <div className="mt-8 flex gap-4 text-[9px] font-black uppercase tracking-tighter">
+                <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-full border border-slate-200 text-slate-500">
+                    <span>📋 HISTORIAL</span>
+                </div>
+                <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-full border border-slate-200 text-slate-500">
+                    <span>🚫 BLOQUEOS</span>
+                </div>
+                <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-full border border-slate-200 text-slate-500">
+                    <span>⚠️ ALERTAS</span>
+                </div>
+            </div>
           </div>
         )}
 
@@ -343,7 +374,7 @@ export default function NovedadesPersonasPage() {
             <div className="lg:col-span-5 flex flex-col min-h-0 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                 <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
                   <h3 className="text-xs font-black text-slate-700 flex items-center gap-1.5 uppercase tracking-tight leading-none">
-                    <span className="text-lg">🕓</span> Historial
+                    <span className="text-lg">🕓</span> Historial de Novedades
                   </h3>
                   <div className="flex items-center gap-2">
                     <span className="text-[9px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded-full border border-blue-100 uppercase tracking-tighter">
@@ -434,11 +465,11 @@ export default function NovedadesPersonasPage() {
                 
                 <div className="p-3 space-y-2">
                   <div className="flex flex-col gap-1">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Nueva Novedad</label>
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Detalle de la Novedad</label>
                     <textarea
                       value={textoAnotacion}
                       onChange={(e) => setTextoAnotacion(e.target.value)}
-                      placeholder="Escriba aquí los detalles..."
+                      placeholder="Escriba aquí los detalles de la novedad..."
                       rows={3}
                       className="w-full px-3 py-2 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold focus:ring-4 focus:ring-blue-500/5 focus:border-blue-400 outline-none transition-all resize-none placeholder-slate-300"
                     />

@@ -148,10 +148,9 @@ export default function NovedadesVehicularesPage() {
     <div className="flex-1 h-auto lg:h-full flex flex-col min-h-0 bg-gray-50 p-2 lg:p-4 lg:overflow-hidden">
       <div className="max-w-[1700px] mx-auto w-full h-full flex flex-col min-h-0">
         
-        {/* 📋 Header Section */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2 mb-3 shrink-0">
+        <div className="flex-col lg:flex-row lg:items-center justify-between gap-2 mb-3 shrink-0 flex">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-600 rounded-xl text-white shadow-md shadow-blue-100">
+            <div className="p-2 bg-indigo-600 rounded-xl text-white shadow-md shadow-indigo-100">
                <span className="text-xl">🚗</span>
             </div>
             <h1 className="text-lg lg:text-xl font-black text-slate-800 uppercase tracking-tight">Novedades Vehiculares</h1>
@@ -180,7 +179,7 @@ export default function NovedadesVehicularesPage() {
               value={placa}
               onChange={(e) => setPlaca(e.target.value.toUpperCase())}
               placeholder="ABC-123"
-              className={`w-full pl-14 pr-12 py-2.5 border rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none shadow-sm text-sm font-bold transition-all uppercase tracking-widest ${
+              className={`w-full pl-14 pr-12 py-2.5 border rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none shadow-sm text-sm font-bold transition-all uppercase tracking-widest ${
                 anotaciones.length > 0 ? 'border-red-400 bg-red-50 ring-2 ring-red-50' : 'border-slate-200 bg-white'
               }`}
             />
@@ -199,15 +198,47 @@ export default function NovedadesVehicularesPage() {
           <button
             type="submit"
             disabled={buscando || !placa.trim()}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-black shadow-lg shadow-blue-100 transition-all active:scale-95 text-[10px] uppercase disabled:opacity-50"
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-black shadow-lg shadow-indigo-100 transition-all active:scale-95 text-[10px] uppercase disabled:opacity-50"
           >
             {buscando ? "..." : "Buscar"}
           </button>
         </form>
 
         {errorBusqueda && (
-          <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl mb-4 text-sm font-bold flex items-center gap-2">
+          <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl mb-4 text-sm font-bold flex items-center gap-2 animate-in slide-in-from-top duration-300">
             <span>❌</span> {errorBusqueda}
+          </div>
+        )}
+
+        {!vehiculo && !buscando && !errorBusqueda && (
+          <div className="flex-1 flex flex-col items-center justify-center p-8 bg-white rounded-3xl border-2 border-dashed border-slate-200 animate-in fade-in zoom-in duration-500">
+            <div className="relative mb-6">
+                <div className="absolute inset-0 bg-indigo-500 blur-3xl opacity-10 animate-pulse"></div>
+                <div className="relative w-32 h-32 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white shadow-2xl shadow-indigo-200">
+                    <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                    </svg>
+                </div>
+                <div className="absolute -bottom-2 -right-2 bg-white p-2 rounded-2xl shadow-lg">
+                    <span className="text-2xl">🔍</span>
+                </div>
+            </div>
+            <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tight mb-2">Novedades Vehiculares</h2>
+            <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px] text-center max-w-sm leading-relaxed">
+                Ingrese una placa de vehículo para gestionar el historial de novedades, bloqueos y alertas de seguridad
+            </p>
+            <div className="mt-8 flex gap-4 text-[9px] font-black uppercase tracking-tighter">
+                <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-full border border-slate-200 text-slate-500">
+                    <span>📋 HISTORIAL</span>
+                </div>
+                <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-full border border-slate-200 text-slate-500">
+                    <span>🚫 BLOQUEOS</span>
+                </div>
+                <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-full border border-slate-200 text-slate-500">
+                    <span>⚠️ ALERTAS</span>
+                </div>
+            </div>
           </div>
         )}
 
@@ -218,7 +249,7 @@ export default function NovedadesVehicularesPage() {
             <div className="lg:col-span-3 flex flex-col min-h-0">
               <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-3 flex flex-col items-center text-center overflow-hidden flex-1 lg:overflow-y-auto custom-scrollbar">
                 <div className="relative mb-2 group">
-                  <div className="absolute inset-0 bg-blue-400 blur-lg opacity-10 rounded-full group-hover:opacity-20 transition-opacity"></div>
+                  <div className="absolute inset-0 bg-indigo-400 blur-lg opacity-10 rounded-full group-hover:opacity-20 transition-opacity"></div>
                   <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-slate-100 shadow-sm bg-slate-50 flex items-center justify-center">
                     {fotoSrc ? (
                       <img src={fotoSrc} alt="Vehículo" className="w-full h-full object-cover" />
@@ -232,7 +263,7 @@ export default function NovedadesVehicularesPage() {
                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">MARCA: <span className="text-slate-700">{vehiculo.marca || 'N/A'}</span></p>
                 
                 <div className="flex flex-wrap justify-center gap-2 mt-2">
-                  <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-sm border bg-blue-50 text-blue-600 border-blue-100">
+                  <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-sm border bg-indigo-50 text-indigo-600 border-indigo-100">
                     {vehiculo.tipoVehiculo || 'N/A'}
                   </span>
                   <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-sm border bg-slate-50 text-slate-600 border-slate-200 flex items-center gap-1">
@@ -263,10 +294,10 @@ export default function NovedadesVehicularesPage() {
             <div className="lg:col-span-5 flex flex-col min-h-0 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                 <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
                   <h3 className="text-xs font-black text-slate-700 flex items-center gap-1.5 uppercase tracking-tight leading-none">
-                    <span className="text-lg">🕓</span> Novedades Vehiculares
+                    <span className="text-lg">🕓</span> Historial de Novedades Vehiculares
                   </h3>
                   <div className="flex items-center gap-2">
-                    <span className="text-[9px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded-full border border-blue-100 uppercase tracking-tighter">
+                    <span className="text-[9px] font-black text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full border border-indigo-100 uppercase tracking-tighter">
                       {anotaciones.length} Eventos
                     </span>
                   </div>
@@ -282,7 +313,7 @@ export default function NovedadesVehicularesPage() {
                     <div className="space-y-4 relative before:content-[''] before:absolute before:left-[11px] before:top-0 before:bottom-0 before:w-0.5 before:bg-slate-100 before:rounded-full">
                       {anotaciones.map((a) => (
                         <div key={a.id} className="relative pl-8">
-                          <div className={`absolute left-0 top-1.5 w-6 h-6 rounded-full bg-white border-[3px] shadow-sm z-10 transition-colors flex items-center justify-center ${a.texto.toUpperCase().includes('BLOQUEO') || a.texto.toUpperCase().includes('ROBO') ? 'border-rose-500' : 'border-blue-500'}`} />
+                          <div className={`absolute left-0 top-1.5 w-6 h-6 rounded-full bg-white border-[3px] shadow-sm z-10 transition-colors flex items-center justify-center ${a.texto.toUpperCase().includes('BLOQUEO') || a.texto.toUpperCase().includes('ROBO') ? 'border-rose-500' : 'border-indigo-500'}`} />
                           
                           <div className={`bg-white rounded-xl p-3 border shadow-sm hover:shadow-md transition-all duration-300 ${a.texto.toUpperCase().includes('BLOQUEO') || a.texto.toUpperCase().includes('ROBO') ? 'border-rose-100' : 'border-slate-100'}`}>
                             <div className="flex items-center justify-between mb-2">
@@ -296,7 +327,7 @@ export default function NovedadesVehicularesPage() {
                               <div className="flex gap-1.5">
                                 {editingId !== a.id && (usuario?.role === "admin" || usuario?.role === "superadmin") && (
                                   <>
-                                    <button onClick={() => handleStartEdit(a)} className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors" title="Editar">
+                                    <button onClick={() => handleStartEdit(a)} className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors" title="Editar">
                                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                     </button>
                                     <button onClick={() => handleDelete(a.id)} className="p-1.5 bg-rose-50 text-rose-600 rounded-lg hover:bg-rose-100 transition-colors" title="Eliminar">
@@ -317,7 +348,7 @@ export default function NovedadesVehicularesPage() {
                                 />
                                 <div className="flex justify-end gap-2">
                                   <button onClick={handleCancelEdit} className="px-3 py-1 text-[9px] font-black text-slate-500 bg-slate-100 rounded-lg uppercase tracking-tight hover:bg-slate-200">Canc</button>
-                                  <button onClick={() => handleSaveEdit(a.id)} className="px-5 py-1 text-[9px] font-black text-white bg-blue-600 rounded-lg uppercase tracking-tight hover:bg-blue-700 shadow-sm">Guardar</button>
+                                  <button onClick={() => handleSaveEdit(a.id)} className="px-5 py-1 text-[9px] font-black text-white bg-indigo-600 rounded-lg uppercase tracking-tight hover:bg-indigo-700 shadow-sm">Guardar</button>
                                 </div>
                               </div>
                             ) : (
@@ -326,10 +357,10 @@ export default function NovedadesVehicularesPage() {
                                 {a.registradoPorEmail && (
                                   <div className="pt-2 border-t border-slate-50 flex items-center justify-between">
                                     <div className="flex items-center gap-1">
-                                      <div className="w-1 h-1 rounded-full bg-blue-300"></div>
+                                      <div className="w-1 h-1 rounded-full bg-indigo-300"></div>
                                       <span className="text-[8px] text-slate-400 font-black uppercase tracking-widest leading-none">Autor:</span>
                                     </div>
-                                    <span className="text-[9px] text-blue-600 font-black bg-blue-50 px-1.5 py-0.5 rounded uppercase leading-none">{a.registradoPorEmail.split('@')[0]}</span>
+                                    <span className="text-[9px] text-indigo-600 font-black bg-indigo-50 px-1.5 py-0.5 rounded uppercase leading-none">{a.registradoPorEmail.split('@')[0]}</span>
                                   </div>
                                 )}
                               </>
@@ -358,9 +389,9 @@ export default function NovedadesVehicularesPage() {
                     <textarea
                       value={textoAnotacion}
                       onChange={(e) => setTextoAnotacion(e.target.value)}
-                      placeholder="Escriba aquí los incidentes, revisiones o antecedentes de este vehículo..."
+                      placeholder="Escriba aqui los detalles de la novedad..."
                       rows={4}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold focus:ring-4 focus:ring-blue-500/5 focus:border-blue-400 outline-none transition-all resize-none placeholder-slate-300"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-400 outline-none transition-all resize-none placeholder-slate-300"
                     />
                   </div>
 
@@ -378,7 +409,7 @@ export default function NovedadesVehicularesPage() {
                   <button
                     onClick={handleGuardarAnotacion}
                     disabled={guardando || !textoAnotacion.trim()}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-xl font-black shadow-lg shadow-blue-100 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2 text-xs tracking-widest uppercase"
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white p-3 rounded-xl font-black shadow-lg shadow-indigo-100 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2 text-xs tracking-widest uppercase"
                   >
                     {guardando ? (
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>

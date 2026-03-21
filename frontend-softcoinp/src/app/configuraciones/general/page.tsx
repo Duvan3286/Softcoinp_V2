@@ -51,108 +51,136 @@ function GeneralContent() {
 
   return (
     <>
-      <div className="h-screen bg-gray-50 p-6 overflow-hidden flex flex-col">
-        <div className="max-w-3xl mx-auto w-full h-full flex flex-col">
-          <button 
-            onClick={() => router.push("/configuraciones")}
-            className="bg-blue-600 text-white py-1.5 px-3 rounded-lg font-semibold shadow-md hover:bg-blue-700 transition duration-200 flex items-center text-sm shrink-0 mb-6 w-fit"
-          >
-            <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Volver a Configuraciones
-          </button>
-
-          <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden flex-grow flex flex-col min-h-0">
-            <div className="bg-slate-700 p-8 text-white relative shrink-0">
-              <div className="relative z-10">
-                <h1 className="text-3xl font-bold mb-2">Configuración General</h1>
-                <p className="opacity-90">Información técnica y global del sistema</p>
-              </div>
-              <div className="absolute right-8 top-1/2 -translate-y-1/2 text-7xl opacity-20">⚙️</div>
-            </div>
-
-            <div className="p-8 space-y-8 overflow-y-auto flex-grow custom-scrollbar">
-              <section>
-                <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Información del Sistema</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {systemInfo.map((info, idx) => (
-                    <div key={idx} className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                      <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">{info.label}</p>
-                      <p className="text-sm font-semibold text-gray-800">{info.value}</p>
-                    </div>
-                  ))}
+      <div className="h-full bg-slate-50 p-4 lg:p-12 flex flex-col items-center justify-start overflow-hidden gap-8">
+        <div className="w-full max-w-4xl flex flex-col items-start shrink-0">
+          <div className="flex items-center justify-between w-full mb-2">
+            <div className="flex items-center gap-4">
+                <div className={`p-2.5 ${isMaintMode ? "bg-rose-600 shadow-rose-100" : "bg-indigo-600 shadow-indigo-100"} rounded-xl text-white shadow-lg transition-transform hover:scale-110`}>
+                  <span className="text-xl">{isMaintMode ? "🛠️" : "⚙️"}</span>
                 </div>
-              </section>
-
-              {/* 🛠️ SECCIÓN DE MANTENIMIENTO (Solo SuperAdmin y con flag) */}
-              {usuario?.role === "superadmin" && isMaintMode && (
-                <section className="pt-6 border-t-4 border-red-100 animate-in fade-in slide-in-from-bottom duration-500">
-                  <div className="bg-red-50 border-2 border-red-200 rounded-3xl p-8 relative overflow-hidden">
-                    <div className="relative z-10">
-                      <h2 className="text-red-800 text-xl font-black uppercase tracking-tighter mb-4 flex items-center gap-2">
-                         <span>🛠️</span> MANTENIMIENTO CRÍTICO (SUPERADMIN)
-                      </h2>
-                      <p className="text-red-700 text-sm font-bold mb-6 max-w-xl">
-                        Estas opciones modifican directamente la estructura y datos base del sistema. 
-                        Úselas con extrema precaución; los cambios pueden ser irreversibles.
-                      </p>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <button
-                          onClick={handleDeepClean}
-                          disabled={loading}
-                          className="bg-red-600 hover:bg-red-700 text-white p-4 rounded-2xl font-black text-center shadow-xl shadow-red-200 transition-all active:scale-95 disabled:opacity-50 flex flex-col items-center"
-                        >
-                          <span className="text-2xl mb-1">🧹</span>
-                          DEEP CLEAN & SEED
-                          <span className="text-[9px] font-normal mt-1 opacity-80">(Borra todo, restaura Admin dev)</span>
-                        </button>
-
-                        <button
-                          onClick={() => api.post("/Maintenance/clear-operational-data").then(() => showModal("Datos operativos borrados. Usuarios conservados.", "success"))}
-                          disabled={loading}
-                          className="bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-2xl font-black text-center shadow-xl shadow-orange-200 transition-all active:scale-95 disabled:opacity-50 flex flex-col items-center"
-                        >
-                          <span className="text-2xl mb-1">🗑️</span>
-                          BORRAR OPERATIVOS
-                          <span className="text-[9px] font-normal mt-1 opacity-80">(Personal y Registros únicamente)</span>
-                        </button>
-                      </div>
-                    </div>
-                    <div className="absolute -right-10 -bottom-10 text-[180px] font-black text-red-600 opacity-5 select-none pointer-events-none">
-                      DANGER
-                    </div>
-                  </div>
-                </section>
-              )}
-
-              <section className="pt-6 border-t border-gray-100">
-                <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Soporte y Mantenimiento</h2>
-                <div className="bg-blue-50 border border-blue-100 rounded-2xl p-6 flex flex-col md:flex-row items-center gap-6">
-                  <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-white text-3xl shadow-lg">
-                    🆘
-                  </div>
-                  <div className="flex-grow text-center md:text-left">
-                    <h3 className="text-lg font-bold text-blue-900 mb-1">¿Necesitas ayuda técnica?</h3>
-                    <p className="text-sm text-blue-700 mb-4 opacity-80">Si experimentas problemas con el sistema o necesitas realizar un mantenimiento avanzado, contacta al administrador.</p>
-                    <a 
-                      href="mailto:soporte@softcoinp.com"
-                      className="inline-block px-6 py-2 bg-blue-600 text-white rounded-xl font-bold text-sm shadow-md hover:bg-blue-700 transition-all"
-                    >
-                      Contactar Soporte
-                    </a>
-                  </div>
+                <div>
+                    <h1 className="text-xl lg:text-2xl font-black text-slate-800 uppercase tracking-tight leading-none">
+                        {isMaintMode ? "Mantenimiento Crítico" : "Configuración General"}
+                    </h1>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mt-1">
+                        {isMaintMode ? "Acciones de sistema y depuración" : "Información técnica y ajustes globales"}
+                    </p>
                 </div>
-              </section>
             </div>
-            
-            <div className="p-6 bg-gray-50 text-center border-t border-gray-100 shrink-0">
-              <p className="text-[10px] text-gray-400 font-medium tracking-widest uppercase">
-                SOFTCOINP v2 • All Rights Reserved 2024
-              </p>
-            </div>
+            <button 
+                onClick={() => router.push("/configuraciones")}
+                className="bg-white text-slate-500 hover:text-indigo-600 py-2 px-4 rounded-xl font-black border border-slate-200 shadow-sm transition-all active:scale-95 flex items-center gap-2 text-[10px] uppercase tracking-widest"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                Volver
+              </button>
           </div>
+          <div className="w-full h-px bg-slate-200 mt-4 opacity-50"></div>
+        </div>
+
+        <div className="w-full max-w-4xl flex flex-col gap-8 overflow-y-auto pr-1 pb-10 custom-scrollbar">
+          {/* ℹ️ INFORMACIÓN DEL SISTEMA (Solo si NO es mantenimiento) */}
+          {!isMaintMode && (
+            <section className="animate-in fade-in slide-in-from-top duration-500">
+              <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 px-2">Información del Sistema</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {systemInfo.map((info, idx) => (
+                  <div key={idx} className="p-4 bg-white rounded-2xl border border-slate-100 shadow-sm transition-all hover:border-indigo-100 group">
+                    <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest mb-1 group-hover:text-indigo-400 transition-colors">{info.label}</p>
+                    <p className="text-[12px] font-black text-slate-700 leading-tight uppercase">{info.value}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* 🛠️ ACCIONES DE MANTENIMIENTO (Estilo Renglones) */}
+          {usuario?.role === "superadmin" && isMaintMode && (
+            <section className="animate-in fade-in slide-in-from-bottom duration-500">
+               <div className="bg-rose-50/50 border border-rose-100 rounded-3xl p-6 lg:p-8 mb-6">
+                  <p className="text-rose-800 text-[11px] font-black uppercase tracking-widest leading-relaxed flex items-center gap-2 mb-2">
+                    <span className="text-lg">⚠️</span> ADVERTENCIA DE SEGURIDAD
+                  </p>
+                  <p className="text-rose-600/80 text-[10px] lg:text-[11px] font-bold uppercase tracking-tight max-w-3xl">
+                    Las acciones a continuación modifican directamente la base de datos de forma irreversible. 
+                    El sistema quedará temporalmente fuera de servicio durante el procesamiento.
+                  </p>
+               </div>
+
+               <div className="flex flex-col gap-3">
+                  {/* Fila: Deep Clean */}
+                  <div 
+                    onClick={handleDeepClean}
+                    className="w-full bg-white rounded-2xl p-4 lg:px-8 lg:py-5 border border-slate-100 shadow-sm flex items-center gap-4 lg:gap-8 transition-all hover:bg-rose-50/40 hover:border-rose-100 hover:shadow-md cursor-pointer group"
+                  >
+                    <div className="w-12 h-12 shrink-0 bg-rose-100 text-rose-600 rounded-xl flex items-center justify-center text-xl shadow-inner transition-all group-hover:scale-110">
+                      🧹
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <h2 className="text-sm font-black text-slate-800 uppercase tracking-tight group-hover:text-rose-600 transition-colors">DEEP CLEAN & SEED</h2>
+                        <p className="text-[10px] lg:text-[11px] font-bold text-slate-400 mt-1 truncate uppercase tracking-tight">
+                        BORRADO TOTAL DE DATOS Y RESTAURACIÓN DE USUARIOS DE FÁBRICA
+                        </p>
+                    </div>
+                    <div className="px-5 py-2.5 rounded-xl text-white text-[9px] font-black uppercase tracking-widest bg-rose-600 shadow-lg shadow-rose-100 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0 hidden sm:block">
+                        EJECUTAR RESETEO <span>➔</span>
+                    </div>
+                  </div>
+
+                  {/* Fila: Borrar Operativos */}
+                  <div 
+                    onClick={() => {
+                        if (window.confirm("¿Seguro que deseas borrar solo datos operativos (personal y registros)? Los usuarios se conservarán.")) {
+                            api.post("/Maintenance/clear-operational-data").then(() => showModal("Datos operativos borrados con éxito.", "success"));
+                        }
+                    }}
+                    className="w-full bg-white rounded-2xl p-4 lg:px-8 lg:py-5 border border-slate-100 shadow-sm flex items-center gap-4 lg:gap-8 transition-all hover:bg-orange-50/40 hover:border-orange-100 hover:shadow-md cursor-pointer group"
+                  >
+                    <div className="w-12 h-12 shrink-0 bg-orange-100 text-orange-500 rounded-xl flex items-center justify-center text-xl shadow-inner transition-all group-hover:scale-110">
+                      🗑️
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <h2 className="text-sm font-black text-slate-800 uppercase tracking-tight group-hover:text-orange-600 transition-colors">BORRAR DATOS OPERATIVOS</h2>
+                        <p className="text-[10px] lg:text-[11px] font-bold text-slate-400 mt-1 truncate uppercase tracking-tight">
+                        ELIMINAR PERSONAL Y REGISTROS SIN AFECTAR CUENTAS DE USUARIO
+                        </p>
+                    </div>
+                    <div className="px-5 py-2.5 rounded-xl text-white text-[9px] font-black uppercase tracking-widest bg-orange-500 shadow-lg shadow-orange-100 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0 hidden sm:block">
+                        BORRAR DATOS <span>➔</span>
+                    </div>
+                  </div>
+               </div>
+            </section>
+          )}
+
+          {/* 🆘 SECCIÓN DE SOPORTE (Solo si NO es mantenimiento) */}
+          {!isMaintMode && (
+            <section className="pt-4 border-t border-slate-200 border-dashed">
+              <div className="bg-indigo-50/50 border border-indigo-100 rounded-3xl p-6 lg:p-8 flex flex-col md:flex-row items-center gap-8 group">
+                <div className="w-20 h-20 bg-indigo-600 rounded-[1.5rem] flex items-center justify-center text-white text-3xl shadow-xl shadow-indigo-100 transition-transform group-hover:rotate-6">
+                  🆘
+                </div>
+                <div className="flex-grow text-center md:text-left">
+                  <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight mb-2">¿Necesitas soporte avanzado?</h3>
+                  <p className="text-[11px] font-bold text-slate-400 mb-6 uppercase tracking-tight max-w-xl">
+                    Si experimentas problemas técnicos o necesitas realizar un mantenimiento que no está listado, escribe a nuestro equipo de ingenieros.
+                  </p>
+                  <a 
+                    href="mailto:soporte@softcoinp.com"
+                    className="inline-flex px-8 py-3 bg-indigo-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-95"
+                  >
+                    Contactar Soporte Técnico <span>➔</span>
+                  </a>
+                </div>
+              </div>
+            </section>
+          )}
+        </div>
+        
+        <div className="w-full flex justify-center mt-auto pb-4 shrink-0">
+           <p className="text-[9px] text-slate-300 font-black tracking-[0.3em] uppercase">
+              SOFTCOINP v2 • Sistema de Gestión de Infraestructura
+           </p>
         </div>
       </div>
       <CustomModal 

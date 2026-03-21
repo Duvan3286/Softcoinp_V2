@@ -70,49 +70,54 @@ export default function ConfiguracionesHubPage() {
   );
 
   return (
-    <div className="h-screen bg-gray-50 p-6 flex flex-col items-center overflow-hidden">
-      <div className="w-full max-w-6xl h-full flex flex-col">
-        {/* Header con botón de regreso */}
-        <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200 shrink-0">
-          <div className="flex items-center gap-4">
+    <div className="h-full bg-slate-50 p-4 lg:p-12 flex flex-col items-center justify-start overflow-hidden gap-8">
+      <div className="w-full max-w-4xl flex flex-col items-start shrink-0">
+        <div className="flex items-center gap-4 mb-2">
+            <div className="p-2.5 bg-indigo-600 rounded-xl text-white shadow-lg shadow-indigo-100 transition-transform hover:scale-110">
+              <span className="text-xl">⚙️</span>
+            </div>
             <div>
-              <h1 className="text-2xl font-extrabold text-gray-800 tracking-tight">Configuraciones</h1>
-              <p className="text-sm text-gray-500 font-medium">Panel de administración y ajustes del sistema</p>
+                <h1 className="text-xl lg:text-2xl font-black text-slate-800 uppercase tracking-tight leading-none">Configuraciones del Sistema</h1>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mt-1">Gestión administrativa y ajustes globales</p>
             </div>
-          </div>
         </div>
+        <div className="w-full h-px bg-slate-200 mt-4 opacity-50"></div>
+      </div>
 
-        {/* Grid de opciones - Optimizado para scroll interno compacto */}
-        <div className="flex-1 overflow-hidden flex flex-col min-h-0">
-          <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar pb-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 py-2">
-              {filteredItems.map((item, index) => (
-                <div 
-                  key={index}
-                  className="bg-white rounded-3xl p-6 border border-gray-100 shadow-xl shadow-gray-200/40 flex flex-col items-center text-center transition-all hover:scale-[1.03] hover:shadow-2xl hover:border-blue-100 group"
-                >
-                  <div className={`w-14 h-14 ${item.color} rounded-2xl flex items-center justify-center text-2xl mb-4 shadow-inner transition-transform group-hover:rotate-1 group-hover:scale-110`}>
-                    {item.icon}
-                  </div>
-                  <h2 className="text-lg font-bold text-gray-800 mb-2">{item.title}</h2>
-                  <p className="text-xs text-gray-500 mb-6 leading-relaxed px-2 flex-grow font-medium">
-                    {item.description}
-                  </p>
-                  <button
-                    onClick={() => router.push(item.path)}
-                    className={`w-full ${item.btnColor} text-white py-2.5 rounded-xl font-black shadow-lg shadow-gray-200/50 transition-all active:scale-95 flex items-center justify-center gap-2 text-[10px] uppercase tracking-widest`}
-                  >
-                    Configurar <span className="text-sm group-hover:translate-x-1 transition-transform">➔</span>
-                  </button>
-                </div>
-              ))}
+      {/* Lista de opciones - Formato Renglones */}
+      <div className="w-full max-w-4xl flex flex-col gap-3 overflow-y-auto pr-1 pb-10 custom-scrollbar">
+        {filteredItems.map((item, index) => (
+          <div 
+            key={index}
+            onClick={() => router.push(item.path)}
+            className="w-full bg-white rounded-2xl p-4 lg:px-8 lg:py-5 border border-slate-100 shadow-sm flex items-center gap-4 lg:gap-8 transition-all hover:bg-indigo-50/40 hover:border-indigo-100 hover:shadow-md cursor-pointer group"
+          >
+            {/* Icono compacto */}
+            <div className={`w-12 h-12 shrink-0 ${item.color} rounded-xl flex items-center justify-center text-xl shadow-inner transition-all group-hover:scale-110`}>
+              {item.icon}
             </div>
+            
+            {/* Texto informativo */}
+            <div className="flex-1 min-w-0">
+                <h2 className="text-sm font-black text-slate-800 uppercase tracking-tight group-hover:text-indigo-600 transition-colors uppercase">{item.title}</h2>
+                <p className="text-[10px] lg:text-[11px] font-bold text-slate-400 mt-1 truncate uppercase tracking-tight">
+                {item.description}
+                </p>
+            </div>
+            
+            {/* Botón de acción minimalista */}
+            <div className={`px-4 py-2 rounded-xl text-white text-[9px] font-black uppercase tracking-widest ${item.btnColor} shadow-md opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0 hidden sm:flex items-center gap-2`}>
+                Gestionar <span>→</span>
+            </div>
+            <div className="sm:hidden text-indigo-400 font-bold">➔</div>
           </div>
-        </div>
-        
-        <p className="py-4 text-center text-[10px] text-gray-400 font-bold tracking-[0.2em] uppercase shrink-0 border-t border-gray-100 mt-2">
-          Gestión Administrativa • SOFTCOINP v2
-        </p>
+        ))}
+      </div>
+      
+      <div className="w-full flex justify-center mt-auto pb-4 shrink-0">
+         <p className="text-[9px] text-slate-300 font-black tracking-[0.3em] uppercase">
+            SOFTCOINP v2 • Panel de Administración Profesional
+         </p>
       </div>
     </div>
   );

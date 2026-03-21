@@ -335,5 +335,33 @@ namespace Softcoinp.Backend.Controllers
             return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 $"Reporte_Vehiculos_Softcoinp_{TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz):yyyyMMdd_HHmm}.xlsx");
         }
+
+        // GET: api/registrovehiculo/activos
+        [HttpGet("activos")]
+        public async Task<IActionResult> GetActivos()
+        {
+            var registros = await _db.RegistrosVehiculos
+                .Where(r => r.HoraSalidaUtc == null)
+                .OrderByDescending(r => r.HoraIngresoUtc)
+                .Select(r => new RegistroVehiculoDto
+                {
+                    Id = r.Id,
+                    VehiculoId = r.VehiculoId,
+                    Placa = r.Placa,
+                    Marca = r.Marca,
+                    Modelo = r.Modelo,
+                    Color = r.Color,
+                    TipoVehiculo = r.TipoVehiculo,
+                    FotoVehiculoUrl = r.FotoVehiculoUrl,
+                    HoraIngresoUtc = r.HoraIngresoUtc,
+                    HoraIngresoLocal = r.HoraIngresoLocal,
+                    HoraSalidaUtc = r.HoraSalidaUtc,
+                    HoraSalidaLocal = r.HoraSalidaLocal,
+                    RegistradoPor = r.RegistradoPor
+                })
+                .ToListAsync();
+
+            return Ok(ApiResponse<List<RegistroVehiculoDto>>.SuccessResponse(registros));
+        }
     }
 }

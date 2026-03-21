@@ -117,7 +117,7 @@ export default function PersonalActivoPage() {
                           onClick={() => handleSalida(r.id)}
                           className="bg-red-50 text-red-600 hover:bg-red-600 hover:text-white px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-sm active:scale-95 border border-red-100"
                         >
-                          🚪 Salida
+                          🚪 Marcar Salida
                         </button>
                       </td>
                     </tr>

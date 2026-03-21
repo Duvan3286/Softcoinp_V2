@@ -102,71 +102,76 @@ export default function UsuariosConfigPage() {
   };
 
   return (
-    <div className="h-screen bg-gray-50 flex flex-col font-sans p-6 overflow-hidden">
-      <main className="flex-1 max-w-7xl mx-auto w-full flex flex-col min-h-0">
-        {/* Header con navegación */}
-        <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-200">
-          <div className="flex items-center gap-4">
-            <button
-               onClick={() => router.push("/configuraciones")}
-               className="bg-blue-600 text-white py-1.5 px-3 rounded-lg font-semibold shadow-md hover:bg-blue-700 transition duration-200 flex items-center text-sm"
-               title="Volver a Configuraciones"
-            >
-              <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              Volver a Configuraciones
-            </button>
-            <h1 className="text-2xl font-bold text-gray-800">Gestión de Usuarios</h1>
-          </div>
-          <button
-            onClick={() => handleOpenModal()}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-xl font-semibold shadow-md transition-all active:scale-95"
-          >
-            + Nuevo Usuario
-          </button>
+    <div className="h-full bg-slate-50 p-4 lg:p-12 flex flex-col items-center justify-start overflow-hidden gap-8 font-sans">
+      <div className="w-full max-w-4xl flex flex-col items-start shrink-0">
+        <div className="flex items-center justify-between w-full mb-2">
+            <div className="flex items-center gap-4">
+                <div className="p-2.5 bg-purple-600 rounded-xl text-white shadow-lg shadow-purple-100 transition-transform hover:scale-110">
+                    <span className="text-xl">👥</span>
+                </div>
+                <div>
+                    <h1 className="text-xl lg:text-2xl font-black text-slate-800 uppercase tracking-tight leading-none">Gestión de Usuarios</h1>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mt-1">Cuentas y niveles de acceso</p>
+                </div>
+            </div>
+            <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => router.push("/configuraciones")}
+                  className="bg-white text-slate-500 hover:text-indigo-600 py-2 px-4 rounded-xl font-black border border-slate-200 shadow-sm transition-all active:scale-95 flex items-center gap-2 text-[10px] uppercase tracking-widest"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                  Volver
+                </button>
+                <button
+                  onClick={() => handleOpenModal()}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-purple-100 transition-all active:scale-95"
+                >
+                  + Nuevo Usuario
+                </button>
+            </div>
         </div>
+        <div className="w-full h-px bg-slate-200 mt-4 opacity-50"></div>
+      </div>
 
-        {error && <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl mb-6 text-sm flex items-center gap-3">
-          <span>❌</span> {error}
+      <main className="w-full max-w-4xl flex flex-col min-h-0 overflow-y-auto pr-1 pb-10 custom-scrollbar">
+        {error && <div className="bg-rose-50 border border-rose-100 text-rose-700 p-4 rounded-2xl mb-6 text-[11px] font-bold uppercase tracking-tight flex items-center gap-3 animate-in fade-in slide-in-from-top">
+          <span className="text-lg">❌</span> {error}
         </div>}
 
         {loading && (
-          <div className="flex flex-col items-center justify-center py-20 text-gray-400 gap-4">
-            <div className="w-10 h-10 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
-            <p className="text-sm font-medium">Cargando usuarios...</p>
+          <div className="flex flex-col items-center justify-center py-20 text-slate-300 gap-4">
+            <div className="w-10 h-10 border-4 border-slate-200 border-t-purple-600 rounded-full animate-spin"></div>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em]">Cargando usuarios...</p>
           </div>
         )}
 
         {!loading && !error && (
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-y-auto flex-grow custom-scrollbar min-h-0">
-             <UserTable
-              users={users}
-              onEdit={handleOpenModal}
-              onDelete={handleDeleteUser}
-              onResetPassword={handleResetPassword}
+            <UserTable
+               users={users}
+               onEdit={handleOpenModal}
+               onDelete={handleDeleteUser}
+               onResetPassword={handleResetPassword}
             />
-          </div>
         )}
-      </main>
 
-      {isModalOpen && (
-        <UserModal
-          user={selectedUser}
-          onClose={handleCloseModal}
-          onSave={handleSaveUser}
+        {isModalOpen && (
+          <UserModal
+            user={selectedUser}
+            onClose={handleCloseModal}
+            onSave={handleSaveUser}
+          />
+        )}
+
+        {/* Modal Único de Alertas/Confirmaciones */}
+        <CustomModal
+          isOpen={modalConfig.isOpen}
+          onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
+          onConfirm={modalConfig.onConfirm}
+          title={modalConfig.title}
+          message={modalConfig.message}
+          type={modalConfig.type}
         />
-      )}
-
-      {/* Modal Único de Alertas/Confirmaciones */}
-      <CustomModal
-        isOpen={modalConfig.isOpen}
-        onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
-        onConfirm={modalConfig.onConfirm}
-        title={modalConfig.title}
-        message={modalConfig.message}
-        type={modalConfig.type}
-      />
+      </main>
     </div>
   );
 }

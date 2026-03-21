@@ -102,24 +102,22 @@ export default function AuditoriaPage() {
   };
 
   return (
-    <div className="h-screen bg-gray-50 p-6 overflow-hidden flex flex-col">
-      <div className="max-w-[1400px] mx-auto w-full h-full flex flex-col">
-        <div className="flex justify-between items-center mb-6 shrink-0">
-          <button 
-            onClick={() => router.push("/configuraciones")}
-            className="bg-blue-600 text-white py-1.5 px-3 rounded-lg font-semibold shadow-md hover:bg-blue-700 transition duration-200 flex items-center text-sm shrink-0"
-          >
-            <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Volver a Configuraciones
-          </button>
+    <div className="h-full bg-slate-50 p-4 lg:p-12 flex flex-col items-center justify-start overflow-hidden gap-8 font-sans">
+      <div className="w-full max-w-5xl flex flex-col items-start shrink-0">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between w-full gap-4">
+            <div className="flex items-center gap-4">
+                <div className="p-2.5 bg-amber-500 rounded-xl text-white shadow-lg shadow-amber-100 transition-transform hover:scale-110">
+                    <span className="text-xl">📋</span>
+                </div>
+                <div>
+                    <h1 className="text-xl lg:text-2xl font-black text-slate-800 uppercase tracking-tight leading-none">Auditoría del Sistema</h1>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mt-1">Bitácora de actividad administrativa</p>
+                </div>
+            </div>
 
-          <div className="flex gap-4 items-end">
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] uppercase font-bold text-gray-400">Acción</label>
+            <div className="flex flex-wrap items-center gap-2">
               <select 
-                className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 outline-none bg-white min-w-[200px]"
+                className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-[10px] font-bold uppercase tracking-tight focus:ring-2 focus:ring-amber-200 outline-none min-w-[150px] shadow-sm"
                 value={actionFilter}
                 onChange={(e) => setActionFilter(e.target.value)}
               >
@@ -128,88 +126,90 @@ export default function AuditoriaPage() {
                   <option key={key} value={key}>{value}</option>
                 ))}
               </select>
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] uppercase font-bold text-gray-400">Desde</label>
               <input 
                 type="date" 
-                className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 outline-none"
+                className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-[10px] font-bold uppercase focus:ring-2 focus:ring-amber-200 outline-none shadow-sm"
                 value={desdeFilter}
                 onChange={(e) => setDesdeFilter(e.target.value)}
               />
+              <button 
+                onClick={loadLogs}
+                className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-md active:scale-95"
+              >
+                Buscar
+              </button>
+              <button 
+                onClick={() => router.push("/configuraciones")}
+                className="bg-white text-slate-500 hover:text-indigo-600 py-2 px-4 rounded-xl font-black border border-slate-200 shadow-sm transition-all active:scale-95 flex items-center gap-2 text-[10px] uppercase tracking-widest"
+              >
+                Volver
+              </button>
             </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] uppercase font-bold text-gray-400">Hasta</label>
-              <input 
-                type="date" 
-                className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 outline-none"
-                value={hastaFilter}
-                onChange={(e) => setHastaFilter(e.target.value)}
-              />
-            </div>
-            <button 
-              onClick={loadLogs}
-              className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-1.5 rounded-lg text-sm font-bold transition-colors shadow-md h-9"
-            >
-              Buscar
-            </button>
-          </div>
         </div>
+        <div className="w-full h-px bg-slate-200 mt-4 opacity-50"></div>
+      </div>
 
-        <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden flex-grow flex flex-col min-h-0">
-          <div className="bg-amber-500 p-8 text-white relative shrink-0">
-            <div className="relative z-10">
-              <h1 className="text-3xl font-bold mb-2">Auditoría del Sistema</h1>
-              <p className="opacity-90">Bitácora de actividad y registros administrativos</p>
-            </div>
-            <div className="absolute right-8 top-1/2 -translate-y-1/2 text-7xl opacity-20">📋</div>
+      <main className="w-full max-w-5xl flex flex-col min-h-0 overflow-y-auto pr-1 pb-10 custom-scrollbar">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 text-slate-300 gap-4">
+            <div className="w-10 h-10 border-4 border-slate-200 border-t-amber-500 rounded-full animate-spin"></div>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em]">Cargando logs...</p>
           </div>
+        ) : logs.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-dashed border-slate-200 text-slate-400">
+            <span className="text-4xl mb-4 opacity-20">🔎</span>
+            <p className="text-[10px] font-black uppercase tracking-widest">No hay registros que coincidan</p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {logs.map((log) => (
+              <div 
+                key={log.id} 
+                className="w-full bg-white rounded-2xl p-4 lg:px-6 lg:py-3 border border-slate-100 shadow-sm flex items-center gap-4 transition-all hover:bg-amber-50/40 hover:border-amber-100 group"
+              >
+                {/* Hora mini */}
+                <div className="w-16 shrink-0 flex flex-col items-center justify-center border-r border-slate-100 pr-4">
+                    <span className="text-[10px] font-black text-slate-800 leading-none">
+                        {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                    <span className="text-[8px] font-bold text-slate-400 uppercase mt-1 tracking-tighter">
+                        {new Date(log.createdAt).toLocaleDateString([], { day: '2-digit', month: 'short' })}
+                    </span>
+                </div>
 
-          <div className="flex-grow overflow-y-auto overflow-x-auto min-h-0 custom-scrollbar">
-            {loading ? (
-              <div className="p-20 flex justify-center">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-amber-600"></div>
-              </div>
-            ) : logs.length === 0 ? (
-              <div className="p-20 text-center text-gray-500 italic">
-                No se encontraron registros de auditoría.
-              </div>
-            ) : (
-              <table className="w-full text-left border-collapse">
-                <thead className="bg-gray-50 border-b border-gray-100 text-xs font-bold text-gray-500 uppercase tracking-widest sticky top-0 z-10">
-                  <tr>
-                    <th className="px-6 py-4">Fecha/Hora</th>
-                    <th className="px-6 py-4">Acción</th>
-                    <th className="px-6 py-4">Detalle</th>
-                    <th className="px-6 py-4">Usuario</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {logs.map((log) => (
-                    <tr key={log.id} className="hover:bg-amber-50/30 transition-colors group">
-                      <td className="px-6 py-4 text-sm text-gray-700 whitespace-nowrap font-medium">
-                        {formatDate(log.createdAt)}
-                      </td>
-                      <td className="px-6 py-4 text-sm">
+                {/* Acción y Badge */}
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3">
                         <span className={getActionBadge(log.action)}>
                           {getFriendlyAction(log.action)}
                         </span>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600 italic">
-                        {getLogDetail(log)}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-700 font-medium">
-                        {log.userName || "Sistema"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+                        <h2 className="text-[11px] font-black text-slate-700 uppercase tracking-tight truncate group-hover:text-amber-600 transition-colors">
+                            {getLogDetail(log)}
+                        </h2>
+                    </div>
+                </div>
+
+                {/* Usuario */}
+                <div className="hidden sm:flex items-center gap-2 px-4 border-l border-slate-100">
+                    <div className="w-6 h-6 bg-slate-100 rounded-lg flex items-center justify-center text-[9px] font-black text-slate-400 uppercase">
+                        {log.userName?.substring(0, 1) || "S"}
+                    </div>
+                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-tighter truncate max-w-[100px]">
+                        {log.userName || "SISTEMA"}
+                    </span>
+                </div>
+              </div>
+            ))}
           </div>
-          
-          <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-between items-center shrink-0">
-            <span className="text-xs text-gray-500 font-medium">Total de registros: {total}</span>
+        )}
+      </main>
+
+      <div className="w-full max-w-5xl flex justify-between items-center mt-auto pb-4 shrink-0 px-2 lg:px-0">
+         <p className="text-[9px] text-slate-300 font-black tracking-[0.3em] uppercase">
+            SOFTCOINP v2 • Registro de Auditoría
+         </p>
+         <div className="flex items-center gap-4">
+            <span className="text-[9px] font-black text-slate-400 uppercase bg-slate-200/50 px-3 py-1 rounded-lg">Total: {total}</span>
             <button 
               onClick={() => {
                 setActionFilter("");
@@ -217,12 +217,11 @@ export default function AuditoriaPage() {
                 setHastaFilter("");
                 loadLogs();
               }}
-              className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-700 hover:bg-gray-100 transition-colors shadow-sm"
+              className="text-[9px] font-black text-amber-600 uppercase tracking-widest hover:underline"
             >
-              Limpiar Filtros
+              Limpiar filtros
             </button>
-          </div>
-        </div>
+         </div>
       </div>
     </div>
   );

@@ -32,8 +32,15 @@ export default function UserModal({ user, onClose, onSave }: UserModalProps) {
       setFormData({
         nombre: user.nombre || "",
         email: user.email,
-        password: "", // Contraseña vacía por defecto al editar
+        password: "",
         role: user.role || "user",
+      });
+    } else {
+      setFormData({
+        nombre: "",
+        email: "",
+        password: "",
+        role: "user",
       });
     }
   }, [user]);
@@ -49,7 +56,6 @@ export default function UserModal({ user, onClose, onSave }: UserModalProps) {
 
     try {
       if (isEditing) {
-        // Enviar solo los campos necesarios si están vacíos
         const updateData: any = { ...formData };
         if (!updateData.password) delete updateData.password;
         await userService.updateUser(user.id, updateData);
@@ -67,63 +73,66 @@ export default function UserModal({ user, onClose, onSave }: UserModalProps) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+        className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity animate-in fade-in"
         onClick={onClose}
       ></div>
 
       {/* Modal Content */}
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md relative z-10 overflow-hidden flex flex-col max-h-full">
-        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-          <h2 className="text-xl font-bold text-gray-800">
-            {isEditing ? "Editar Usuario" : "Nuevo Usuario"}
-          </h2>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm relative z-10 overflow-hidden flex flex-col max-h-[85vh] transform transition-all animate-in zoom-in slide-in-from-bottom border border-slate-100">
+        <div className="bg-white px-5 py-3 border-b border-slate-100 flex justify-between items-center bg-gradient-to-r from-purple-50 to-white">
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-4 bg-purple-600 rounded-full"></div>
+            <h2 className="text-xs font-black uppercase tracking-widest text-slate-700">
+                {isEditing ? "Editar Usuario" : "Nuevo Usuario"}
+            </h2>
+          </div>
           <button 
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+            className="text-slate-400 hover:text-rose-600 transition-colors p-1"
           >
-            <svg className="w-6 h-6" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-              <path d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
 
-        <div className="p-6 overflow-y-auto">
+        <div className="p-5 overflow-y-auto custom-scrollbar">
           {error && (
-            <div className="mb-4 bg-red-50 text-red-600 p-3 rounded-lg text-sm">
-              {error}
+            <div className="mb-4 bg-rose-50 border border-rose-100 text-rose-600 p-3 rounded-xl text-[10px] font-bold uppercase tracking-tight flex items-center gap-2">
+              <span>❌</span> {error}
             </div>
           )}
 
-          <form id="user-form" onSubmit={handleSubmit} className="space-y-4">
+          <form id="user-form" onSubmit={handleSubmit} className="space-y-3" autoComplete="off">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nombre Completo</label>
+              <label className="block text-[9px] font-black text-slate-400 mb-1 uppercase tracking-widest">Nombre Completo</label>
               <input
                 type="text"
                 name="nombre"
                 value={formData.nombre}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all placeholder-gray-400"
-                placeholder="Ej. Juan Pérez"
+                autoComplete="off"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all placeholder-slate-300 font-bold text-slate-700 uppercase text-[10px]"
+                placeholder="Nombre (Ej: Juan Pérez)"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico</label>
+              <label className="block text-[9px] font-black text-slate-400 mb-1 uppercase tracking-widest">Correo Electrónico</label>
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all placeholder-gray-400"
-                placeholder="ejemplo@softcoinp.com"
+                autoComplete="off"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all placeholder-slate-300 font-bold text-slate-700 text-[10px]"
+                placeholder="Correo (Ej: j.perez@empresa.com)"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Contraseña {isEditing && <span className="font-normal text-gray-400">(Dejar vacío para no cambiar)</span>}
+              <label className="block text-[9px] font-black text-slate-400 mb-1 uppercase tracking-widest">
+                Contraseña {isEditing && <span className="text-purple-400 opacity-60 ml-1">(OPCIONAL)</span>}
               </label>
               <input
                 type="password"
@@ -131,39 +140,38 @@ export default function UserModal({ user, onClose, onSave }: UserModalProps) {
                 value={formData.password}
                 onChange={handleChange}
                 required={!isEditing}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all placeholder-gray-400"
-                placeholder="••••••••"
+                autoComplete="new-password"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all placeholder-slate-300 font-bold text-slate-700 text-[10px]"
+                placeholder={isEditing ? "••••••••" : "Mínimo 6 caracteres"}
                 minLength={6}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Rol del Sistema</label>
+              <label className="block text-[9px] font-black text-slate-400 mb-1 uppercase tracking-widest">Rol del Sistema</label>
               <select
                 name="role"
                 value={formData.role}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all bg-white"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all bg-white font-black text-slate-600 uppercase text-[10px] tracking-tight cursor-pointer"
               >
-                <option value="user">Usuario Básico (user)</option>
-                {/* Solo SuperAdmin puede crear/editar el rol Admin */}
+                <option value="user">Usuario Básico</option>
                 {currentUser?.role === "superadmin" && (
-                  <option value="admin">Administrador (admin)</option>
+                  <option value="admin">Administrador</option>
                 )}
-                {/* SuperAdmin también puede ver si el usuario ya es superadmin (aunque no debería poder crearlo) */}
                 {formData.role === "superadmin" && currentUser?.role === "superadmin" && (
-                   <option value="superadmin">Super Administrador (superadmin)</option>
+                   <option value="superadmin">Súper Admin (Root)</option>
                 )}
               </select>
             </div>
           </form>
         </div>
 
-        <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 flex-shrink-0">
+        <div className="p-4 px-5 flex gap-2 mt-auto border-t border-slate-100 bg-slate-50/20">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-gray-600 font-medium hover:bg-gray-200 rounded-lg transition-colors"
+            className="px-4 py-2 bg-white border border-slate-200 text-slate-400 rounded-lg font-black text-[9px] uppercase tracking-widest hover:bg-slate-50 transition-colors"
           >
             Cancelar
           </button>
@@ -171,9 +179,9 @@ export default function UserModal({ user, onClose, onSave }: UserModalProps) {
             type="submit"
             form="user-form"
             disabled={loading}
-            className="px-6 py-2 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+            className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg font-black text-[9px] uppercase tracking-widest shadow-md shadow-purple-100 hover:bg-purple-700 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? "Guardando..." : "Guardar"}
+            {loading ? "Procesando..." : isEditing ? "Guardar" : "Crear Usuario"}
           </button>
         </div>
       </div>

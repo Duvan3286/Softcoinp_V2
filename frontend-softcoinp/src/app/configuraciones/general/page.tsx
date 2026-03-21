@@ -13,14 +13,20 @@ function GeneralContent() {
 
   const [usuario, setUsuario] = useState<UserPayload | null>(null);
   const [loading, setLoading] = useState(false);
-  const [modal, setModal] = useState({ isOpen: false, title: "", message: "", type: "info" as ModalType });
+  const [modal, setModal] = useState({ 
+    isOpen: false, 
+    title: "", 
+    message: "", 
+    type: "info" as ModalType,
+    onConfirm: undefined as (() => void) | undefined 
+  });
 
   useEffect(() => {
     setUsuario(getCurrentUser());
   }, []);
 
-  const showModal = (message: string, type: ModalType, title?: string) => {
-    setModal({ isOpen: true, message, type, title: title || "Aviso" });
+  const showModal = (message: string, type: ModalType, title?: string, onConfirm?: () => void) => {
+    setModal({ isOpen: true, message, type, title: title || "Aviso", onConfirm });
   };
 
   const systemInfo = [
@@ -32,21 +38,26 @@ function GeneralContent() {
   ];
 
   const handleDeepClean = async () => {
-    if (!window.confirm("⚠️ ATENCIÓN: Esto borrará TODOS los datos (Personal, Registros, Auditoría) y restaurará los usuarios de fábrica. ¿Estás absolutamente seguro?")) return;
-
-    setLoading(true);
-    try {
-      await api.post("/Maintenance/deep-clean-and-seed");
-      showModal("✅ Sistema reseteado con éxito. Por favor, vuelve a iniciar sesión.", "success", "Reseteo Completo");
-      setTimeout(() => {
-        localStorage.removeItem("token");
-        window.location.href = "/login";
-      }, 3000);
-    } catch (err: any) {
-      showModal("❌ Error al realizar el mantenimiento: " + (err.response?.data?.error || err.message), "error");
-    } finally {
-      setLoading(false);
-    }
+    showModal(
+        "⚠️ ATENCIÓN: Esto borrará TODOS los datos (Personal, Registros, Auditoría) y restaurará los usuarios de fábrica. Esta acción es irreversible.",
+        "confirm",
+        "Reseteo Crítico",
+        async () => {
+            setLoading(true);
+            try {
+              await api.post("/Maintenance/deep-clean-and-seed");
+              showModal("✅ Sistema reseteado con éxito. Por favor, vuelve a iniciar sesión.", "success", "Reseteo Completo");
+              setTimeout(() => {
+                localStorage.removeItem("token");
+                window.location.href = "/login";
+              }, 3000);
+            } catch (err: any) {
+              showModal("❌ Error al realizar el mantenimiento: " + (err.response?.data?.error || err.message), "error");
+            } finally {
+              setLoading(false);
+            }
+        }
+    );
   };
 
   return (
@@ -130,9 +141,15 @@ function GeneralContent() {
                   {/* Fila: Borrar Operativos */}
                   <div 
                     onClick={() => {
-                        if (window.confirm("¿Seguro que deseas borrar solo datos operativos (personal y registros)? Los usuarios se conservarán.")) {
-                            api.post("/Maintenance/clear-operational-data").then(() => showModal("Datos operativos borrados con éxito.", "success"));
-                        }
+                        showModal(
+                            "¿Seguro que deseas borrar solo datos operativos (personal y registros)? Los usuarios se conservarán.",
+                            "confirm",
+                            "Limpieza Operativa",
+                            () => {
+                                api.post("/Maintenance/clear-operational-data")
+                                   .then(() => showModal("Datos operativos borrados con éxito.", "success"));
+                            }
+                        );
                     }}
                     className="w-full bg-white rounded-2xl p-4 lg:px-8 lg:py-5 border border-slate-100 shadow-sm flex items-center gap-4 lg:gap-8 transition-all hover:bg-orange-50/40 hover:border-orange-100 hover:shadow-md cursor-pointer group"
                   >
@@ -186,6 +203,7 @@ function GeneralContent() {
       <CustomModal 
         isOpen={modal.isOpen} 
         onClose={() => setModal({...modal, isOpen: false})} 
+        onConfirm={modal.onConfirm}
         title={modal.title} 
         message={modal.message} 
         type={modal.type} 

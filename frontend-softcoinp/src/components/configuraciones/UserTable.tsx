@@ -15,70 +15,88 @@ export default function UserTable({ users, onEdit, onDelete, onResetPassword }: 
   const currentUser = getCurrentUser();
 
   if (users.length === 0) {
-    return <div className="p-6 text-center text-gray-500">No hay usuarios registrados.</div>;
+    return (
+      <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
+        <span className="text-4xl mb-4 opacity-20">👥</span>
+        <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">No hay usuarios registrados</p>
+      </div>
+    );
   }
 
   return (
-    <table className="min-w-full divide-y divide-gray-200 text-sm left-0 text-left">
-      <thead className="bg-gray-50 text-gray-600 font-medium">
-        <tr>
-          <th className="px-6 py-4 text-left font-medium">Nombre</th>
-          <th className="px-6 py-4 text-left font-medium">Email</th>
-          <th className="px-6 py-4 text-left font-medium">Rol</th>
-          <th className="px-6 py-4 text-left font-medium">Registrado</th>
-          <th className="px-6 py-4 text-right font-medium">Acciones</th>
-        </tr>
-      </thead>
-      <tbody className="divide-y divide-gray-200 bg-white">
-        {users.map((user) => (
-          <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-            <td className="px-6 py-4 whitespace-nowrap text-gray-900 font-medium">{user.nombre || "-"}</td>
-            <td className="px-6 py-4 whitespace-nowrap text-gray-600">{user.email}</td>
-            <td className="px-6 py-4 whitespace-nowrap">
-              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                user.role === "superadmin" ? "bg-red-100 text-red-800" :
-                user.role === "admin" ? "bg-purple-100 text-purple-800" : "bg-blue-100 text-blue-800"
-              }`}>
+    <div className="flex flex-col gap-3">
+      {users.map((user) => (
+        <div 
+          key={user.id} 
+          className="w-full bg-white rounded-2xl p-4 lg:px-8 lg:py-4 border border-slate-100 shadow-sm flex items-center gap-4 lg:gap-8 transition-all hover:bg-purple-50/40 hover:border-purple-100 hover:shadow-md group"
+        >
+          {/* Avatar / Icono */}
+          <div className={`w-12 h-12 shrink-0 ${user.role === 'superadmin' ? 'bg-rose-100 text-rose-600' : 'bg-purple-100 text-purple-600'} rounded-xl flex items-center justify-center text-sm font-black shadow-inner transition-all group-hover:scale-110 uppercase`}>
+            {user.nombre?.substring(0, 2) || "U"}
+          </div>
+
+          {/* Info Principal */}
+          <div className="flex-1 min-w-0">
+            <h2 className="text-sm font-black text-slate-800 uppercase tracking-tight group-hover:text-purple-600 transition-colors truncate">
+                {user.nombre || "Usuario sin nombre"}
+            </h2>
+            <div className="flex items-center gap-3 mt-1">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight truncate max-w-[150px] lg:max-w-none">
+                    {user.email}
+                </p>
+                <div className="h-1 w-1 bg-slate-300 rounded-full hidden sm:block"></div>
+                <p className="text-[9px] font-black text-slate-300 uppercase hidden sm:block">
+                    Desde {new Date(user.createdAt).toLocaleDateString()}
+                </p>
+            </div>
+          </div>
+
+          {/* Badge de Rol */}
+          <div className="hidden md:block">
+            <span className={`px-3 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg ${
+                user.role === "superadmin" ? "bg-rose-50 text-rose-600 border border-rose-100" :
+                user.role === "admin" ? "bg-purple-50 text-purple-600 border border-purple-100" : 
+                "bg-blue-50 text-blue-600 border border-blue-100"
+            }`}>
                 {user.role}
-              </span>
-            </td>
-            <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-              {new Date(user.createdAt).toLocaleDateString()}
-            </td>
-            <td className="px-6 py-4 whitespace-nowrap text-right font-medium space-x-3">
-              {/* Solo mostrar acciones si el usuario actual es superadmin O si el objetivo NO es superadmin */}
-              {(currentUser?.role === "superadmin" || user.role !== "superadmin") && (
-                <>
-                  <button
-                    onClick={() => onEdit(user)}
-                    className="text-blue-600 hover:text-blue-900"
-                    title="Editar Usuario"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    onClick={() => onResetPassword(user.id)}
-                    className="text-orange-600 hover:text-orange-900"
-                    title="Resetear Contraseña"
-                  >
-                    Resetear Contraseña
-                  </button>
-                  {/* No permitir que un usuario se elimine a sí mismo si es el único admin/superadmin, o simplemente por seguridad */}
-                  {user.email !== currentUser?.email && (
+            </span>
+          </div>
+
+          {/* Acciones */}
+          <div className="flex items-center gap-2">
+            {(currentUser?.role === "superadmin" || user.role !== "superadmin") && (
+                <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
                     <button
-                      onClick={() => onDelete(user.id)}
-                      className="text-red-600 hover:text-red-900"
-                      title="Eliminar Usuario"
+                        onClick={() => onEdit(user)}
+                        className="p-2 bg-slate-50 text-slate-500 hover:bg-purple-600 hover:text-white rounded-lg transition-all shadow-sm"
+                        title="Editar Usuario"
                     >
-                      Eliminar
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                     </button>
-                  )}
-                </>
-              )}
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+                    <button
+                        onClick={() => onResetPassword(user.id)}
+                        className="p-2 bg-slate-50 text-slate-500 hover:bg-orange-500 hover:text-white rounded-lg transition-all shadow-sm"
+                        title="Resetear Contraseña"
+                    >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
+                    </button>
+                    {user.email !== currentUser?.email && (
+                        <button
+                            onClick={() => onDelete(user.id)}
+                            className="p-2 bg-slate-50 text-slate-400 hover:bg-rose-600 hover:text-white rounded-lg transition-all shadow-sm"
+                            title="Eliminar Usuario"
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
+                    )}
+                </div>
+            )}
+            <div className="group-hover:hidden transition-all text-slate-300">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }

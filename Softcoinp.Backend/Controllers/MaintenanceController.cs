@@ -28,12 +28,15 @@ namespace Softcoinp.Backend.Controllers
         {
             try
             {
-                // 1. Limpiar tablas transaccionales
+                // 1. Limpiar tablas transaccionales y de registro
+                await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"RegistrosVehiculos\"");
                 await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"Registros\"");
                 await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"Anotaciones\"");
+                await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"Correspondencias\"");
                 await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"AuditLogs\"");
                 
-                // 2. Limpiar tablas maestras
+                // 2. Limpiar tablas maestras (orden importa por FKs)
+                await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"Vehiculos\"");
                 await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"Personal\"");
                 await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"Users\"");
                 await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"TiposPersonal\"");
@@ -71,9 +74,14 @@ namespace Softcoinp.Backend.Controllers
         {
             try
             {
-                // Orden de eliminación para respetar llaves foráneas
+                // Orden de eliminación para respetar llaves foráneas (Dependencias -> Maestras)
+                await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"RegistrosVehiculos\"");
                 await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"Registros\"");
                 await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"Anotaciones\"");
+                await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"Correspondencias\"");
+                
+                // Ahora borramos las maestras operativas
+                await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"Vehiculos\"");
                 await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"Personal\"");
 
                 return Ok(new { message = "Datos operativos limpiados con éxito. Se conservan Usuarios y Configuraciones." });

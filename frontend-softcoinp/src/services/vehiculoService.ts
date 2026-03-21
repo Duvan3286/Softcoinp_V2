@@ -1,4 +1,4 @@
-import api from "./api";
+import api, { ApiResponse } from "./api";
 
 export interface VehiculoDto {
   id: string;
@@ -15,12 +15,14 @@ export interface VehiculoDto {
   propietarioTipo?: string;
   propietarioFotoUrl?: string;
   propietarioTelefono?: string;
+  isBloqueado?: boolean;
+  motivoBloqueo?: string;
 }
 
 export const vehiculoService = {
   getVehiculoPorPlaca: async (placa: string): Promise<VehiculoDto | null> => {
     try {
-      const response = await api.get(`/vehiculos/placa/${placa}`);
+      const response = await api.get<ApiResponse<VehiculoDto>>(`/vehiculos/placa/${placa}`);
       return response.data.data;
     } catch (error) {
       console.error(`Error al obtener vehículo con placa ${placa}:`, error);
@@ -35,5 +37,11 @@ export const vehiculoService = {
       console.error("Error al obtener el catálogo de vehículos:", error);
       return [];
     }
+  },
+  bloquear: async (id: string, motivo: string): Promise<void> => {
+    await api.post(`/vehiculos/${id}/bloquear`, { motivo });
+  },
+  desbloquear: async (id: string, motivo: string): Promise<void> => {
+    await api.post(`/vehiculos/${id}/desbloquear`, { motivo });
   }
 };

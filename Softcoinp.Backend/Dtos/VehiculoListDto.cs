@@ -20,5 +20,7 @@ namespace Softcoinp.Backend.Dtos
         public string PropietarioTipo { get; set; } = string.Empty;
         public string? PropietarioFotoUrl { get; set; }
         public string? PropietarioTelefono { get; set; }
+        public bool IsBloqueado { get; set; }
+        public string? MotivoBloqueo { get; set; }
     }
 }

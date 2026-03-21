@@ -263,6 +263,7 @@ namespace Softcoinp.Backend.Controllers
                     IsBloqueado = r.Personal!.IsBloqueado,
                     MotivoBloqueo = r.Personal!.MotivoBloqueo,
                     PlacaVehiculo = r.PlacaVehiculo,
+                    VehiculoId = _db.Vehiculos.Where(v => v.Placa == r.PlacaVehiculo).Select(v => (Guid?)v.Id).FirstOrDefault(),
                     MarcaVehiculo = _db.Vehiculos.Where(v => v.Placa == r.PlacaVehiculo).Select(v => v.Marca).FirstOrDefault() ?? r.MarcaVehiculo,
                     ModeloVehiculo = _db.Vehiculos.Where(v => v.Placa == r.PlacaVehiculo).Select(v => v.Modelo).FirstOrDefault() ?? r.ModeloVehiculo,
                     ColorVehiculo = _db.Vehiculos.Where(v => v.Placa == r.PlacaVehiculo).Select(v => v.Color).FirstOrDefault() ?? r.ColorVehiculo,

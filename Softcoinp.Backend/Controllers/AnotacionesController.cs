@@ -45,7 +45,9 @@ namespace Softcoinp.Backend.Controllers
                     Texto = a.Texto,
                     FechaCreacionUtc = a.FechaCreacionUtc,
                     RegistradoPor = a.RegistradoPor,
-                    RegistradoPorEmail = _db.Users.Where(u => u.Id == a.RegistradoPor).Select(u => u.Email).FirstOrDefault()
+                    RegistradoPorEmail = _db.Users.Where(u => u.Id == a.RegistradoPor).Select(u => u.Email).FirstOrDefault(),
+                    PersonalIsBloqueado = a.Personal != null ? a.Personal.IsBloqueado : null,
+                    VehiculoIsBloqueado = a.Vehiculo != null ? a.Vehiculo.IsBloqueado : null
                 })
                 .ToListAsync();
 
@@ -133,7 +135,9 @@ namespace Softcoinp.Backend.Controllers
                     Texto = a.Texto,
                     FechaCreacionUtc = a.FechaCreacionUtc,
                     RegistradoPor = a.RegistradoPor,
-                    RegistradoPorEmail = _db.Users.Where(u => u.Id == a.RegistradoPor).Select(u => u.Email).FirstOrDefault()
+                    RegistradoPorEmail = _db.Users.Where(u => u.Id == a.RegistradoPor).Select(u => u.Email).FirstOrDefault(),
+                    PersonalIsBloqueado = a.Personal != null ? a.Personal.IsBloqueado : null,
+                    VehiculoIsBloqueado = a.Vehiculo != null ? a.Vehiculo.IsBloqueado : null
                 })
                 .ToListAsync();
 
@@ -145,7 +149,7 @@ namespace Softcoinp.Backend.Controllers
         public async Task<IActionResult> GetAnotacionesByPersonal(Guid personalId)
         {
             var anotaciones = await _db.Anotaciones
-                .Where(a => a.PersonalId == personalId)
+                .Where(a => a.PersonalId == personalId && a.VehiculoId == null)
                 .OrderByDescending(a => a.FechaCreacionUtc)
                 .Select(a => new AnotacionDto
                 {
@@ -159,7 +163,9 @@ namespace Softcoinp.Backend.Controllers
                     Texto = a.Texto,
                     FechaCreacionUtc = a.FechaCreacionUtc,
                     RegistradoPor = a.RegistradoPor,
-                    RegistradoPorEmail = _db.Users.Where(u => u.Id == a.RegistradoPor).Select(u => u.Email).FirstOrDefault()
+                    RegistradoPorEmail = _db.Users.Where(u => u.Id == a.RegistradoPor).Select(u => u.Email).FirstOrDefault(),
+                    PersonalIsBloqueado = a.Personal != null ? a.Personal.IsBloqueado : null,
+                    VehiculoIsBloqueado = a.Vehiculo != null ? a.Vehiculo.IsBloqueado : null
                 })
                 .ToListAsync();
 

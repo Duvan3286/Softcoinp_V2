@@ -25,10 +25,13 @@ namespace Softcoinp.Backend.Dtos
         public string? VehiculoPlaca { get; set; }
         public string? VehiculoFotoUrl { get; set; }
         
-        public string Texto { get; set; } = string.Empty;
+        public string? Texto { get; set; } = string.Empty;
         public DateTime FechaCreacionUtc { get; set; }
         public Guid RegistradoPor { get; set; }
         public string? RegistradoPorEmail { get; set; }
+        
+        public bool? PersonalIsBloqueado { get; set; }
+        public bool? VehiculoIsBloqueado { get; set; }
     }
 
     public class UpdateAnotacionDto

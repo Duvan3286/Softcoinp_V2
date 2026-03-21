@@ -6,6 +6,7 @@ import { vehiculoService, VehiculoDto } from "@/services/vehiculoService";
 import { anotacionService, AnotacionDto } from "@/services/anotacionService";
 import { getCurrentUser, UserPayload } from "@/utils/auth";
 import CustomModal, { ModalType } from "@/components/CustomModal";
+import ImageZoomModal from "@/components/ImageZoomModal";
 
 const BACKEND_BASE_URL = "http://localhost:5004/static";
 
@@ -36,6 +37,12 @@ export default function NovedadesVehicularesPage() {
   const [editText, setEditText] = useState("");
   const [isTimelineOpen, setIsTimelineOpen] = useState(false);
 
+  const [isBlocking, setIsBlocking] = useState(false);
+  const [motivoBloqueo, setMotivoBloqueo] = useState("");
+  const [showBlockModal, setShowBlockModal] = useState(false);
+  const [showUnblockModal, setShowUnblockModal] = useState(false);
+  const [fotoZoomUrl, setFotoZoomUrl] = useState<string | null>(null);
+
   const [modalConfig, setModalConfig] = useState<{
     isOpen: boolean;
     title: string;
@@ -47,6 +54,7 @@ export default function NovedadesVehicularesPage() {
     title: "",
     message: "",
     type: "info",
+    onConfirm: undefined,
   });
 
   const showModal = (title: string, message: string, type: ModalType, onConfirm?: () => void) => {
@@ -120,6 +128,32 @@ export default function NovedadesVehicularesPage() {
       setEditText("");
     } catch (err: any) {
       showModal("Error", err.response?.data?.message || "Error al actualizar la novedad.", "error");
+    }
+  };
+
+  const handleUnblockVehiculo = async () => {
+    if (!vehiculo?.id) return;
+    if (!motivoBloqueo.trim()) {
+      showModal("Dato Requerido", "Debe indicar un motivo de desbloqueo para proceder.", "warning");
+      return;
+    }
+
+    setIsBlocking(true);
+    setErrorGuardar(null);
+    setSuccessMsg(null);
+
+    try {
+      await vehiculoService.desbloquear(vehiculo.id, motivoBloqueo.trim());
+      setVehiculo({ ...vehiculo, isBloqueado: false, motivoBloqueo: "" });
+      setSuccessMsg("Vehículo desbloqueado correctamente.");
+      setShowUnblockModal(false);
+      setMotivoBloqueo("");
+      const nuevasAnotaciones = await anotacionService.getAnotacionesPorVehiculo(vehiculo.id);
+      setAnotaciones(nuevasAnotaciones);
+    } catch (err: any) {
+      setErrorGuardar(err.response?.data?.message || "Error al desbloquear el vehículo.");
+    } finally {
+      setIsBlocking(false);
     }
   };
 
@@ -250,12 +284,19 @@ export default function NovedadesVehicularesPage() {
               <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-3 flex flex-col items-center text-center overflow-hidden flex-1 lg:overflow-y-auto custom-scrollbar">
                 <div className="relative mb-2 group">
                   <div className="absolute inset-0 bg-indigo-400 blur-lg opacity-10 rounded-full group-hover:opacity-20 transition-opacity"></div>
-                  <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-slate-100 shadow-sm bg-slate-50 flex items-center justify-center">
+                  <div 
+                    className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-slate-100 shadow-sm bg-slate-50 flex items-center justify-center cursor-pointer hover:scale-105 transition-transform group/img"
+                    onClick={() => fotoSrc && setFotoZoomUrl(fotoSrc)}
+                    title="Ver en grande"
+                  >
                     {fotoSrc ? (
                       <img src={fotoSrc} alt="Vehículo" className="w-full h-full object-cover" />
                     ) : (
                       <span className="text-2xl opacity-50">🚗</span>
                     )}
+                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/img:opacity-100 flex items-center justify-center transition-opacity">
+                        <span className="text-white text-xs">🔍</span>
+                    </div>
                   </div>
                 </div>
 
@@ -272,6 +313,31 @@ export default function NovedadesVehicularesPage() {
                     )}
                     {vehiculo.color || 'N/A'}
                   </span>
+                </div>
+
+                {vehiculo.isBloqueado && (
+                  <div className="mt-2 w-full bg-rose-50 border border-rose-200 rounded-lg p-3 text-center shadow-sm animate-pulse-red">
+                    <p className="text-[8px] font-black text-rose-600 uppercase tracking-tighter leading-none mb-1">🚫 DENEGADO</p>
+                    <p className="text-[10px] font-bold text-rose-800 leading-tight">"{vehiculo.motivoBloqueo}"</p>
+                  </div>
+                )}
+
+                <div className="mt-3 w-full">
+                  {!vehiculo.isBloqueado ? (
+                    <button
+                      onClick={() => setShowBlockModal(true)}
+                      className="w-full bg-slate-900 hover:bg-rose-600 text-white font-black py-2 rounded-lg text-[9px] tracking-widest transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 uppercase group"
+                    >
+                      <span>🚫</span> BLOQUEAR
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setShowUnblockModal(true)}
+                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-2 rounded-lg text-[9px] tracking-widest transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 uppercase"
+                    >
+                       <span>🔓</span> Desbloquear
+                    </button>
+                  )}
                 </div>
 
                 <div className="mt-auto w-full border-t border-slate-100 pt-3 text-left grid grid-cols-1 gap-2">
@@ -425,8 +491,8 @@ export default function NovedadesVehicularesPage() {
 
         {/* Modal de Antecedentes (Timeline global) */}
         {isTimelineOpen && vehiculo && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in duration-300 border-t-8 border-red-600">
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden animate-in fade-in zoom-in duration-300 border-t-8 border-red-600">
               <div className="bg-white p-4 text-red-700 border-b flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-2xl">⚠️</span>
@@ -439,7 +505,7 @@ export default function NovedadesVehicularesPage() {
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
               </div>
-              <div className="p-6 max-h-[70vh] overflow-y-auto bg-gray-50 custom-scrollbar">
+              <div className="p-6 max-h-[60vh] overflow-y-auto bg-gray-50 custom-scrollbar">
                 <div className="space-y-4 relative before:content-[''] before:absolute before:left-[11px] before:top-0 before:bottom-0 before:w-0.5 before:bg-red-100">
                   {anotaciones.map((a) => (
                     <div key={a.id} className="relative pl-8">
@@ -463,6 +529,109 @@ export default function NovedadesVehicularesPage() {
           </div>
         )}
         
+        {/* Modal de Bloqueo */}
+        {showBlockModal && vehiculo && (
+          <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-300">
+              <div className="bg-red-600 p-5 text-white">
+                <h3 className="text-xl font-bold flex items-center gap-2 uppercase tracking-tight">
+                    🚫 Confirmar Bloqueo
+                </h3>
+                <p className="text-red-100 text-xs mt-1 font-medium italic">Se prohibirá el ingreso del vehículo {vehiculo.placa} de forma permanente hasta que sea revertido.</p>
+              </div>
+              <div className="p-6">
+                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2">Motivo del Bloqueo (Obligatorio)</label>
+                <textarea
+                  value={motivoBloqueo}
+                  onChange={(e) => setMotivoBloqueo(e.target.value)}
+                  placeholder="Ej: Reporte de robo, falta de documentación, etc..."
+                  className="w-full p-4 border border-red-200 rounded-xl bg-red-50 focus:ring-2 focus:ring-red-500 outline-none text-sm min-h-[120px]"
+                  autoFocus
+                />
+                <div className="mt-6 flex gap-3">
+                  <button
+                    onClick={() => {
+                        setShowBlockModal(false);
+                        setMotivoBloqueo("");
+                    }}
+                    className="flex-1 bg-gray-100 text-gray-600 py-3 rounded-xl font-bold hover:bg-gray-200 transition-all text-sm"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (!motivoBloqueo.trim()) {
+                        showModal("Dato Requerido", "Debe indicar un motivo de bloqueo para proceder.", "warning");
+                        return;
+                      }
+                      setIsBlocking(true);
+                      try {
+                        await vehiculoService.bloquear(vehiculo.id, motivoBloqueo);
+                        setVehiculo({ ...vehiculo, isBloqueado: true, motivoBloqueo });
+                        setSuccessMsg("Vehículo bloqueado exitosamente.");
+                        setShowBlockModal(false);
+                        setMotivoBloqueo("");
+                        const nuevas = await anotacionService.getAnotacionesPorVehiculo(vehiculo.id);
+                        setAnotaciones(nuevas);
+                      } catch (err: any) {
+                        showModal("Error", err.response?.data?.message || "Error al bloquear", "error");
+                      } finally {
+                        setIsBlocking(false);
+                      }
+                    }}
+                    disabled={isBlocking}
+                    className="flex-1 bg-red-600 text-white py-3 rounded-xl font-bold hover:bg-red-700 transition-all shadow-lg active:scale-95 disabled:bg-red-300 text-sm"
+                  >
+                    {isBlocking ? "Bloqueando..." : "Bloquear Ahora"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal de Desbloqueo */}
+        {showUnblockModal && vehiculo && (
+          <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-300">
+              <div className="bg-emerald-600 p-5 text-white">
+                <h3 className="text-xl font-bold flex items-center gap-2 uppercase tracking-tight">
+                    🔓 Desbloquear Vehículo
+                </h3>
+                <p className="text-emerald-100 text-xs mt-1 font-medium italic">Se permitirá nuevamente el ingreso del vehículo {vehiculo.placa}.</p>
+              </div>
+              <div className="p-6">
+                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2">Motivo del Desbloqueo (Obligatorio)</label>
+                <textarea
+                  value={motivoBloqueo}
+                  onChange={(e) => setMotivoBloqueo(e.target.value)}
+                  placeholder="Ej: Documentación al día, error en reporte anterior..."
+                  className="w-full p-4 border border-emerald-200 rounded-xl bg-emerald-50 focus:ring-2 focus:ring-emerald-500 outline-none text-sm min-h-[120px]"
+                  autoFocus
+                />
+                <div className="mt-6 flex gap-3">
+                  <button
+                    onClick={() => {
+                        setShowUnblockModal(false);
+                        setMotivoBloqueo("");
+                    }}
+                    className="flex-1 bg-gray-100 text-gray-600 py-3 rounded-xl font-bold hover:bg-gray-200 transition-all text-sm"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleUnblockVehiculo}
+                    disabled={isBlocking}
+                    className="flex-1 bg-emerald-600 text-white py-3 rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-lg active:scale-95 disabled:bg-emerald-300 text-sm"
+                  >
+                    {isBlocking ? "Desbloqueando..." : "Desbloquear Ahora"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
         <CustomModal
           isOpen={modalConfig.isOpen}
           onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
@@ -470,6 +639,13 @@ export default function NovedadesVehicularesPage() {
           title={modalConfig.title}
           message={modalConfig.message}
           type={modalConfig.type}
+        />
+
+        <ImageZoomModal
+            isOpen={!!fotoZoomUrl}
+            onClose={() => setFotoZoomUrl(null)}
+            imageUrl={fotoZoomUrl}
+            title={vehiculo ? `Vehículo: ${vehiculo.placa}` : "Foto de Vehículo"}
         />
       </div>
     </div>

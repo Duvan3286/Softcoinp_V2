@@ -28,6 +28,7 @@ namespace Softcoinp.Backend.Dtos
         public string? MotivoBloqueo { get; set; }
 
         // 🚗 Datos de vehículo asociados (Historial)
+        public Guid? VehiculoId { get; set; }
         public string? PlacaVehiculo { get; set; }
         public string? MarcaVehiculo { get; set; }
         public string? ModeloVehiculo { get; set; }

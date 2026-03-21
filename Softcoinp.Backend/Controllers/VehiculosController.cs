@@ -7,10 +7,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Softcoinp.Backend.Models;
+using Microsoft.AspNetCore.Authorization;
+
 namespace Softcoinp.Backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class VehiculosController : ControllerBase
     {
         private readonly AppDbContext _db;
@@ -42,7 +46,9 @@ namespace Softcoinp.Backend.Controllers
                     PropietarioDocumento = v.Personal.Documento,
                     PropietarioTipo = v.Personal.Tipo,
                     PropietarioFotoUrl = v.Personal.FotoUrl,
-                    PropietarioTelefono = v.Personal.Telefono
+                    PropietarioTelefono = v.Personal.Telefono,
+                    IsBloqueado = v.IsBloqueado,
+                    MotivoBloqueo = v.MotivoBloqueo
                 })
                 .ToListAsync();
 
@@ -104,7 +110,9 @@ namespace Softcoinp.Backend.Controllers
                     PropietarioDocumento = v.Personal.Documento,
                     PropietarioTipo = v.Personal.Tipo,
                     PropietarioFotoUrl = v.Personal.FotoUrl,
-                    PropietarioTelefono = v.Personal.Telefono
+                    PropietarioTelefono = v.Personal.Telefono,
+                    IsBloqueado = v.IsBloqueado,
+                    MotivoBloqueo = v.MotivoBloqueo
                 })
                 .ToListAsync();
 
@@ -138,7 +146,9 @@ namespace Softcoinp.Backend.Controllers
                     PropietarioDocumento = v.Personal.Documento,
                     PropietarioTipo = v.Personal.Tipo,
                     PropietarioFotoUrl = v.Personal.FotoUrl,
-                    PropietarioTelefono = v.Personal.Telefono
+                    PropietarioTelefono = v.Personal.Telefono,
+                    IsBloqueado = v.IsBloqueado,
+                    MotivoBloqueo = v.MotivoBloqueo
                 })
                 .FirstOrDefaultAsync();
 
@@ -147,5 +157,72 @@ namespace Softcoinp.Backend.Controllers
 
             return Ok(ApiResponse<VehiculoListDto>.SuccessResponse(vehiculo));
         }
+
+        // POST: api/vehiculos/{id}/bloquear
+        [HttpPost("{id}/bloquear")]
+        public async Task<IActionResult> Bloquear(Guid id, [FromBody] MotivoRequest request)
+        {
+            var vehiculo = await _db.Vehiculos.Include(v => v.Personal).FirstOrDefaultAsync(v => v.Id == id);
+            if (vehiculo == null)
+                return NotFound(ApiResponse<bool>.Fail(false, "Vehículo no encontrado."));
+
+            var userIdClaim = User.FindFirst("id")?.Value;
+            if (!Guid.TryParse(userIdClaim, out var userId))
+                return Unauthorized(ApiResponse<bool>.Fail(false, "No se pudo identificar al usuario actual."));
+
+            vehiculo.IsBloqueado = true;
+            vehiculo.MotivoBloqueo = request.Motivo;
+
+            // Crear anotación para trazabilidad
+            var anotacion = new Anotacion
+            {
+                Id = Guid.NewGuid(),
+                PersonalId = vehiculo.PersonalId,
+                VehiculoId = vehiculo.Id,
+                Texto = $"🚫 VEHÍCULO BLOQUEADO (Placa: {vehiculo.Placa}). Motivo: {request.Motivo}",
+                FechaCreacionUtc = DateTime.UtcNow,
+                RegistradoPor = userId
+            };
+            _db.Anotaciones.Add(anotacion);
+
+            await _db.SaveChangesAsync();
+            return Ok(ApiResponse<bool>.SuccessResponse(true, "Vehículo bloqueado correctamente."));
+        }
+
+        // POST: api/vehiculos/{id}/desbloquear
+        [HttpPost("{id}/desbloquear")]
+        public async Task<IActionResult> Desbloquear(Guid id, [FromBody] MotivoRequest request)
+        {
+            var vehiculo = await _db.Vehiculos.Include(v => v.Personal).FirstOrDefaultAsync(v => v.Id == id);
+            if (vehiculo == null)
+                return NotFound(ApiResponse<bool>.Fail(false, "Vehículo no encontrado."));
+
+            var userIdClaim = User.FindFirst("id")?.Value;
+            if (!Guid.TryParse(userIdClaim, out var userId))
+                return Unauthorized(ApiResponse<bool>.Fail(false, "No se pudo identificar al usuario actual."));
+
+            vehiculo.IsBloqueado = false;
+            vehiculo.MotivoBloqueo = null;
+
+            // Crear anotación para trazabilidad
+            var anotacion = new Anotacion
+            {
+                Id = Guid.NewGuid(),
+                PersonalId = vehiculo.PersonalId,
+                VehiculoId = vehiculo.Id,
+                Texto = $"🔓 VEHÍCULO DESBLOQUEADO (Placa: {vehiculo.Placa}). Motivo: {request.Motivo}",
+                FechaCreacionUtc = DateTime.UtcNow,
+                RegistradoPor = userId
+            };
+            _db.Anotaciones.Add(anotacion);
+
+            await _db.SaveChangesAsync();
+            return Ok(ApiResponse<bool>.SuccessResponse(true, "Vehículo desbloqueado correctamente."));
+        }
+    }
+
+    public class MotivoRequest
+    {
+        public string Motivo { get; set; } = string.Empty;
     }
 }

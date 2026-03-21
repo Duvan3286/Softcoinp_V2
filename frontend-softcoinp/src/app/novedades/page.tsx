@@ -7,6 +7,7 @@ import { anotacionService, AnotacionDto } from "@/services/anotacionService";
 import { personalService } from "@/services/personalService";
 import { getCurrentUser, UserPayload } from "@/utils/auth";
 import CustomModal, { ModalType } from "@/components/CustomModal";
+import ImageZoomModal from "@/components/ImageZoomModal";
 
 const BACKEND_BASE_URL = "http://localhost:5004/static";
 
@@ -56,6 +57,7 @@ export default function NovedadesPersonasPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
   const [isTimelineOpen, setIsTimelineOpen] = useState(false);
+  const [fotoZoomUrl, setFotoZoomUrl] = useState<string | null>(null);
 
   const [modalConfig, setModalConfig] = useState<{
     isOpen: boolean;
@@ -168,7 +170,12 @@ export default function NovedadesPersonasPage() {
   };
 
   const handleUnblockPerson = async () => {
-    if (!motivoBloqueo.trim() || !persona?.personalId) return;
+    if (!persona?.personalId) return;
+
+    if (!motivoBloqueo.trim()) {
+      showModal("Dato Requerido", "Debe indicar un motivo de desbloqueo para proceder.", "warning");
+      return;
+    }
 
     setIsBlocking(true);
     setErrorGuardar(null);
@@ -300,12 +307,19 @@ export default function NovedadesPersonasPage() {
               <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-3 flex flex-col items-center text-center overflow-hidden flex-1 lg:overflow-y-auto custom-scrollbar">
                 <div className="relative mb-2 group">
                   <div className="absolute inset-0 bg-blue-400 blur-lg opacity-10 rounded-full group-hover:opacity-20 transition-opacity"></div>
-                  <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-sm bg-slate-50">
+                  <div 
+                    className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-sm bg-slate-50 cursor-pointer hover:scale-105 transition-transform group/img"
+                    onClick={() => fotoSrc && setFotoZoomUrl(fotoSrc)}
+                    title="Ver en grande"
+                  >
                     {fotoSrc ? (
                       <img src={fotoSrc} alt="Foto" className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-2xl text-slate-300 italic font-black">?</div>
                     )}
+                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/img:opacity-100 flex items-center justify-center transition-opacity">
+                        <span className="text-white text-xs">🔍</span>
+                    </div>
                   </div>
                 </div>
 
@@ -348,7 +362,7 @@ export default function NovedadesPersonasPage() {
                       onClick={() => setShowUnblockModal(true)}
                       className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-2 rounded-lg text-[9px] tracking-widest transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 uppercase"
                     >
-                       <span>🔓</span> Rehabilitar
+                       <span>🔓</span> Desbloquear
                     </button>
                   )}
                 </div>
@@ -505,8 +519,8 @@ export default function NovedadesPersonasPage() {
 
         {/* Modal de Antecedentes */}
         {isTimelineOpen && persona && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in duration-300 border-t-8 border-red-600">
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden animate-in fade-in zoom-in duration-300 border-t-8 border-red-600">
               <div className="bg-white p-4 text-red-700 border-b flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-2xl">⚠️</span>
@@ -519,7 +533,7 @@ export default function NovedadesPersonasPage() {
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
               </div>
-              <div className="p-6 max-h-[70vh] overflow-y-auto bg-gray-50 custom-scrollbar">
+              <div className="p-6 max-h-[60vh] overflow-y-auto bg-gray-50 custom-scrollbar">
                 <div className="space-y-4 relative before:content-[''] before:absolute before:left-[11px] before:top-0 before:bottom-0 before:w-0.5 before:bg-red-100">
                   {anotaciones.map((a) => (
                     <div key={a.id} className="relative pl-8">
@@ -545,7 +559,7 @@ export default function NovedadesPersonasPage() {
 
         {/* Modal de Bloqueo */}
         {showBlockModal && persona && (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-300">
               <div className="bg-red-600 p-5 text-white">
                 <h3 className="text-xl font-bold flex items-center gap-2 uppercase tracking-tight">
@@ -605,6 +619,48 @@ export default function NovedadesPersonasPage() {
             </div>
           </div>
         )}
+
+        {/* Modal de Desbloqueo */}
+        {showUnblockModal && persona && (
+          <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-300">
+              <div className="bg-emerald-600 p-5 text-white">
+                <h3 className="text-xl font-bold flex items-center gap-2 uppercase tracking-tight">
+                    🔓 Desbloquear Persona
+                </h3>
+                <p className="text-emerald-100 text-xs mt-1 font-medium italic">Se permitirá nuevamente el ingreso de {persona.nombre} {persona.apellido}.</p>
+              </div>
+              <div className="p-6">
+                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2">Motivo del Desbloqueo (Obligatorio)</label>
+                <textarea
+                  value={motivoBloqueo}
+                  onChange={(e) => setMotivoBloqueo(e.target.value)}
+                  placeholder="Ej: Documentación corregida, error en reporte, etc..."
+                  className="w-full p-4 border border-emerald-200 rounded-xl bg-emerald-50 focus:ring-2 focus:ring-emerald-500 outline-none text-sm min-h-[120px]"
+                  autoFocus
+                />
+                <div className="mt-6 flex gap-3">
+                  <button
+                    onClick={() => {
+                        setShowUnblockModal(false);
+                        setMotivoBloqueo("");
+                    }}
+                    className="flex-1 bg-gray-100 text-gray-600 py-3 rounded-xl font-bold hover:bg-gray-200 transition-all text-sm"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleUnblockPerson}
+                    disabled={isBlocking}
+                    className="flex-1 bg-emerald-600 text-white py-3 rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-lg active:scale-95 disabled:bg-emerald-300 text-sm"
+                  >
+                    {isBlocking ? "Desbloqueando..." : "Desbloquear Ahora"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         
         <CustomModal
           isOpen={modalConfig.isOpen}
@@ -613,6 +669,13 @@ export default function NovedadesPersonasPage() {
           title={modalConfig.title}
           message={modalConfig.message}
           type={modalConfig.type}
+        />
+
+        <ImageZoomModal
+            isOpen={!!fotoZoomUrl}
+            onClose={() => setFotoZoomUrl(null)}
+            imageUrl={fotoZoomUrl}
+            title={persona ? `${persona.nombre} ${persona.apellido}` : "Foto de Perfil"}
         />
       </div>
     </div>

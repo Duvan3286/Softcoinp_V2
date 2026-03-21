@@ -15,12 +15,14 @@ interface AnotacionItem {
   registradoPor: string;
   registradoPorEmail?: string;
   vehiculoFotoUrl?: string; // 📸 Nueva propiedad
+  vehiculoIsBloqueado?: boolean; // 🔒 Estado actual
 }
 
 interface VehiculoAgrupado {
   vehiculoId: string;
   placa: string;
   fotoUrl?: string; // 📸 Nueva propiedad
+  isBloqueado?: boolean; // 🔒 Estado del sistema
   novedades: AnotacionItem[];
   ultimaFecha: string;
 }
@@ -33,6 +35,7 @@ export default function HistorialVehicularesPage() {
   const [desdeFilter, setDesdeFilter] = useState("");
   const [hastaFilter, setHastaFilter] = useState("");
   const [reporterFilter, setReporterFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState(""); // "" | "bloqueado" | "habilitado"
   const [selectedVehiculo, setSelectedVehiculo] = useState<VehiculoAgrupado | null>(null);
 
   // Paginación
@@ -93,6 +96,16 @@ export default function HistorialVehicularesPage() {
     // 4. Filtro por Reportante
     if (reporterFilter && n.registradoPorEmail !== reporterFilter) return false;
 
+    // 5. Filtro por Estado (Bloqueados / Habilitados)
+    if (statusFilter) {
+      const currentlyBlocked = n.vehiculoIsBloqueado === true;
+      if (statusFilter === "bloqueado") {
+        if (!currentlyBlocked) return false;
+      } else if (statusFilter === "habilitado") {
+        if (currentlyBlocked) return false;
+      }
+    }
+
     return true;
   });
 
@@ -108,6 +121,7 @@ export default function HistorialVehicularesPage() {
           vehiculoId: vid,
           placa: n.vehiculoPlaca || "S/D",
           fotoUrl: n.vehiculoFotoUrl || undefined,
+          isBloqueado: n.vehiculoIsBloqueado,
           novedades: [],
           ultimaFecha: n.fechaCreacionUtc
         };
@@ -126,6 +140,7 @@ export default function HistorialVehicularesPage() {
     setDesdeFilter("");
     setHastaFilter("");
     setReporterFilter("");
+    setStatusFilter("");
     setCurrentPage(1);
   };
 
@@ -137,7 +152,7 @@ export default function HistorialVehicularesPage() {
   // Reset pagina al filtrar
   useEffect(() => {
     setCurrentPage(1);
-  }, [filtroBusqueda, desdeFilter, hastaFilter, reporterFilter]);
+  }, [filtroBusqueda, desdeFilter, hastaFilter, reporterFilter, statusFilter]);
 
   return (
     <div className="flex-1 h-auto lg:h-full flex flex-col min-h-0 bg-gray-50 p-2 lg:p-4 lg:overflow-hidden">
@@ -216,6 +231,19 @@ export default function HistorialVehicularesPage() {
             </select>
           </div>
 
+          <div className="flex flex-col gap-1 w-40">
+            <label className="text-[9px] uppercase font-black text-slate-400 px-1 tracking-widest">Estado</label>
+            <select
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value)}
+              className="px-3 py-2 bg-slate-50 border border-slate-100 rounded-xl text-[13px] font-bold focus:ring-4 focus:ring-blue-500/5 focus:border-blue-400 outline-none transition-all shadow-sm"
+            >
+              <option value="">Todos los Eventos</option>
+              <option value="bloqueado">🚫 Bloqueados</option>
+              <option value="habilitado">🔓 Habilitados</option>
+            </select>
+          </div>
+
           <div className="flex gap-2 ml-auto">
             <button
               onClick={fetchAllNovedades}
@@ -273,14 +301,19 @@ export default function HistorialVehicularesPage() {
                           "🚗"
                         )}
                       </div>
-                      <div className="min-w-0">
-                        <p className="text-[13px] font-black text-slate-800 truncate uppercase leading-none mb-1">
-                          PLACA: <span className="text-blue-600">{v.placa}</span>
-                        </p>
-                        <p className="text-[10px] text-slate-500 font-bold tracking-tighter uppercase">
-                           Vehículo
-                        </p>
-                      </div>
+                       <div className="min-w-0">
+                         <p className="text-[13px] font-black text-slate-800 truncate uppercase leading-none mb-1 flex items-center gap-2">
+                           PLACA: <span className="text-blue-600">{v.placa}</span>
+                           {v.isBloqueado && (
+                             <span className="bg-red-100 text-red-600 text-[8px] px-1.5 py-0.5 rounded-md border border-red-200 animate-pulse">
+                               BLOQUEADO
+                             </span>
+                           )}
+                         </p>
+                         <p className="text-[10px] text-slate-500 font-bold tracking-tighter uppercase">
+                            Vehículo
+                         </p>
+                       </div>
                     </div>
 
                     {/* Resumen Novedades */}
@@ -387,8 +420,13 @@ export default function HistorialVehicularesPage() {
                   )}
                 </div>
                 <div>
-                  <h3 className="text-white font-black text-lg tracking-tight uppercase leading-none">
+                  <h3 className="text-white font-black text-lg tracking-tight uppercase leading-none flex items-center gap-2">
                     {selectedVehiculo.placa}
+                    {selectedVehiculo.isBloqueado && (
+                      <span className="bg-red-500/20 text-red-400 text-[8px] px-1.5 py-0.5 rounded border border-red-500/30 animate-pulse">
+                        BLOQUEADO
+                      </span>
+                    )}
                   </h3>
                   <div className="flex items-center gap-3 mt-1.5">
                     <span className="text-slate-400 text-[10px] font-bold uppercase tracking-tight">

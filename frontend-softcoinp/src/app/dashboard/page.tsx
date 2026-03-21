@@ -108,11 +108,15 @@ export default function DashboardPage() {
 
   // 🔔 Alerta de Novedades
   const [anotacionesAlerta, setAnotacionesAlerta] = useState<AnotacionDto[]>([]);
+  const [anotacionesVehiculoAlerta, setAnotacionesVehiculoAlerta] = useState<AnotacionDto[]>([]);
   const [isTimelineOpen, setIsTimelineOpen] = useState(false);
+  const [isVehiculoTimelineOpen, setIsVehiculoTimelineOpen] = useState(false);
 
   // 🚫 Estado de Bloqueo
   const [isBloqueado, setIsBloqueado] = useState(false);
   const [motivoBloqueo, setMotivoBloqueo] = useState("");
+  const [isVehiculoBloqueado, setIsVehiculoBloqueado] = useState(false);
+  const [motivoBloqueoVehiculo, setMotivoBloqueoVehiculo] = useState("");
 
   // 🚗 ESTADOS para el Vehículo
   const [placa, setPlaca] = useState("");
@@ -197,8 +201,11 @@ export default function DashboardPage() {
     setFotoVehiculoBase64(null);
     setTelefono("");
     setAnotacionesAlerta([]);
+    setAnotacionesVehiculoAlerta([]);
     setIsBloqueado(false);
     setMotivoBloqueo("");
+    setIsVehiculoBloqueado(false);
+    setMotivoBloqueoVehiculo("");
     setRegistroActivo(null);
     setDatosOriginales({});
     setCamposErrores([]);
@@ -212,6 +219,9 @@ export default function DashboardPage() {
     setTipoVehiculo("");
     setFotoVehiculoBase64(null);
     setRegistroVehiculoActivo(null);
+    setIsVehiculoBloqueado(false);
+    setMotivoBloqueoVehiculo("");
+    setAnotacionesVehiculoAlerta([]);
     setCamposErrores([]);
   };
 
@@ -240,6 +250,11 @@ export default function DashboardPage() {
 
         if (!fotoBase64) {
           showModal("🛑 Debe tomar una fotografía de la persona a registrar.", "error");
+          return;
+        }
+
+        if (isVehiculoBloqueado) {
+          showModal(`🛑 No se puede registrar la entrada. El vehículo seleccionado está BLOQUEADO. Motivo: ${motivoBloqueoVehiculo}`, "error");
           return;
         }
 
@@ -342,6 +357,11 @@ export default function DashboardPage() {
 
         if (!fotoVehiculoBase64) {
           showModal("🛑 Debe tomar una fotografía del vehículo para el registro.", "error");
+          return;
+        }
+
+        if (isVehiculoBloqueado) {
+          showModal(`🛑 No se puede registrar la entrada. Este vehículo está BLOQUEADO. Motivo: ${motivoBloqueoVehiculo}`, "error");
           return;
         }
 
@@ -488,8 +508,11 @@ export default function DashboardPage() {
     setFotoVehiculoBase64(null);
     setRegistroActivo(null);
     setAnotacionesAlerta([]);
+    setAnotacionesVehiculoAlerta([]);
     setIsBloqueado(false);
     setMotivoBloqueo("");
+    setIsVehiculoBloqueado(false);
+    setMotivoBloqueoVehiculo("");
 
     try {
       const res = (await api.get(`/registros/buscar`, {
@@ -530,6 +553,24 @@ export default function DashboardPage() {
           setModelo(persona.modeloVehiculo || "");
           setColor(persona.colorVehiculo || "");
           setTipoVehiculo(persona.tipoVehiculo || "");
+
+          // 🚫 Bug fix #1: Consultar el estado de bloqueo del vehículo inmediatamente
+          if (persona.placaVehiculo) {
+            try {
+              const vRes = (await api.get(`/vehiculos/placa/${persona.placaVehiculo}`)) as { data: { data?: any } };
+              const vData = vRes.data?.data;
+              if (vData?.isBloqueado) {
+                setIsVehiculoBloqueado(true);
+                setMotivoBloqueoVehiculo(vData.motivoBloqueo || "Motivo no especificado");
+              } else {
+                setIsVehiculoBloqueado(false);
+                setMotivoBloqueoVehiculo("");
+              }
+            } catch {
+              setIsVehiculoBloqueado(false);
+              setMotivoBloqueoVehiculo("");
+            }
+          }
         }
 
         // 📸 Carga de fotos para el snapshot y la vista
@@ -565,6 +606,10 @@ export default function DashboardPage() {
         if (persona.personalId) {
           const alerts = await anotacionService.getAnotacionesPorPersonal(persona.personalId);
           setAnotacionesAlerta(alerts);
+        }
+        if (persona.vehiculoId) {
+          const vAlerts = await anotacionService.getAnotacionesPorVehiculo(persona.vehiculoId);
+          setAnotacionesVehiculoAlerta(vAlerts);
         }
 
         if (!persona.fotoUrl) {
@@ -607,11 +652,23 @@ export default function DashboardPage() {
         setColor(vehiculo.color || "");
         setTipoVehiculo(vehiculo.tipoVehiculo || "");
         
+        if (vehiculo.isBloqueado) {
+          setIsVehiculoBloqueado(true);
+          setMotivoBloqueoVehiculo(vehiculo.motivoBloqueo || "Motivo no especificado");
+          showModal(`🚫 VEHÍCULO BLOQUEADO: La placa ${placa} tiene restringido el ingreso. Motivo: ${vehiculo.motivoBloqueo}`, "error");
+        } else {
+          setIsVehiculoBloqueado(false);
+          setMotivoBloqueoVehiculo("");
+        }
+        
         let vBase64_local = null;
         if (vehiculo.fotoUrl) {
            vBase64_local = await urlToBase64(vehiculo.fotoUrl);
            if (vBase64_local) setFotoVehiculoBase64(vBase64_local);
         }
+
+        const vAlerts = await anotacionService.getAnotacionesPorVehiculo(vehiculo.id);
+        setAnotacionesVehiculoAlerta(vAlerts);
 
         // Verificar si tiene entrada activa
         try {
@@ -662,6 +719,8 @@ export default function DashboardPage() {
         });
       }
     } catch (err: any) {
+       setIsVehiculoBloqueado(false);
+       setMotivoBloqueoVehiculo("");
        if (err.response?.status === 404) {
          showModal("⚠️ No se encontró registro previo de este vehículo. Por favor, ingrese los datos manualmente.", "warning");
        } else {
@@ -675,8 +734,8 @@ export default function DashboardPage() {
   const TimelineModal = ({ isOpen, onClose, anotaciones, nombre }: any) => {
     if (!isOpen) return null;
     return (
-      <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+      <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden animate-in fade-in zoom-in duration-300">
           <div className="bg-red-600 p-4 text-white flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-xl">⚠️</span>
@@ -686,7 +745,7 @@ export default function DashboardPage() {
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
           </div>
-          <div className="p-6 max-h-[70vh] overflow-y-auto bg-gray-50 custom-scrollbar">
+          <div className="p-6 max-h-[60vh] overflow-y-auto bg-gray-50 custom-scrollbar">
             <div className="space-y-4 relative before:content-[''] before:absolute before:left-[11px] before:top-0 before:bottom-0 before:w-0.5 before:bg-red-100">
               {anotaciones.map((a: any) => (
                 <div key={a.id} className="relative pl-8">
@@ -746,6 +805,13 @@ export default function DashboardPage() {
         onClose={() => setIsTimelineOpen(false)}
         anotaciones={anotacionesAlerta}
         nombre={`${nombres} ${apellidos}`}
+      />
+
+      <TimelineModal
+        isOpen={isVehiculoTimelineOpen}
+        onClose={() => setIsVehiculoTimelineOpen(false)}
+        anotaciones={anotacionesVehiculoAlerta}
+        nombre={`Vehículo: ${placa}`}
       />
 
       <ImageZoomModal
@@ -831,32 +897,58 @@ export default function DashboardPage() {
                   </div>
                 </div>
               </div>
+              
+              {isVehiculoBloqueado && (
+                <div className="bg-red-50 text-red-800 p-3 rounded-xl shadow-sm border border-red-200 animate-in slide-in-from-top duration-300 mb-2 flex-shrink-0 relative overflow-hidden">
+                  <div className="flex items-center gap-3">
+                    <div className="text-2xl animate-pulse">🛑</div>
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-red-600 leading-tight">Acceso Denegado</p>
+                      <p className="text-xs font-bold leading-tight">"{motivoBloqueoVehiculo}"</p>
+                    </div>
+                  </div>
+                  <div className="absolute -right-4 -bottom-4 text-4xl opacity-[0.03] text-red-900 font-black rotate-[-10deg]">BLOCK</div>
+                </div>
+              )}
 
               {/* Campos del vehículo */}
               <div className="flex-1 overflow-y-auto custom-scrollbar min-h-0 flex flex-col gap-2">
-                <input
-                  ref={placaRef}
-                  type="text"
-                  placeholder="Placa"
-                  value={placa}
-                  onChange={(e) => {
-                    setPlaca(e.target.value.toUpperCase());
-                    setCamposErrores(prev => prev.filter(err => err !== "placa"));
-                  }}
-                  onBlur={handleBuscarPlaca}
-                  onKeyDown={(e) => { 
-                    if (e.key === 'Enter') {
-                       if (marca.trim() || modelo.trim()) {
-                         handleRegistrarVehiculo(registroVehiculoActivo ? "salida" : "entrada");
-                       } else {
-                         handleBuscarPlaca();
-                       }
-                    }
-                  }}
-                  className={`w-full p-2 border rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-black uppercase transition-all ${
-                    camposErrores.includes("placa") ? 'border-red-500 bg-red-50 ring-2 ring-red-500/10' : 'border-slate-200 bg-slate-50 text-slate-700'
-                  } placeholder:font-medium placeholder:normal-case placeholder:text-slate-400`}
-                />
+                <div className="relative">
+                  <input
+                    ref={placaRef}
+                    type="text"
+                    placeholder="Placa"
+                    value={placa}
+                    onChange={(e) => {
+                      setPlaca(e.target.value.toUpperCase());
+                      setCamposErrores(prev => prev.filter(err => err !== "placa"));
+                    }}
+                    onBlur={handleBuscarPlaca}
+                    onKeyDown={(e) => { 
+                      if (e.key === 'Enter') {
+                         if (marca.trim() || modelo.trim()) {
+                           handleRegistrarVehiculo(registroVehiculoActivo ? "salida" : "entrada");
+                         } else {
+                           handleBuscarPlaca();
+                         }
+                      }
+                    }}
+                    className={`w-full p-2 pr-10 border rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-black uppercase transition-all ${
+                      isVehiculoBloqueado ? 'border-red-300 bg-red-50 text-red-900 ring-4 ring-red-500/10' :
+                      camposErrores.includes("placa") ? 'border-red-500 bg-red-50 ring-2 ring-red-500/10' : 
+                      anotacionesVehiculoAlerta.length > 0 ? 'border-yellow-300 bg-yellow-50 text-yellow-900 ring-2 ring-yellow-400/20' : 'border-slate-200 bg-slate-50 text-slate-700'
+                    } placeholder:font-medium placeholder:normal-case placeholder:text-slate-400`}
+                  />
+                  {(anotacionesVehiculoAlerta.length > 0 || isVehiculoBloqueado) && (
+                    <button
+                      onClick={() => setIsVehiculoTimelineOpen(true)}
+                      className={`absolute right-2 top-1.5 p-1 rounded-full shadow-lg transition-all ${isVehiculoBloqueado ? 'bg-red-600 animate-bounce' : 'bg-yellow-500 animate-pulse-red'}`}
+                      title={isVehiculoBloqueado ? "BLOQUEADO" : "¡ALERTA!"}
+                    >
+                      <span className="text-[12px]">{isVehiculoBloqueado ? "🚫" : "⚠️"}</span>
+                    </button>
+                  )}
+                </div>
 
                 <div className="relative">
                   <select
@@ -943,14 +1035,14 @@ export default function DashboardPage() {
                 <div className="grid grid-cols-2 gap-2 mt-2">
                   <button
                     onClick={() => handleRegistrarVehiculo("entrada")}
-                    disabled={!!registroVehiculoActivo}
+                    disabled={!!registroVehiculoActivo || isVehiculoBloqueado}
                     className={`flex-1 py-1.5 rounded-xl font-bold text-[10px] transition-all active:scale-[0.98] border shadow-sm ${
-                      registroVehiculoActivo 
+                      (registroVehiculoActivo || isVehiculoBloqueado)
                       ? 'bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed' 
                       : 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100'
                     }`}
                   >
-                    📥 ENTRADA VEH
+                    {isVehiculoBloqueado ? "🚫 BLOQUEO" : "📥 ENTRADA VEH"}
                   </button>
                   <button
                     onClick={() => handleRegistrarVehiculo("salida")}
@@ -1106,7 +1198,7 @@ export default function DashboardPage() {
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         if (nombres.trim()) {
-                          if (!isBloqueado) handleRegistrar(registroActivo ? "salida" : "entrada");
+                          if (!isBloqueado && !isVehiculoBloqueado) handleRegistrar(registroActivo ? "salida" : "entrada");
                         } else {
                           handleBuscar();
                         }
@@ -1219,9 +1311,9 @@ export default function DashboardPage() {
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => handleRegistrar("entrada")}
-                  disabled={isBloqueado || !!registroActivo}
+                  disabled={isBloqueado || isVehiculoBloqueado || !!registroActivo}
                   className={`w-full text-white py-2.5 px-3 rounded-xl font-bold shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-sm border ${
-                    isBloqueado ? 'bg-red-50 border-red-200 text-red-500 cursor-not-allowed'
+                    (isBloqueado || isVehiculoBloqueado) ? 'bg-red-50 border-red-200 text-red-500 cursor-not-allowed'
                     : registroActivo ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
                     : 'bg-emerald-600 hover:bg-emerald-500 border-emerald-500 shadow-[0_0_15px_rgb(16,185,129,0.2)]'
                   }`}

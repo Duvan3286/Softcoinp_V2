@@ -24,6 +24,9 @@ namespace Softcoinp.Backend.Models
         [ForeignKey("PersonalId")]
         public Personal Personal { get; set; } = null!;
 
+        public bool IsBloqueado { get; set; } = false;
+        public string? MotivoBloqueo { get; set; }
+
         public DateTime FechaCreacionUtc { get; set; } = DateTime.UtcNow;
     }
 }

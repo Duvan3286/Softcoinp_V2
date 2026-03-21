@@ -13,6 +13,7 @@ export interface RegistroVehiculoDto {
   horaIngresoLocal: string;
   horaSalidaUtc?: string;
   horaSalidaLocal?: string;
+  registradoPorNombre?: string;
 }
 
 export interface CreateRegistroVehiculoDto {

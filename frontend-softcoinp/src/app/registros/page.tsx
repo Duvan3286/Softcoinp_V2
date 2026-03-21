@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import api from "@/services/api";
 import { useRouter } from "next/navigation";
 
+const BACKEND_BASE_URL = "http://localhost:5004/static";
+
 interface Personal {
   id: string;
   nombre: string;
@@ -11,7 +13,6 @@ interface Personal {
   documento: string;
   tipo: string;
 }
-
 interface Registro {
   id: string;
   personal: Personal;
@@ -21,6 +22,8 @@ interface Registro {
   horaIngresoLocal: string;
   horaSalidaUtc?: string;
   horaSalidaLocal?: string;
+  registradoPor?: string;
+  fotoUrl?: string;
   placaVehiculo?: string;
   tipoVehiculo?: string;
   marcaVehiculo?: string;
@@ -81,30 +84,26 @@ export default function RegistrosPage() {
   const [desde, setDesde] = useState("");
   const [hasta, setHasta] = useState("");
 
-  const fetchRegistros = async (pageNumber: number) => {
+  const fetchRegistros = async (pageNumber: number, overrides?: any) => {
     try {
       setLoading(true);
       const params = {
         page: pageNumber,
         pageSize,
-        nombre: nombre || undefined,
-        documento: documento || undefined,
-        desde: desde || undefined,
-        hasta: hasta || undefined,
+        nombre: overrides?.hasOwnProperty('nombre') ? overrides.nombre : (nombre || undefined),
+        documento: overrides?.hasOwnProperty('documento') ? overrides.documento : (documento || undefined),
+        desde: overrides?.hasOwnProperty('desde') ? overrides.desde : (desde || undefined),
+        hasta: overrides?.hasOwnProperty('hasta') ? overrides.hasta : (hasta || undefined),
       };
 
       const res = await api.get<any>("/registros", { params });
       
-      // La API devuelve ApiResponse<PagedResponse<T>>
-      // res.data es el ApiResponse
-      // res.data.data es el PagedResponse
       const pagedData = res.data.data;
       
       if (pagedData && pagedData.items) {
         setRegistros(pagedData.items);
         setTotalCount(pagedData.totalCount || 0);
       } else if (res.data.items) {
-        // Fallback en caso de que la API no use ApiResponse en este endpoint
         setRegistros(res.data.items);
         setTotalCount(res.data.totalCount || 0);
       } else {
@@ -131,7 +130,7 @@ export default function RegistrosPage() {
 
   const handleExportExcel = async () => {
     try {
-      const resp = await api.get("/excel/export-registros", {
+      const resp = await api.get("/registros/export/excel", {
         params: {
           nombre: nombre || undefined,
           documento: documento || undefined,
@@ -167,14 +166,21 @@ export default function RegistrosPage() {
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-1">Registro general de personas y vehículos</p>
             </div>
           </div>
-          
-          <button
-            onClick={handleExportExcel}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-black shadow-lg shadow-emerald-100 transition-all active:scale-95 flex items-center justify-center gap-2 text-xs uppercase"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-            Exportar Excel
-          </button>
+          <div className="flex gap-2">
+            <button
+               onClick={() => router.push('/registros-vehiculos')}
+               className="bg-white hover:bg-slate-50 text-slate-600 px-5 py-2.5 rounded-xl font-black border border-slate-200 shadow-sm transition-all active:scale-95 flex items-center justify-center gap-2 text-xs uppercase"
+            >
+               🚗 Ver Vehículos
+            </button>
+            <button
+              onClick={handleExportExcel}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-black shadow-lg shadow-emerald-100 transition-all active:scale-95 flex items-center justify-center gap-2 text-xs uppercase"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+              Exportar Excel
+            </button>
+          </div>
         </div>
 
         {/* 🕵️‍♂️ Filtros Section */}
@@ -219,13 +225,29 @@ export default function RegistrosPage() {
               />
             </div>
 
-            <button
-              onClick={handleBuscar}
-              className="lg:col-span-2 w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-black shadow-lg shadow-blue-100 transition-all active:scale-95 flex items-center justify-center gap-2 text-xs uppercase"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-              Filtrar Resultados
-            </button>
+            <div className="lg:col-span-2 flex gap-2">
+              <button
+                onClick={() => {
+                  setNombre("");
+                  setDocumento("");
+                  setDesde("");
+                  setHasta("");
+                  setPage(1);
+                  // Recarga inmediata "de un solo toque"
+                  fetchRegistros(1, { nombre: "", documento: "", desde: "", hasta: "" });
+                }}
+                className="px-4 py-3 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition-all font-black text-[11px] uppercase flex items-center justify-center gap-2 border border-slate-200"
+              >
+                🧹 Limpiar
+              </button>
+              <button
+                onClick={handleBuscar}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-black shadow-lg shadow-blue-100 transition-all active:scale-95 flex items-center justify-center gap-2 text-xs uppercase"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                Filtrar Resultados
+              </button>
+            </div>
           </div>
         </div>
 
@@ -246,8 +268,8 @@ export default function RegistrosPage() {
                       <th className="px-5 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-100">Documento</th>
                       <th className="px-5 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-100">Tipo</th>
                       <th className="px-5 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-100">Destino</th>
+                      <th className="px-5 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-100">Motivo de Ingreso</th>
                       <th className="px-5 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-100">Ingreso</th>
-                      <th className="px-5 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-100">Vehículo</th>
                       <th className="px-5 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-100">Salida</th>
                     </tr>
                   </thead>
@@ -262,7 +284,7 @@ export default function RegistrosPage() {
                         </td>
                       </tr>
                     ) : (
-                      registros.map((r, index) => {
+                      registros.map((r) => {
                         const ingreso = formatDateTime(r.horaIngresoLocal);
                         const salida = formatDateTime(r.horaSalidaLocal);
                         const isSalidaPending = !r.horaSalidaLocal;
@@ -272,10 +294,23 @@ export default function RegistrosPage() {
                           <tr key={r.id} className="hover:bg-slate-50/80 transition-all group">
                             <td className="px-5 py-4 whitespace-nowrap">
                               <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-black text-slate-400 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">
-                                  {r.personal?.nombre?.[0]}{r.personal?.apellido?.[0]}
+                                <div className="w-9 h-9 rounded-full overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center shadow-sm group-hover:border-blue-300 transition-all">
+                                  {r.fotoUrl ? (
+                                    <img 
+                                      src={r.fotoUrl.startsWith('http') ? r.fotoUrl : `${BACKEND_BASE_URL}${r.fotoUrl}`} 
+                                      className="w-full h-full object-cover" 
+                                      alt="Perfil" 
+                                    />
+                                  ) : (
+                                    <div className="text-[10px] font-black text-slate-400 uppercase">
+                                      {r.personal?.nombre?.[0]}{r.personal?.apellido?.[0]}
+                                    </div>
+                                  )}
                                 </div>
-                                <span className="text-[13px] font-bold text-slate-700">{r.personal?.nombre} {r.personal?.apellido}</span>
+                                <div className="flex flex-col">
+                                  <span className="text-[13px] font-black text-slate-700 leading-tight">{r.personal?.nombre} {r.personal?.apellido}</span>
+                                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Identidad Verificada</span>
+                                </div>
                               </div>
                             </td>
                             <td className="px-5 py-4 whitespace-nowrap text-[12px] font-black text-slate-500 tracking-tighter">{r.personal?.documento}</td>
@@ -288,22 +323,17 @@ export default function RegistrosPage() {
 
                             <td className="px-5 py-4 whitespace-nowrap text-[12px] font-bold text-slate-600 tracking-tight">{r.destino}</td>
                             
+                            <td className="px-5 py-4 max-w-[200px]">
+                               <p className="text-[11px] text-slate-500 line-clamp-2 italic leading-tight" title={r.motivo}>
+                                 {r.motivo || <span className="text-slate-300">Sin motivo registrado</span>}
+                               </p>
+                            </td>
+
                             <td className="px-5 py-4 whitespace-nowrap">
                               <div className="flex flex-col">
                                 <span className="text-[12px] font-black text-slate-700 leading-none">{ingreso.fecha}</span>
                                 <span className="text-[10px] font-bold text-blue-500 mt-0.5 tracking-widest">{ingreso.hora}</span>
                               </div>
-                            </td>
-
-                            <td className="px-5 py-4 whitespace-nowrap">
-                              {r.placaVehiculo ? (
-                                <div className="flex flex-col">
-                                  <span className="text-[12px] font-black text-slate-800 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 w-fit">{r.placaVehiculo}</span>
-                                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter mt-1">{r.marcaVehiculo} · {r.tipoVehiculo}</span>
-                                </div>
-                              ) : (
-                                <span className="text-[11px] font-bold text-slate-300 italic">Peatonal</span>
-                              )}
                             </td>
 
                             <td className="px-5 py-4 whitespace-nowrap">

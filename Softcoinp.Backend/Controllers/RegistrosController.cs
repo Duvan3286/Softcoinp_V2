@@ -136,6 +136,8 @@ namespace Softcoinp.Backend.Controllers
         {
             var query = _db.Registros.AsQueryable();
 
+            var tz = TimeZoneInfo.FindSystemTimeZoneById("SA Pacific Standard Time"); // Colombia
+
             if (!string.IsNullOrWhiteSpace(nombre))
                 query = query.Where(r => EF.Functions.ILike(r.Nombre, $"%{nombre}%"));
 
@@ -143,12 +145,17 @@ namespace Softcoinp.Backend.Controllers
                 query = query.Where(r => r.Documento == documento);
 
             if (desde.HasValue)
-                query = query.Where(r => r.HoraIngresoUtc >= desde.Value.Date);
+            {
+                var desdeLocal = DateTime.SpecifyKind(desde.Value.Date, DateTimeKind.Unspecified);
+                var desdeUtc = TimeZoneInfo.ConvertTimeToUtc(desdeLocal, tz);
+                query = query.Where(r => r.HoraIngresoUtc >= desdeUtc);
+            }
 
             if (hasta.HasValue)
             {
-                var hastaFin = hasta.Value.Date.AddDays(1); // incluir todo el día
-                query = query.Where(r => r.HoraIngresoUtc < hastaFin);
+                var hastaFinLocal = DateTime.SpecifyKind(hasta.Value.Date.AddDays(1), DateTimeKind.Unspecified);
+                var hastaFinUtc = TimeZoneInfo.ConvertTimeToUtc(hastaFinLocal, tz);
+                query = query.Where(r => r.HoraIngresoUtc < hastaFinUtc);
             }
 
             var total = query.Count();
@@ -822,7 +829,6 @@ namespace Softcoinp.Backend.Controllers
             return File(bytes, "text/csv", $"registros_{DateTime.UtcNow:yyyyMMddHHmmss}.csv");
         }
 
-        // GET: api/registros/export/excel
         [HttpGet("export/excel")]
         public async Task<IActionResult> ExportExcel(
             [FromQuery] string? nombre,
@@ -831,6 +837,7 @@ namespace Softcoinp.Backend.Controllers
             [FromQuery] DateTime? desde,
             [FromQuery] DateTime? hasta)
         {
+            var tz = TimeZoneInfo.FindSystemTimeZoneById("SA Pacific Standard Time"); // Colombia
             var query = _db.Registros.AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(nombre))
@@ -843,12 +850,19 @@ namespace Softcoinp.Backend.Controllers
                 query = query.Where(r => r.Documento == documento);
 
             if (desde.HasValue)
-                query = query.Where(r => r.HoraIngresoUtc >= desde.Value.Date);
+            {
+                // Convertir inicio del día local a UTC (ej: 20-03 00:00 COL -> 20-03 05:00 UTC)
+                var desdeLocal = DateTime.SpecifyKind(desde.Value.Date, DateTimeKind.Unspecified);
+                var desdeUtc = TimeZoneInfo.ConvertTimeToUtc(desdeLocal, tz);
+                query = query.Where(r => r.HoraIngresoUtc >= desdeUtc);
+            }
 
             if (hasta.HasValue)
             {
-                var hastaFin = hasta.Value.Date.AddDays(1);
-                query = query.Where(r => r.HoraIngresoUtc < hastaFin);
+                // Convertir fin del día local a UTC (ej: 20-03 23:59 COL -> 21-03 04:59 UTC)
+                var hastaFinLocal = DateTime.SpecifyKind(hasta.Value.Date.AddDays(1), DateTimeKind.Unspecified);
+                var hastaFinUtc = TimeZoneInfo.ConvertTimeToUtc(hastaFinLocal, tz);
+                query = query.Where(r => r.HoraIngresoUtc < hastaFinUtc);
             }
 
             var registros = (from r in query
@@ -866,30 +880,76 @@ namespace Softcoinp.Backend.Controllers
                                  r.Tipo,
                                  r.HoraIngresoUtc,
                                  r.HoraSalidaUtc,
-                                 r.FotoUrl, // 🆕 Incluir FotoUrl en la consulta
-                                 RegistradoPorEmail = subUser != null ? subUser.Email : null
+                                 r.PlacaVehiculo,
+                                 r.MarcaVehiculo,
+                                 r.ModeloVehiculo,
+                                 r.ColorVehiculo,
+                                 r.TipoVehiculo,
+                                 r.FotoUrl,
+                                 RegistradoPorNombre = subUser != null ? subUser.Nombre : "SISTEMA"
                              }).ToList();
 
-            var tz = TimeZoneInfo.FindSystemTimeZoneById("SA Pacific Standard Time"); // Colombia
-
             using var workbook = new XLWorkbook();
-            var worksheet = workbook.Worksheets.Add("Registros");
+            var worksheet = workbook.Worksheets.Add("Registros de Acceso");
 
-            worksheet.Cell(1, 1).Value = "Id";
-            worksheet.Cell(1, 2).Value = "Nombre";
-            worksheet.Cell(1, 3).Value = "Apellido";
-            worksheet.Cell(1, 4).Value = "Documento";
-            worksheet.Cell(1, 5).Value = "Motivo";
-            worksheet.Cell(1, 6).Value = "Destino";
-            worksheet.Cell(1, 7).Value = "Tipo";
-            worksheet.Cell(1, 8).Value = "FechaIngreso";
-            worksheet.Cell(1, 9).Value = "HoraIngreso";
-            worksheet.Cell(1, 10).Value = "FechaSalida";
-            worksheet.Cell(1, 11).Value = "HoraSalida";
-            worksheet.Cell(1, 12).Value = "RegistradoPor";
-            worksheet.Cell(1, 13).Value = "FotoUrl"; 
+            // --- PALETA DE COLORES PREMIUM ---
+            var primaryColor = XLColor.FromHtml("#0f172a"); // Slate 900
+            var secondaryColor = XLColor.FromHtml("#334155"); // Slate 700
+            var accentColor = XLColor.FromHtml("#e2e8f0"); // Slate 200 (for stripes)
+            var borderColor = XLColor.FromHtml("#cbd5e1"); // Slate 300
 
-            int row = 2;
+            // 1. Título Principal (Banner Premium)
+            var titleRange = worksheet.Range(1, 1, 1, 11);
+            titleRange.Merge().Value = "CONTROL DE ACCESO - REPORTE GERENCIAL DE PERSONAS";
+            titleRange.Style
+                .Font.SetBold()
+                .Font.SetFontSize(16)
+                .Font.SetFontColor(XLColor.White)
+                .Fill.SetBackgroundColor(primaryColor)
+                .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center)
+                .Alignment.SetVertical(XLAlignmentVerticalValues.Center);
+            worksheet.Row(1).Height = 35;
+
+            // 2. Información de Contexto
+            worksheet.Cell(2, 1).Value = "Rango de Búsqueda:";
+            string rangoStr = (desde.HasValue ? desde.Value.ToString("yyyy-MM-dd") : "Inicio") + 
+                             " hasta " + 
+                             (hasta.HasValue ? hasta.Value.ToString("yyyy-MM-dd") : "Hoy");
+            worksheet.Cell(2, 2).Value = rangoStr;
+            
+            worksheet.Cell(2, 10).Value = "Generado el:";
+            worksheet.Cell(2, 11).Value = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz).ToString("yyyy-MM-dd HH:mm:ss");
+            
+            var infoRange = worksheet.Range(2, 1, 2, 11);
+            infoRange.Style.Font.SetFontSize(9);
+            infoRange.Style.Font.SetFontColor(secondaryColor);
+            infoRange.Style.Border.BottomBorder = XLBorderStyleValues.Thin;
+            infoRange.Style.Border.BottomBorderColor = borderColor;
+
+            // 3. Encabezados de Tabla (Fila 4)
+            string[] headers = { 
+                "DOCUMENTO", "NOMBRE", "APELLIDO", "PERFIL / TIPO", 
+                "FECHA INGRESO", "HORA INGRESO", "FECHA SALIDA", "HORA SALIDA",
+                "DESTINO", "MOTIVO DE INGRESO", "REGISTRADO POR" 
+            };
+
+            for (int i = 0; i < headers.Length; i++)
+            {
+                var cell = worksheet.Cell(4, i + 1);
+                cell.Value = headers[i];
+                cell.Style.Font.SetBold();
+                cell.Style.Font.SetFontSize(10);
+                cell.Style.Font.SetFontColor(XLColor.White);
+                cell.Style.Fill.SetBackgroundColor(secondaryColor);
+                cell.Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                cell.Style.Alignment.SetVertical(XLAlignmentVerticalValues.Center);
+                cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                cell.Style.Border.OutsideBorderColor = primaryColor;
+            }
+            worksheet.Row(4).Height = 25;
+
+            // 4. Datos con Estilo Zebra y Límites
+            int row = 5;
             foreach (var r in registros)
             {
                 var ingresoLocal = TimeZoneInfo.ConvertTimeFromUtc(r.HoraIngresoUtc, tz);
@@ -897,21 +957,66 @@ namespace Softcoinp.Backend.Controllers
                     ? TimeZoneInfo.ConvertTimeFromUtc(r.HoraSalidaUtc.Value, tz)
                     : (DateTime?)null;
 
-                worksheet.Cell(row, 1).Value = r.Id.ToString();
+                // Truncar motivo a 250 caracteres
+                string motivoTruncado = r.Motivo ?? "";
+                if (motivoTruncado.Length > 250)
+                {
+                    motivoTruncado = motivoTruncado.Substring(0, 247) + "...";
+                }
+
+                worksheet.Cell(row, 1).Value = r.Documento;
                 worksheet.Cell(row, 2).Value = r.Nombre;
                 worksheet.Cell(row, 3).Value = r.Apellido;
-                worksheet.Cell(row, 4).Value = r.Documento;
-                worksheet.Cell(row, 5).Value = r.Motivo;
-                worksheet.Cell(row, 6).Value = r.Destino;
-                worksheet.Cell(row, 7).Value = r.Tipo;
-                worksheet.Cell(row, 8).Value = ingresoLocal.ToString("yyyy-MM-dd");
-                worksheet.Cell(row, 9).Value = ingresoLocal.ToString("HH:mm:ss");
-                worksheet.Cell(row, 10).Value = salidaLocal?.ToString("yyyy-MM-dd") ?? "";
-                worksheet.Cell(row, 11).Value = salidaLocal?.ToString("HH:mm:ss") ?? "";
-                worksheet.Cell(row, 12).Value = r.RegistradoPorEmail ?? "";
-                worksheet.Cell(row, 13).Value = r.FotoUrl ?? ""; 
+                worksheet.Cell(row, 4).Value = r.Tipo?.ToUpper() ?? "-";
+                
+                worksheet.Cell(row, 5).Value = ingresoLocal.ToString("yyyy-MM-dd");
+                worksheet.Cell(row, 6).Value = ingresoLocal.ToString("HH:mm:ss");
+                
+                worksheet.Cell(row, 7).Value = salidaLocal?.ToString("yyyy-MM-dd") ?? "PENDIENTE";
+                worksheet.Cell(row, 8).Value = salidaLocal?.ToString("HH:mm:ss") ?? "PENDIENTE";
+
+                worksheet.Cell(row, 9).Value = r.Destino;
+                worksheet.Cell(row, 10).Value = motivoTruncado;
+                worksheet.Cell(row, 11).Value = r.RegistradoPorNombre;
+
+                // Aplicar Franjas Alternas (Zebra)
+                if (row % 2 == 0)
+                {
+                    worksheet.Range(row, 1, row, 11).Style.Fill.SetBackgroundColor(accentColor);
+                }
+
+                // Estilo para celdas de datos
+                var rowRange = worksheet.Range(row, 1, row, 11);
+                rowRange.Style.Font.SetFontSize(10);
+                rowRange.Style.Alignment.SetVertical(XLAlignmentVerticalValues.Center);
+                rowRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+                rowRange.Style.Border.InsideBorderColor = XLColor.White;
+                rowRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                rowRange.Style.Border.OutsideBorderColor = borderColor;
+
+                // Centrar columnas específicas
+                worksheet.Cell(row, 1).Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                worksheet.Cell(row, 4).Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                worksheet.Cell(row, 5).Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                worksheet.Cell(row, 6).Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                worksheet.Cell(row, 7).Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                worksheet.Cell(row, 8).Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+
+                // Alertar Salidas Pendientes (Texto Rojo Negrita)
+                if (!salidaLocal.HasValue)
+                {
+                    worksheet.Cell(row, 7).Style.Font.SetFontColor(XLColor.Red).Font.SetBold();
+                    worksheet.Cell(row, 8).Style.Font.SetFontColor(XLColor.Red).Font.SetBold();
+                }
+
                 row++;
             }
+
+            // 5. Ajustes Finales de Visualización
+            worksheet.Columns().AdjustToContents();
+            // Limitar ancho máximo de columna motivo para evitar excels demasiado anchos
+            worksheet.Column(10).Width = 40; 
+            worksheet.Column(10).Style.Alignment.SetWrapText(true);
 
             using var stream = new MemoryStream();
             workbook.SaveAs(stream);
@@ -924,8 +1029,7 @@ namespace Softcoinp.Backend.Controllers
             catch { }
 
             return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                $"registros_{DateTime.UtcNow:yyyyMMddHHmmss}.xlsx");
+                $"Reporte_Seguridad_Softcoinp_{TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz):yyyyMMdd_HHmm}.xlsx");
         }
-
     }
 }

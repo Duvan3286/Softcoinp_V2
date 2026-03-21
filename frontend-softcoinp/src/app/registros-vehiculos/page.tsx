@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { registroVehiculoService, RegistroVehiculoDto } from "@/services/registroVehiculoService";
 import { useRouter } from "next/navigation";
+import api from "@/services/api";
 
 const BACKEND_BASE_URL = "http://localhost:5004/static";
 
@@ -39,28 +40,51 @@ export default function RegistrosVehiculosPage() {
   const [desde, setDesde] = useState("");
   const [hasta, setHasta] = useState("");
 
-  const fetchRegistros = async (pageNumber: number) => {
+  const fetchRegistros = async (pageNumber: number, overrides?: any) => {
     try {
       setLoading(true);
       const params = {
         page: pageNumber,
         pageSize,
-        placa: placa || undefined,
-        desde: desde || undefined,
-        hasta: hasta || undefined,
+        placa: overrides?.hasOwnProperty('placa') ? overrides.placa : (placa || undefined),
+        desde: overrides?.hasOwnProperty('desde') ? overrides.desde : (desde || undefined),
+        hasta: overrides?.hasOwnProperty('hasta') ? overrides.hasta : (hasta || undefined),
       };
 
       const res = await registroVehiculoService.getRegistros(params);
-      const items = res?.data?.items || [];
-      const total = res?.data?.totalCount || 0;
+      const pagedData = res?.data; 
+      const items = pagedData?.items || [];
+      const total = pagedData?.totalCount || 0;
       
       setRegistros(items);
       setTotalCount(total);
-      if (res?.data?.page) setPage(res.data.page);
+      if (pagedData?.page) setPage(pagedData.page);
     } catch (err) {
       console.error("Error al obtener registros de vehículos", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      const resp = await api.get("/registrovehiculo/export/excel", {
+        params: {
+          placa: placa || undefined,
+          desde: desde || undefined,
+          hasta: hasta || undefined,
+        },
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([resp.data as BlobPart]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Registros_Vehiculos_${new Date().toISOString().slice(0, 10)}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      console.error("Error exportando registros de vehículos", err);
     }
   };
 
@@ -98,6 +122,13 @@ export default function RegistrosVehiculosPage() {
             >
                📜 Ver Personas
             </button>
+            <button
+              onClick={handleExportExcel}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-black shadow-lg shadow-emerald-100 transition-all active:scale-95 flex items-center justify-center gap-2 text-xs uppercase"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+              Exportar Excel
+            </button>
           </div>
         </div>
 
@@ -133,13 +164,27 @@ export default function RegistrosVehiculosPage() {
               />
             </div>
 
-            <button
-              onClick={handleBuscar}
-              className="lg:col-span-2 w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-black shadow-lg shadow-indigo-100 transition-all active:scale-95 flex items-center justify-center gap-2 text-xs uppercase"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-              Filtrar Vehículos
-            </button>
+            <div className="lg:col-span-2 flex gap-2">
+              <button
+                onClick={() => {
+                  setPlaca("");
+                  setDesde("");
+                  setHasta("");
+                  setPage(1);
+                  fetchRegistros(1, { placa: "", desde: "", hasta: "" });
+                }}
+                className="px-4 py-3 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition-all font-black text-[11px] uppercase flex items-center justify-center gap-2 border border-slate-200"
+              >
+                🧹 Limpiar
+              </button>
+              <button
+                onClick={handleBuscar}
+                className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-black shadow-lg shadow-indigo-100 transition-all active:scale-95 flex items-center justify-center gap-2 text-xs uppercase"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                Filtrar Vehículos
+              </button>
+            </div>
           </div>
         </div>
 
@@ -157,7 +202,7 @@ export default function RegistrosVehiculosPage() {
                   <thead className="bg-slate-50 sticky top-0 z-10 shadow-sm">
                     <tr>
                       <th className="px-5 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-100">Imagen</th>
-                      <th className="px-5 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-100">Identificación</th>
+                      <th className="px-5 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-100">Placa</th>
                       <th className="px-5 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-100">Marca / Modelo</th>
                       <th className="px-5 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-100">Tipo</th>
                       <th className="px-5 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-100">Ingreso</th>
@@ -213,19 +258,19 @@ export default function RegistrosVehiculosPage() {
                             </td>
                             <td className="px-5 py-4 whitespace-nowrap">
                                <div className="flex flex-col">
-                                <span className="text-[12px] font-black text-slate-700 leading-none">{ingreso.fecha}</span>
-                                <span className="text-[10px] font-bold text-blue-500 mt-0.5 tracking-widest">{ingreso.hora}</span>
-                              </div>
+                                 <span className="text-[12px] font-black text-slate-700 leading-none">{ingreso.fecha}</span>
+                                 <span className="text-[10px] font-bold text-blue-500 mt-0.5 tracking-widest">{ingreso.hora}</span>
+                               </div>
                             </td>
                             <td className="px-5 py-4 whitespace-nowrap">
                                {isSalidaPending ? (
-                                  <span className="text-emerald-500 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 bg-emerald-50 rounded-lg border border-emerald-100 animate-pulse shadow-sm shadow-emerald-100">EN SITIO</span>
-                                ) : (
-                                  <div className="flex flex-col">
-                                    <span className="text-[12px] font-black text-slate-700 leading-none">{salida.fecha}</span>
-                                    <span className="text-[10px] font-bold text-rose-500 mt-0.5 tracking-widest">{salida.hora}</span>
-                                  </div>
-                                )}
+                                 <span className="text-emerald-500 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 bg-emerald-50 rounded-lg border border-emerald-100 animate-pulse shadow-sm shadow-emerald-100">EN SITIO</span>
+                               ) : (
+                                 <div className="flex flex-col">
+                                   <span className="text-[12px] font-black text-slate-700 leading-none">{salida.fecha}</span>
+                                   <span className="text-[10px] font-bold text-rose-500 mt-0.5 tracking-widest">{salida.hora}</span>
+                                 </div>
+                               )}
                             </td>
                           </tr>
                         );

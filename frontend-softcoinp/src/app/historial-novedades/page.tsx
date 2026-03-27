@@ -7,6 +7,7 @@ import api, { ApiResponse } from "@/services/api";
 interface AnotacionItem {
   id: string;
   personalId: string;
+  vehiculoId?: string; // 🚗 Nueva propiedad para filtrado
   personalNombre?: string;
   personalApellido?: string;
   personalDocumento?: string;
@@ -51,6 +52,7 @@ export default function HistorialNovedadesPage() {
   const [hastaFilter, setHastaFilter] = useState("");
   const [reporterFilter, setReporterFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState(""); // "" | "bloqueado" | "habilitado"
+  const [exporting, setExporting] = useState(false);
   const [selectedPersona, setSelectedPersona] = useState<PersonaAgrupada | null>(null);
 
   // Paginación
@@ -165,6 +167,33 @@ export default function HistorialNovedadesPage() {
   const totalPages = Math.ceil(personasAgrupadas.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const personasPaginadas = personasAgrupadas.slice(startIndex, startIndex + itemsPerPage);
+  
+  const handleExportExcel = async () => {
+    try {
+      setExporting(true);
+      const params = new URLSearchParams();
+      if (filtroBusqueda) params.append("query", filtroBusqueda);
+      if (desdeFilter) params.append("desde", desdeFilter);
+      if (hastaFilter) params.append("hasta", hastaFilter);
+      if (statusFilter) params.append("status", statusFilter);
+
+      const res = await api.get(`/anotaciones/exportar-excel?${params.toString()}`, {
+        responseType: 'blob'
+      }) as any;
+
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Reporte_Seguridad_${new Date().toISOString().split('T')[0]}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      console.error("Error al exportar Excel:", err);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   // Reset pagina al filtrar
   useEffect(() => {
@@ -262,6 +291,13 @@ export default function HistorialNovedadesPage() {
           </div>
 
           <div className="flex gap-2 ml-auto">
+            <button
+               onClick={handleExportExcel}
+               disabled={exporting || novedades.length === 0}
+               className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-[10px] font-black transition-all shadow-lg shadow-emerald-100 active:scale-95 flex items-center gap-2 uppercase tracking-widest disabled:opacity-50"
+            >
+              {exporting ? <span>Generando...</span> : <><span>📥 Reporte</span></>}
+            </button>
             <button
               onClick={fetchAllNovedades}
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-[10px] font-black transition-all shadow-lg shadow-blue-100 active:scale-95 flex items-center gap-2 uppercase tracking-widest"

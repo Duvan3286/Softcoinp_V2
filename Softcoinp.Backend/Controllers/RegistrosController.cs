@@ -515,13 +515,15 @@ namespace Softcoinp.Backend.Controllers
             // ---------- Guardar/Actualizar Vehículo vinculado a Personal ----------
             if (!string.IsNullOrWhiteSpace(input.Placa))
             {
-                var vehiculo = await _db.Vehiculos.FirstOrDefaultAsync(v => v.Placa == input.Placa && v.PersonalId == persona.Id);
+                var placaNormalizada = input.Placa.ToUpper().Trim();
+                var vehiculo = await _db.Vehiculos.FirstOrDefaultAsync(v => v.Placa == placaNormalizada);
+                
                 if (vehiculo == null)
                 {
                     vehiculo = new Vehiculo
                     {
                         Id = Guid.NewGuid(),
-                        Placa = input.Placa.ToUpper(),
+                        Placa = placaNormalizada,
                         Marca = input.Marca,
                         Modelo = input.Modelo,
                         Color = input.Color,
@@ -533,6 +535,7 @@ namespace Softcoinp.Backend.Controllers
                 }
                 else
                 {
+                    vehiculo.PersonalId = persona.Id; // Transferir o ratificar propietario al conductor actual
                     vehiculo.Marca = input.Marca ?? vehiculo.Marca;
                     vehiculo.Modelo = input.Modelo ?? vehiculo.Modelo;
                     vehiculo.Color = input.Color ?? vehiculo.Color;

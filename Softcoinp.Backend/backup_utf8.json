@@ -1,0 +1,165 @@
+﻿{
+    "ExportDate":  "2026-03-21T04:24:27.557575Z",
+    "Version":  "2.1.5",
+    "TiposPersonal":  [
+                          {
+                              "Id":  "00000000-0000-0000-0000-000000000001",
+                              "Nombre":  "Empleado",
+                              "Activo":  true
+                          },
+                          {
+                              "Id":  "00000000-0000-0000-0000-000000000002",
+                              "Nombre":  "Visitante",
+                              "Activo":  true
+                          }
+                      ],
+    "Users":  [
+                  {
+                      "Id":  "00000000-0000-0000-0000-00000000000a",
+                      "Email":  "admin@local",
+                      "PasswordHash":  "$2a$11$vs2ntUSw2BNAGnPOW1ogJOsdH4LqDOzUpSNbV2E8v2GJG1r8caeSu",
+                      "Role":  "admin",
+                      "Nombre":  "Administrador Sistema",
+                      "CreatedAt":  "2026-03-21T04:02:12.652333Z",
+                      "RefreshToken":  "",
+                      "RefreshTokenExpiry":  "2026-03-21T04:02:12.652333Z"
+                  },
+                  {
+                      "Id":  "019d0e9e-dcdd-7544-b5ff-620bc1abc340",
+                      "Email":  "superadmin@dev",
+                      "PasswordHash":  "$2a$11$wHbhkIJfptnooXS2eiHhY.opXPgpajbzDCdPwGuFpg57DC.vonlcy",
+                      "Role":  "superadmin",
+                      "Nombre":  "Super Desarrollador",
+                      "CreatedAt":  "2026-03-21T04:02:12.652333Z",
+                      "RefreshToken":  "xg7MvLEtD0qtRXWwMTt8RA==",
+                      "RefreshTokenExpiry":  "2026-03-28T04:24:27.548953Z"
+                  }
+              ],
+    "Personal":  [
+                     {
+                         "Id":  "1bac3c37-9de2-4570-99a5-652138ea6be1",
+                         "Nombre":  "DUVAN",
+                         "Apellido":  "ORTIZ",
+                         "Documento":  "1234567",
+                         "Tipo":  "empleado",
+                         "Telefono":  "231313123",
+                         "FotoUrl":  "/uploads/personal/1234567_20260320231843.jpeg",
+                         "FechaCreacionUtc":  "2026-03-21T04:18:43.629621Z",
+                         "Registros":  "",
+                         "Anotaciones":  "",
+                         "IsBloqueado":  false,
+                         "MotivoBloqueo":  null,
+                         "FechaBloqueoUtc":  null
+                     }
+                 ],
+    "Vehiculos":  [
+
+                  ],
+    "Anotaciones":  [
+
+                    ],
+    "Registros":  [
+                      {
+                          "Id":  "3e66969b-4af2-47d6-acad-55cc9c1f4517",
+                          "PersonalId":  "1bac3c37-9de2-4570-99a5-652138ea6be1",
+                          "Personal":  "@{Id=1bac3c37-9de2-4570-99a5-652138ea6be1; Nombre=DUVAN; Apellido=ORTIZ; Documento=1234567; Tipo=empleado; Telefono=231313123; FotoUrl=/uploads/personal/1234567_20260320231843.jpeg; FechaCreacionUtc=2026-03-21T04:18:43.629621Z; Registros=System.Object[]; Anotaciones=System.Object[]; IsBloqueado=False; MotivoBloqueo=; FechaBloqueoUtc=}",
+                          "Nombre":  "DUVAN",
+                          "Apellido":  "ORTIZ",
+                          "Documento":  "1234567",
+                          "TelefonoPersona":  "231313123",
+                          "Motivo":  "SDFSDASDASD",
+                          "Destino":  "FDFDFDSF",
+                          "Tipo":  "empleado",
+                          "HoraIngresoUtc":  "2026-03-21T04:18:43.60842Z",
+                          "HoraSalidaUtc":  null,
+                          "HoraIngresoLocal":  "2026-03-20T23:18:43.60842",
+                          "HoraSalidaLocal":  null,
+                          "PlacaVehiculo":  "",
+                          "MarcaVehiculo":  "",
+                          "ModeloVehiculo":  "",
+                          "ColorVehiculo":  "",
+                          "TipoVehiculo":  "",
+                          "FotoVehiculoUrl":  null,
+                          "FotoUrl":  "/uploads/personal/1234567_20260320231843.jpeg",
+                          "RegistradoPor":  "00000000-0000-0000-0000-000000000000"
+                      }
+                  ],
+    "RegistrosVehiculos":  [
+                               {
+                                   "Id":  "7f7b6ae3-fdfb-41c0-b0d6-6cc1a3f19f1f",
+                                   "VehiculoId":  null,
+                                   "Vehiculo":  null,
+                                   "Placa":  "BVA39F",
+                                   "Marca":  "NKNKNK",
+                                   "Modelo":  "42342",
+                                   "Color":  "3424234",
+                                   "TipoVehiculo":  "moto",
+                                   "FotoVehiculoUrl":  "/uploads/vehiculos/REG_VEH_BVA39F_20260320232357.jpeg",
+                                   "HoraIngresoUtc":  "2026-03-21T04:23:57.510083Z",
+                                   "HoraSalidaUtc":  null,
+                                   "HoraIngresoLocal":  "2026-03-20T23:23:57.510083",
+                                   "HoraSalidaLocal":  null,
+                                   "RegistradoPor":  "019d0e9e-dcdd-7544-b5ff-620bc1abc340"
+                               }
+                           ],
+    "Correspondencias":  [
+
+                         ],
+    "AuditLogs":  [
+                      {
+                          "Id":  "2e4d35ad-a3e8-43ef-a8ef-a8d330a58637",
+                          "UserId":  null,
+                          "Action":  "Login",
+                          "Entity":  "Auth",
+                          "EntityId":  "019d0e9e-dcdd-7544-b5ff-620bc1abc340",
+                          "Data":  "{\"Email\":\"superadmin@dev\"}",
+                          "IpAddress":  "::1",
+                          "UserAgent":  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+                          "CreatedAt":  "2026-03-21T04:19:52.359773Z"
+                      },
+                      {
+                          "Id":  "160372da-ebeb-4c03-8ca2-ae992b13b438",
+                          "UserId":  null,
+                          "Action":  "Login",
+                          "Entity":  "Auth",
+                          "EntityId":  "019d0e9e-dcdd-7544-b5ff-620bc1abc340",
+                          "Data":  "{\"Email\":\"superadmin@dev\"}",
+                          "IpAddress":  "::1",
+                          "UserAgent":  "Mozilla/5.0 (Windows NT; Windows NT 10.0; es-CO) WindowsPowerShell/5.1.26100.7920",
+                          "CreatedAt":  "2026-03-21T04:22:19.503715Z"
+                      },
+                      {
+                          "Id":  "cfd61eac-7bc5-4a32-bfce-c763c84f9c93",
+                          "UserId":  "019d0e9e-dcdd-7544-b5ff-620bc1abc340",
+                          "Action":  "RegistroVehiculoCreated",
+                          "Entity":  "RegistroVehiculo",
+                          "EntityId":  "7f7b6ae3-fdfb-41c0-b0d6-6cc1a3f19f1f",
+                          "Data":  "{\"Placa\":\"BVA39F\"}",
+                          "IpAddress":  "::1",
+                          "UserAgent":  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+                          "CreatedAt":  "2026-03-21T04:23:57.520019Z"
+                      },
+                      {
+                          "Id":  "e3d04dfc-994e-4e87-b442-5985b6530fe9",
+                          "UserId":  null,
+                          "Action":  "Login",
+                          "Entity":  "Auth",
+                          "EntityId":  "019d0e9e-dcdd-7544-b5ff-620bc1abc340",
+                          "Data":  "{\"Email\":\"superadmin@dev\"}",
+                          "IpAddress":  "::1",
+                          "UserAgent":  "Mozilla/5.0 (Windows NT; Windows NT 10.0; es-CO) WindowsPowerShell/5.1.26100.7920",
+                          "CreatedAt":  "2026-03-21T04:24:04.665112Z"
+                      },
+                      {
+                          "Id":  "a26e841e-16ce-4601-b78d-a1e3546328fa",
+                          "UserId":  null,
+                          "Action":  "Login",
+                          "Entity":  "Auth",
+                          "EntityId":  "019d0e9e-dcdd-7544-b5ff-620bc1abc340",
+                          "Data":  "{\"Email\":\"superadmin@dev\"}",
+                          "IpAddress":  "::1",
+                          "UserAgent":  "Mozilla/5.0 (Windows NT; Windows NT 10.0; es-CO) WindowsPowerShell/5.1.26100.7920",
+                          "CreatedAt":  "2026-03-21T04:24:27.54899Z"
+                      }
+                  ]
+}

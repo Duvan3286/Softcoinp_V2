@@ -113,7 +113,12 @@ namespace Softcoinp.Backend.Controllers
             // Buscar vehículo maestro
             var vehiculo = await _db.Vehiculos.FirstOrDefaultAsync(v => v.Placa == input.Placa.ToUpper());
 
-            if (vehiculo != null && vehiculo.IsBloqueado)
+            if (vehiculo == null)
+            {
+                return BadRequest(ApiResponse<RegistroVehiculoDto>.Fail(null, "⚠️ Vehículo Nuevo. Por normas de seguridad, debe registrar los datos del conductor en el panel contiguo para vincularlo como propietario por primera vez."));
+            }
+
+            if (vehiculo.IsBloqueado)
             {
                 return BadRequest(ApiResponse<RegistroVehiculoDto>.Fail(null, $"🚫 VEHÍCULO BLOQUEADO. Motivo: {vehiculo.MotivoBloqueo}"));
             }

@@ -153,7 +153,61 @@ namespace Softcoinp.Backend.Controllers
                 .FirstOrDefaultAsync();
 
             if (vehiculo == null)
+            {
+                // Fallback 1: Buscar en el historial de Ingresos Vehiculares Aislados
+                var rVeh = await _db.RegistrosVehiculos
+                    .Where(r => r.Placa == placa)
+                    .OrderByDescending(r => r.HoraIngresoUtc)
+                    .FirstOrDefaultAsync();
+
+                if (rVeh != null)
+                {
+                    var vehCotH = new VehiculoListDto
+                    {
+                        Id = Guid.Empty, // No master ID
+                        Placa = rVeh.Placa,
+                        Marca = rVeh.Marca,
+                        Modelo = rVeh.Modelo,
+                        Color = rVeh.Color,
+                        TipoVehiculo = rVeh.TipoVehiculo,
+                        FotoUrl = rVeh.FotoVehiculoUrl,
+                        PropietarioId = Guid.Empty,
+                        PropietarioNombre = "SIN",
+                        PropietarioApellido = "REGISTRO",
+                        PropietarioDocumento = "",
+                        PropietarioTipo = "visitante"
+                    };
+                    return Ok(ApiResponse<VehiculoListDto>.SuccessResponse(vehCotH));
+                }
+
+                // Fallback 2: Buscar en el historial de Ingresos Complejos (Persona + Vehiculo)
+                var rPerVeh = await _db.Registros
+                    .Where(r => r.PlacaVehiculo == placa)
+                    .OrderByDescending(r => r.HoraIngresoUtc)
+                    .FirstOrDefaultAsync();
+
+                if (rPerVeh != null)
+                {
+                    var vehRegH = new VehiculoListDto
+                    {
+                        Id = Guid.Empty,
+                        Placa = rPerVeh.PlacaVehiculo ?? placa,
+                        Marca = rPerVeh.MarcaVehiculo,
+                        Modelo = rPerVeh.ModeloVehiculo,
+                        Color = rPerVeh.ColorVehiculo,
+                        TipoVehiculo = rPerVeh.TipoVehiculo,
+                        FotoUrl = rPerVeh.FotoVehiculoUrl,
+                        PropietarioId = rPerVeh.PersonalId,
+                        PropietarioNombre = rPerVeh.Nombre,
+                        PropietarioApellido = rPerVeh.Apellido,
+                        PropietarioDocumento = rPerVeh.Documento,
+                        PropietarioTipo = rPerVeh.Tipo
+                    };
+                    return Ok(ApiResponse<VehiculoListDto>.SuccessResponse(vehRegH));
+                }
+
                 return NotFound(ApiResponse<VehiculoListDto>.Fail(null, "Vehículo no encontrado."));
+            }
 
             return Ok(ApiResponse<VehiculoListDto>.SuccessResponse(vehiculo));
         }

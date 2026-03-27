@@ -125,10 +125,14 @@ export default function DashboardPage() {
   const [color, setColor] = useState("");
   const [tipoVehiculo, setTipoVehiculo] = useState("");
   const [fotoVehiculoBase64, setFotoVehiculoBase64] = useState<string | null>(null);
+  const [fotoVehiculoUrl, setFotoVehiculoUrl] = useState<string | null>(null);
   const [isVehiculoCameraOpen, setIsVehiculoCameraOpen] = useState(false);
 
   // 📸 Snapshot de datos originales (para detectar cambios en actualización)
   const [datosOriginales, setDatosOriginales] = useState<Record<string, string | null>>({}); 
+
+  // 🚙 Estado para bloquear registro directo de vehículos nuevos
+  const [isVehiculoNuevo, setIsVehiculoNuevo] = useState(false);
 
   // ⚠️ Estado para validación visual
   const [camposErrores, setCamposErrores] = useState<string[]>([]);
@@ -199,6 +203,7 @@ export default function DashboardPage() {
     setFotoBase64(null);
     setFotoUrl(null);
     setFotoVehiculoBase64(null);
+    setFotoVehiculoUrl(null);
     setTelefono("");
     setAnotacionesAlerta([]);
     setAnotacionesVehiculoAlerta([]);
@@ -218,6 +223,7 @@ export default function DashboardPage() {
     setColor("");
     setTipoVehiculo("");
     setFotoVehiculoBase64(null);
+    setFotoVehiculoUrl(null);
     setRegistroVehiculoActivo(null);
     setIsVehiculoBloqueado(false);
     setMotivoBloqueoVehiculo("");
@@ -583,6 +589,7 @@ export default function DashboardPage() {
 
         let vBase64 = null;
         if (persona.fotoVehiculoUrl) {
+          setFotoVehiculoUrl(persona.fotoVehiculoUrl);
           vBase64 = await urlToBase64(persona.fotoVehiculoUrl);
           if (vBase64) setFotoVehiculoBase64(vBase64);
         }
@@ -640,12 +647,15 @@ export default function DashboardPage() {
 
     setDestino("");
     setMotivo("");
+    setFotoVehiculoUrl(null);
+    setIsVehiculoNuevo(false);
 
     try {
       const res = (await api.get(`/vehiculos/placa/${placa}`)) as { data: { data?: any } };
       const vehiculo = res.data?.data;
 
       if (vehiculo) {
+        setIsVehiculoNuevo(false);
         // Cargar datos del vehículo
         setMarca(vehiculo.marca || "");
         setModelo(vehiculo.modelo || "");
@@ -663,6 +673,7 @@ export default function DashboardPage() {
         
         let vBase64_local = null;
         if (vehiculo.fotoUrl) {
+           setFotoVehiculoUrl(vehiculo.fotoUrl);
            vBase64_local = await urlToBase64(vehiculo.fotoUrl);
            if (vBase64_local) setFotoVehiculoBase64(vBase64_local);
         }
@@ -716,13 +727,15 @@ export default function DashboardPage() {
           tipoVehiculo: vehiculo.tipoVehiculo || "",
           fotoBase64: pBase64_local,
           fotoVehiculoBase64: vBase64_local,
+          fotoVehiculoUrl: vehiculo.fotoUrl,
         });
       }
     } catch (err: any) {
        setIsVehiculoBloqueado(false);
        setMotivoBloqueoVehiculo("");
        if (err.response?.status === 404) {
-         showModal("⚠️ No se encontró registro previo de este vehículo. Por favor, ingrese los datos manualmente.", "warning");
+         setIsVehiculoNuevo(true);
+         showModal("⚠️ Vehículo Nuevo. Por normas de seguridad, debe registrar los datos del conductor en el panel izquierdo para vincularlo como propietario o conductor frecuente la primera vez.", "warning");
        } else {
          console.error("Error al buscar placa:", err);
        }
@@ -854,22 +867,25 @@ export default function DashboardPage() {
                   <div
                     className="flex flex-col items-center cursor-pointer group flex-shrink-0"
                     onClick={() => {
-                        if (fotoVehiculoBase64) setFotoZoomUrl(fotoVehiculoBase64);
+                        const currentVehFullUrl = fotoVehiculoBase64 || (fotoVehiculoUrl ? (fotoVehiculoUrl.startsWith('http') ? fotoVehiculoUrl : `${BACKEND_BASE_URL}${fotoVehiculoUrl}`) : null);
+                        if (currentVehFullUrl) setFotoZoomUrl(currentVehFullUrl);
                         else setIsVehiculoCameraOpen(true);
                     }}
-                    title={fotoVehiculoBase64 ? "Ver en grande" : "Tomar Foto"}
+                    title={(fotoVehiculoBase64 || fotoVehiculoUrl) ? "Ver en grande" : "Tomar Foto"}
                   >
                     <div className="relative w-20 lg:w-24 h-20 lg:h-24 transition-transform hover:scale-105">
-                      <div className={`absolute inset-0 rounded-full blur-md opacity-20 transition-all duration-500 ${fotoVehiculoBase64 ? 'bg-emerald-400' : 'bg-slate-300 group-hover:bg-blue-400'}`}></div>
-                      <div className={`relative w-full h-full border-[2px] rounded-full flex items-center justify-center overflow-hidden bg-slate-50 transition-all duration-300 ${fotoVehiculoBase64 ? 'border-emerald-400' : 'border-slate-200 group-hover:border-blue-400'}`}>
+                      <div className={`absolute inset-0 rounded-full blur-md opacity-20 transition-all duration-500 ${(fotoVehiculoBase64 || fotoVehiculoUrl) ? 'bg-emerald-400' : 'bg-slate-300 group-hover:bg-blue-400'}`}></div>
+                      <div className={`relative w-full h-full border-[2px] rounded-full flex items-center justify-center overflow-hidden bg-slate-50 transition-all duration-300 ${(fotoVehiculoBase64 || fotoVehiculoUrl) ? 'border-emerald-400' : 'border-slate-200 group-hover:border-blue-400'}`}>
                         {fotoVehiculoBase64 ? (
                           <img src={fotoVehiculoBase64} alt="Vehículo" className="w-full h-full object-cover" />
+                        ) : fotoVehiculoUrl ? (
+                          <img src={fotoVehiculoUrl.startsWith('http') ? fotoVehiculoUrl : `${BACKEND_BASE_URL}${fotoVehiculoUrl}`} alt="Vehículo" className="w-full h-full object-cover" />
                         ) : (
                           <svg className="w-10 lg:w-12 h-10 lg:h-12 text-slate-300 group-hover:text-blue-400 transition duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.218A2 2 0 0110.125 4h3.75a2 2 0 011.664.89l.812 1.218A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         )}
                       </div>
                       <div className="absolute -bottom-1 -right-1 bg-white border border-slate-200 p-1 rounded-full shadow group-hover:bg-blue-50 transition-colors">
-                        <span className="text-[10px]">{fotoVehiculoBase64 ? '🔍' : '📸'}</span>
+                        <span className="text-[10px]">{(fotoVehiculoBase64 || fotoVehiculoUrl) ? '🔍' : '📸'}</span>
                       </div>
                     </div>
                   </div>
@@ -1035,14 +1051,14 @@ export default function DashboardPage() {
                 <div className="grid grid-cols-2 gap-2 mt-2">
                   <button
                     onClick={() => handleRegistrarVehiculo("entrada")}
-                    disabled={!!registroVehiculoActivo || isVehiculoBloqueado}
+                    disabled={!!registroVehiculoActivo || isVehiculoBloqueado || isVehiculoNuevo}
                     className={`flex-1 py-1.5 rounded-xl font-bold text-[10px] transition-all active:scale-[0.98] border shadow-sm ${
-                      (registroVehiculoActivo || isVehiculoBloqueado)
+                      (registroVehiculoActivo || isVehiculoBloqueado || isVehiculoNuevo)
                       ? 'bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed' 
                       : 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100'
                     }`}
                   >
-                    {isVehiculoBloqueado ? "🚫 BLOQUEO" : "📥 ENTRADA VEH"}
+                    {isVehiculoBloqueado ? "🚫 BLOQUEO" : !!isVehiculoNuevo ? "⚠️ NUEVO (REQ.DUEÑO)" : "📥 ENTRADA VEH"}
                   </button>
                   <button
                     onClick={() => handleRegistrarVehiculo("salida")}

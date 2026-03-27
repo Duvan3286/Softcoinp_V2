@@ -60,6 +60,72 @@ function GeneralContent() {
     );
   };
 
+  const handleExportBackup = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get("/Maintenance/export-backup", { responseType: "blob" });
+      const url = window.URL.createObjectURL(new Blob([response.data as BlobPart]));
+      const link = document.createElement("a");
+      link.href = url;
+      // Extraer nombre del archivo sugerido si viene en los headers (opcional)
+      const contentDisposition = response.headers['content-disposition'];
+      let fileName = `softcoinp_backup_${new Date().toISOString().slice(0,10)}.json`;
+      if (contentDisposition) {
+          const fileNameMatch = contentDisposition.match(/filename="?(.+)"?/);
+          if (fileNameMatch && fileNameMatch.length === 2) fileName = fileNameMatch[1];
+      }
+      
+      link.setAttribute("download", fileName);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      showModal("✅ Backup generado y descargado exitosamente.", "success", "Exportación Completada");
+    } catch (err: any) {
+      showModal("❌ Error al descargar el backup: " + (err.message), "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleImportBackup = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== "application/json" && !file.name.endsWith(".json")) {
+        showModal("El archivo seleccionado no es un JSON válido.", "warning", "Formato Incorrecto");
+        return;
+    }
+
+    showModal(
+        `⚠️ ATENCIÓN: Estás a punto de sobrescribir toda la base de datos con el archivo "${file.name}". Esta acción borrará el estado actual y no se puede deshacer.`,
+        "confirm",
+        "Restaurar Sistema",
+        async () => {
+            setLoading(true);
+            const formData = new FormData();
+            formData.append("file", file);
+
+            try {
+                const res = await api.post<{message: string}>("/Maintenance/import-backup", formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                showModal("✅ " + (res.data.message || "Sistema restaurado con éxito. Cerrando sesión..."), "success", "Restauración Completada");
+                setTimeout(() => {
+                    localStorage.removeItem("token");
+                    window.location.href = "/login";
+                }, 4000);
+            } catch (err: any) {
+                const errorMessage = err.response?.data?.error || err.response?.data?.message || err.message || "Error desconocido";
+                showModal("❌ Error crítico en restauración: " + errorMessage, "error", "Fallo de Restauración");
+            } finally {
+                setLoading(false);
+                // Limpiar el input para permitir volver a seleccionar el mismo archivo si es necesario
+                event.target.value = '';
+            }
+        }
+    );
+  };
+
   return (
     <>
       <div className="h-full bg-slate-50 p-4 lg:p-12 flex flex-col items-center justify-start overflow-hidden gap-8">
@@ -165,6 +231,53 @@ function GeneralContent() {
                     <div className="px-5 py-2.5 rounded-xl text-white text-[9px] font-black uppercase tracking-widest bg-orange-500 shadow-lg shadow-orange-100 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0 hidden sm:block">
                         BORRAR DATOS <span>➔</span>
                     </div>
+                  </div>
+
+                  {/* SEPARADOR VISUAL PARA BACKUPS */}
+                  <div className="flex items-center gap-4 my-4 opacity-50">
+                    <div className="h-px bg-slate-300 flex-1"></div>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Gestión de Backups</span>
+                    <div className="h-px bg-slate-300 flex-1"></div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {/* Fila: Descargar Backup */}
+                      <div 
+                        onClick={handleExportBackup}
+                        className="w-full bg-indigo-50/30 rounded-2xl p-4 border border-indigo-100/50 shadow-sm flex items-center gap-4 transition-all hover:bg-indigo-50 hover:border-indigo-200 hover:shadow-md cursor-pointer group"
+                      >
+                        <div className="w-10 h-10 shrink-0 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center text-lg shadow-inner transition-transform group-hover:scale-110">
+                          💾
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <h2 className="text-xs font-black text-slate-800 uppercase tracking-tight group-hover:text-indigo-600 transition-colors">DESCARGAR BACKUP</h2>
+                            <p className="text-[9px] font-bold text-slate-400 mt-1 truncate uppercase tracking-tight">
+                                Exportar base de datos a JSON
+                            </p>
+                        </div>
+                      </div>
+
+                      {/* Fila: Restaurar Backup */}
+                      <div className="relative">
+                        <input 
+                            type="file" 
+                            accept=".json,application/json" 
+                            onChange={handleImportBackup} 
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
+                            title="Seleccionar archivo JSON"
+                        />
+                        <div className="w-full bg-emerald-50/30 rounded-2xl p-4 border border-emerald-100/50 shadow-sm flex items-center gap-4 transition-all hover:bg-emerald-50 hover:border-emerald-200 hover:shadow-md group">
+                            <div className="w-10 h-10 shrink-0 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center text-lg shadow-inner transition-transform group-hover:scale-110">
+                            🔄
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <h2 className="text-xs font-black text-slate-800 uppercase tracking-tight group-hover:text-emerald-700 transition-colors">RESTAURAR SISTEMA</h2>
+                                <p className="text-[9px] font-bold text-slate-400 mt-1 truncate uppercase tracking-tight">
+                                    Cargar archivo JSON
+                                </p>
+                            </div>
+                        </div>
+                      </div>
                   </div>
                </div>
             </section>

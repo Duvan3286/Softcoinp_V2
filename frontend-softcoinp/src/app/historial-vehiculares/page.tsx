@@ -31,6 +31,7 @@ export default function HistorialVehicularesPage() {
   const router = useRouter();
   const [novedades, setNovedades] = useState<AnotacionItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [filtroBusqueda, setFiltroBusqueda] = useState("");
   const [desdeFilter, setDesdeFilter] = useState("");
   const [hastaFilter, setHastaFilter] = useState("");
@@ -67,6 +68,34 @@ export default function HistorialVehicularesPage() {
       setNovedades([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      setExporting(true);
+      const params = new URLSearchParams();
+      if (filtroBusqueda) params.append("query", filtroBusqueda);
+      if (statusFilter) params.append("status", statusFilter);
+      if (desdeFilter) params.append("desde", desdeFilter);
+      if (hastaFilter) params.append("hasta", hastaFilter);
+
+      const response = await api.get(`/anotaciones/exportar-vehiculo-excel?${params.toString()}`, {
+        responseType: "blob",
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data as any]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `Reporte_Vehicular_${new Date().toISOString().split('T')[0]}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Error exportando excel:", error);
+      alert("No se pudo generar el reporte. Verifique su conexiÃ³n.");
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -169,13 +198,32 @@ export default function HistorialVehicularesPage() {
             </div>
           </div>
           
-          <button
-            onClick={() => router.push("/novedades-vehiculares")}
-            className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-xl shadow-lg transition-all duration-300 flex items-center justify-center gap-2 text-sm font-bold active:scale-95 whitespace-nowrap"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-            Panel de Novedades
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleExportExcel}
+              disabled={exporting}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-4 rounded-xl shadow-lg shadow-emerald-200 transition-all duration-300 flex items-center justify-center gap-2 text-sm font-bold active:scale-95 whitespace-nowrap disabled:opacity-50"
+            >
+              {exporting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                  Generando...
+                </>
+              ) : (
+                <>
+                  <span className="text-lg">📥</span>
+                  Exportar Excel
+                </>
+              )}
+            </button>
+            <button
+              onClick={() => router.push("/novedades-vehiculares")}
+              className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-xl shadow-lg transition-all duration-300 flex items-center justify-center gap-2 text-sm font-bold active:scale-95 whitespace-nowrap"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+              Panel de Novedades
+            </button>
+          </div>
         </div>
 
         {/* 🔍 Barra de Filtros (Compacta) */}

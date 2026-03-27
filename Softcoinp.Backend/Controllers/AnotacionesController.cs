@@ -262,38 +262,45 @@ namespace Softcoinp.Backend.Controllers
             var colorGold = XLColor.FromHtml("#B59410");
             var colorGray = XLColor.FromHtml("#F1F5F9");
             var colorBorder = XLColor.FromHtml("#CBD5E1");
+            // ==========================================
+            // HOJA UNICA: DASHBOARD Y BITACORA
+            // ==========================================
+            var wsMain = workbook.Worksheets.Add("REPORTE DE SEGURIDAD");
+            wsMain.Style.Font.SetFontName("Calibri").Font.SetFontSize(11);
 
-            // ==========================================
-            // HOJA 1: DASHBOARD EJECUTIVO
-            // ==========================================
-            var wsDash = workbook.Worksheets.Add("RESUMEN EJECUTIVO");
-            wsDash.Style.Font.SetFontName("Calibri").Font.SetFontSize(11);
+            // Dimensiones para equilibrio visual (Dashboard + Tabla)
+            wsMain.Column(1).Width = 15; // DOCUMENTO
+            wsMain.Column(2).Width = 35; // CIUDADANO
+            wsMain.Column(3).Width = 15; // RECURRENCIA
+            wsMain.Column(4).Width = 85; // HISTORIAL
+            wsMain.Column(5).Width = 20; // ULTIMA FECHA
+            wsMain.Column(6).Width = 15; // ESTADO
+            wsMain.Column(7).Width = 5;  // Margen Extra
 
             // Banner Principal
-            var mainTitle = wsDash.Range("B2:G2");
+            var mainTitle = wsMain.Range("B2:F2");
             mainTitle.Merge().Value = "INFORME ESTRATEGICO DE SEGURIDAD Y CONTROL";
             mainTitle.Style.Font.SetBold().Font.SetFontSize(22).Font.SetFontColor(colorNavy);
             mainTitle.Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Left);
             
-            wsDash.Cell(3, 2).Value = "ANALISIS DE RIESGO Y RECURRENCIA DE CIUDADANOS";
-            wsDash.Cell(3, 2).Style.Font.SetFontSize(12).Font.SetFontColor(XLColor.SlateGray);
+            wsMain.Cell(3, 2).Value = "ANALISIS DE RIESGO Y BITACORA INTEGRADA DE CIUDADANOS";
+            wsMain.Cell(3, 2).Style.Font.SetFontSize(12).Font.SetFontColor(XLColor.SlateGray);
             
             // Linea decorativa
-            var lineDash = wsDash.Range("B4:G4");
+            var lineDash = wsMain.Range("B4:F4");
             lineDash.Merge().Style.Fill.SetBackgroundColor(colorNavy);
-            wsDash.Row(4).Height = 3;
+            wsMain.Row(4).Height = 3;
 
-            // KPIs - Cards de Informacion (Metodo Manual por Estilo)
+            // KPIs - Cards de Informacion
             void CreateKpi(int row, int col, string label, string value, XLColor valColor) {
-               var rKpi = wsDash.Range(row, col, row + 2, col + 1);
+               var rKpi = wsMain.Range(row, col, row + 2, col + 1);
                rKpi.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                rKpi.Style.Border.OutsideBorderColor = colorBorder;
                rKpi.Style.Fill.SetBackgroundColor(XLColor.White);
-               
-               wsDash.Cell(row, col).Value = label;
-               wsDash.Cell(row, col).Style.Font.SetBold().Font.SetFontSize(9).Font.SetFontColor(XLColor.SlateGray);
-               wsDash.Cell(row + 1, col).Value = value;
-               wsDash.Cell(row + 1, col).Style.Font.SetBold().Font.SetFontSize(18).Font.SetFontColor(valColor);
+               wsMain.Cell(row, col).Value = label;
+               wsMain.Cell(row, col).Style.Font.SetBold().Font.SetFontSize(9).Font.SetFontColor(XLColor.SlateGray);
+               wsMain.Cell(row + 1, col).Value = value;
+               wsMain.Cell(row + 1, col).Style.Font.SetBold().Font.SetFontSize(18).Font.SetFontColor(valColor);
             }
 
             int sujetosTot = groupedData.Count;
@@ -305,42 +312,26 @@ namespace Softcoinp.Backend.Controllers
 
             // Seccion de TOP INFRACTOR
             if (infractorTop != null) {
-                var topArea = wsDash.Range(10, 2, 13, 7);
+                var topArea = wsMain.Range(10, 2, 13, 6);
                 topArea.Style.Fill.SetBackgroundColor(colorGray);
                 topArea.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                 topArea.Style.Border.OutsideBorderColor = colorBorder;
                 
-                wsDash.Cell(10, 3).Value = "ANALISIS DE MAYOR RECURRENCIA (TOP INFRACTOR)";
-                wsDash.Cell(10, 3).Style.Font.SetBold().Font.SetFontSize(10).Font.SetFontColor(colorNavy);
+                var rTitle = wsMain.Range("C10:F10");
+                rTitle.Merge().Value = "ANALISIS DE MAYOR RECURRENCIA (TOP INFRACTOR)";
+                rTitle.Style.Font.SetBold().Font.SetFontSize(10).Font.SetFontColor(colorNavy);
                 
-                wsDash.Cell(11, 3).Value = "CIUDADANO:";
-                wsDash.Cell(11, 4).Value = infractorTop.Ciudadano;
-                wsDash.Cell(12, 3).Value = "TOTAL EVENTOS:";
-                wsDash.Cell(12, 4).Value = $"{infractorTop.Eventos} registros detectados";
-                wsDash.Cell(11, 4).Style.Font.SetBold();
-                wsDash.Cell(12, 4).Style.Font.SetBold().Font.SetFontColor(XLColor.Red);
+                wsMain.Cell(11, 3).Value = "CIUDADANO:";
+                wsMain.Cell(11, 4).Value = infractorTop.Ciudadano;
+                wsMain.Cell(12, 3).Value = "TOTAL EVENTOS:";
+                wsMain.Cell(12, 4).Value = $"{infractorTop.Eventos} registros detectados";
+                wsMain.Cell(11, 4).Style.Font.SetBold();
+                wsMain.Cell(12, 4).Style.Font.SetBold().Font.SetFontColor(XLColor.Red);
             }
 
-            // Pie de Pagina
-            wsDash.Cell(15, 2).Value = "Generado por Sistema Softcoinp V2 - Reporte Certificado de Auditoria:";
-            wsDash.Cell(15, 6).Value = nowLocal.ToString("dd/MM/yyyy HH:mm:ss");
-            wsDash.Range(15, 2, 15, 3).Style.Font.SetItalic().Font.SetFontSize(8).Font.SetFontColor(XLColor.Gray);
-            
-            wsDash.Columns().AdjustToContents();
-            wsDash.Column(1).Width = 3;
-
             // ==========================================
-            // HOJA 2: DETALLE ANALITICO
+            // TABLA DETALLADA (Inicia debajo del Dashboard)
             // ==========================================
-            var wsDet = workbook.Worksheets.Add("DETALLE ANALITICO");
-            wsDet.Style.Font.SetFontName("Calibri");
-
-            var detHeader = wsDet.Range("A1:F1");
-            detHeader.Merge().Value = "BITACORA CONSOLIDADA Y ANALISIS DE RECURRENCIA";
-            detHeader.Style.Font.SetBold().Font.SetFontSize(14).Font.SetFontColor(XLColor.White).Fill.SetBackgroundColor(colorNavy);
-            detHeader.Style.Alignment.SetVertical(XLAlignmentVerticalValues.Center).Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
-            wsDet.Row(1).Height = 30;
-
             var dTable = groupedData.Select(x => new { 
                 DOCUMENTO = x.Documento, 
                 CIUDADANO = x.Ciudadano, 
@@ -350,22 +341,14 @@ namespace Softcoinp.Backend.Controllers
                 ESTADO = x.Estado 
             });
 
-            var tblElite = wsDet.Cell(3, 1).InsertTable(dTable);
-            tblElite.Theme = XLTableTheme.TableStyleMedium4; // Minimalista y Pro
+            var tblElite = wsMain.Cell(16, 1).InsertTable(dTable);
+            tblElite.Theme = XLTableTheme.TableStyleMedium4;
             tblElite.ShowAutoFilter = true;
 
-            // Bloqueo de Hojas (Elite Security Protection)
-            void ProtectSheet(IXLWorksheet ws) {
-               ws.Protect("Softcoinp2026")
-                 .AllowElement(XLSheetProtectionElements.AutoFilter)
-                 .AllowElement(XLSheetProtectionElements.FormatColumns)
-                 .AllowElement(XLSheetProtectionElements.FormatRows);
-            }
-
-            // Barras de Datos (Solid Pro) para Recurrencia
+            // Barras de Datos (Solid Pro) para Recurrencia en la tabla
             if (groupedData.Count > 0) {
-               var recurrenciaRange = wsDet.Range(4, 3, 4 + groupedData.Count - 1, 3);
-               recurrenciaRange.AddConditionalFormat().DataBar(XLColor.FromHtml("#FCA5A5")); // Rojo suave sólido
+               var recurrenciaRange = wsMain.Range(17, 3, 17 + groupedData.Count - 1, 3);
+               recurrenciaRange.AddConditionalFormat().DataBar(XLColor.FromHtml("#FCA5A5"));
             }
 
             // Estilos de Fila Analitica
@@ -373,26 +356,25 @@ namespace Softcoinp.Backend.Controllers
                 row.Style.Alignment.SetVertical(XLAlignmentVerticalValues.Center);
                 var cellStatus = row.Field("ESTADO");
                 if (cellStatus.Value.ToString() == "BLOQUEADO") {
-                   row.Style.Fill.SetBackgroundColor(XLColor.FromHtml("#FEF2F2")); // Red 50 (Suave)
+                   row.Style.Fill.SetBackgroundColor(XLColor.FromHtml("#FEF2F2"));
                    cellStatus.Style.Font.SetFontColor(XLColor.DarkRed).Font.SetBold();
                 } else {
                    cellStatus.Style.Font.SetFontColor(XLColor.SeaGreen).Font.SetBold();
                 }
             }
 
-            wsDet.Columns().AdjustToContents();
-            wsDet.Column(4).Width = 85; 
-            wsDet.Column(4).Style.Alignment.SetWrapText(true);
-            wsDet.Column(2).Width = 35;
+            wsMain.Column(4).Style.Alignment.SetWrapText(true);
 
-            // Aplicar proteccion final
-            ProtectSheet(wsDash);
-            ProtectSheet(wsDet);
+            // PROTECCION
+            wsMain.Protect("Softcoinp2026")
+                  .AllowElement(XLSheetProtectionElements.AutoFilter)
+                  .AllowElement(XLSheetProtectionElements.FormatColumns)
+                  .AllowElement(XLSheetProtectionElements.FormatRows);
 
             // 5. AUDITORÍA Y DESCARGA
             using var stream = new MemoryStream();
             workbook.SaveAs(stream);
-            try { await _audit.LogAsync("AnotacionesExportExcelEliteLocked", "Anotacion", null, new { ciudadanos = sujetosTot }); } catch { }
+            try { await _audit.LogAsync("AnotacionesExportExcelEliteUnified", "Anotacion", null, new { ciudadanos = sujetosTot }); } catch { }
 
             return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 
                 $"Security_Executive_Report_{nowLocal:yyyyMMdd}.xlsx");
@@ -477,33 +459,42 @@ namespace Softcoinp.Backend.Controllers
             var colorNavy = XLColor.FromHtml("#0F172A");
             var colorGray = XLColor.FromHtml("#F1F5F9");
             var colorBorder = XLColor.FromHtml("#CBD5E1");
-
             // ==========================================
-            // HOJA 1: RESUMEN DE FLOTA
+            // HOJA UNICA: DASHBOARD Y BITACORA
             // ==========================================
-            var wsDash = workbook.Worksheets.Add("DASHBOARD VEHICULAR");
-            wsDash.Style.Font.SetFontName("Calibri");
+            var wsMain = workbook.Worksheets.Add("REPORTE DE FLOTA");
+            wsMain.Style.Font.SetFontName("Calibri").Font.SetFontSize(11);
 
-            var mainTitle = wsDash.Range("B2:G2");
+            // Dimensiones para equilibrio visual (Dashboard + Tabla)
+            wsMain.Column(1).Width = 15; // PLACA
+            wsMain.Column(2).Width = 35; // VEHICULO
+            wsMain.Column(3).Width = 15; // EVENTOS
+            wsMain.Column(4).Width = 85; // HISTORIAL DETALLADO
+            wsMain.Column(5).Width = 20; // ULTIMA ACTIVIDAD
+            wsMain.Column(6).Width = 15; // ESTADO
+            wsMain.Column(7).Width = 5;  // Margen Extra
+
+            var mainTitle = wsMain.Range("B2:F2");
             mainTitle.Merge().Value = "INFORME ESTRATEGICO DE SEGURIDAD VEHICULAR";
             mainTitle.Style.Font.SetBold().Font.SetFontSize(22).Font.SetFontColor(colorNavy);
+            mainTitle.Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Left);
             
-            wsDash.Cell(3, 2).Value = "ANALISIS DE INCIDENCIAS Y CONTROL DE ACCESO VEHICULAR";
-            wsDash.Cell(3, 2).Style.Font.SetFontSize(12).Font.SetFontColor(XLColor.SlateGray);
+            wsMain.Cell(3, 2).Value = "ANALISIS DE INCIDENCIAS Y BITACORA INTEGRADA DE FLOTA";
+            wsMain.Cell(3, 2).Style.Font.SetFontSize(12).Font.SetFontColor(XLColor.SlateGray);
             
-            var lineDash = wsDash.Range("B4:G4");
+            var lineDash = wsMain.Range("B4:F4");
             lineDash.Merge().Style.Fill.SetBackgroundColor(colorNavy);
-            wsDash.Row(4).Height = 3;
+            wsMain.Row(4).Height = 3;
 
             void CreateKpi(int row, int col, string label, string value, XLColor vColor) {
-               var rKpi = wsDash.Range(row, col, row + 2, col + 1);
+               var rKpi = wsMain.Range(row, col, row + 2, col + 1);
                rKpi.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                rKpi.Style.Border.OutsideBorderColor = colorBorder;
                rKpi.Style.Fill.SetBackgroundColor(XLColor.White);
-               wsDash.Cell(row, col).Value = label;
-               wsDash.Cell(row, col).Style.Font.SetBold().Font.SetFontSize(9).Font.SetFontColor(XLColor.SlateGray);
-               wsDash.Cell(row + 1, col).Value = value;
-               wsDash.Cell(row + 1, col).Style.Font.SetBold().Font.SetFontSize(18).Font.SetFontColor(vColor);
+               wsMain.Cell(row, col).Value = label;
+               wsMain.Cell(row, col).Style.Font.SetBold().Font.SetFontSize(9).Font.SetFontColor(XLColor.SlateGray);
+               wsMain.Cell(row + 1, col).Value = value;
+               wsMain.Cell(row + 1, col).Style.Font.SetBold().Font.SetFontSize(18).Font.SetFontColor(vColor);
             }
 
             int vehsTot = groupedData.Count;
@@ -514,29 +505,25 @@ namespace Softcoinp.Backend.Controllers
             CreateKpi(6, 4, "VEHICULOS BLOQUEADOS", bloqueadosTot.ToString(), XLColor.Red);
 
             if (vehTop != null) {
-                var topArea = wsDash.Range(10, 2, 13, 7);
+                var topArea = wsMain.Range(10, 2, 13, 6);
                 topArea.Style.Fill.SetBackgroundColor(colorGray).Border.OutsideBorder = XLBorderStyleValues.Thin;
                 topArea.Style.Border.OutsideBorderColor = colorBorder;
-                wsDash.Cell(10, 3).Value = "ANALISIS DE RECURRENCIA CRITICA (TOP PLACA)";
-                wsDash.Cell(10, 3).Style.Font.SetBold().Font.SetFontSize(10).Font.SetFontColor(colorNavy);
-                wsDash.Cell(11, 3).Value = "PLACA:";
-                wsDash.Cell(11, 4).Value = vehTop.Placa;
-                wsDash.Cell(12, 3).Value = "INCIDENCIAS:";
-                wsDash.Cell(12, 4).Value = $"{vehTop.Eventos} registros detectados";
-                wsDash.Cell(11, 4).Style.Font.SetBold();
-                wsDash.Cell(12, 4).Style.Font.SetBold().Font.SetFontColor(XLColor.Red);
+                
+                var rTitle = wsMain.Range("C10:F10");
+                rTitle.Merge().Value = "ANALISIS DE RECURRENCIA CRITICA (TOP PLACA)";
+                rTitle.Style.Font.SetBold().Font.SetFontSize(10).Font.SetFontColor(colorNavy);
+                
+                wsMain.Cell(11, 3).Value = "PLACA:";
+                wsMain.Cell(11, 4).Value = vehTop.Placa;
+                wsMain.Cell(12, 3).Value = "INCIDENCIAS:";
+                wsMain.Cell(12, 4).Value = $"{vehTop.Eventos} registros detectados";
+                wsMain.Cell(11, 4).Style.Font.SetBold();
+                wsMain.Cell(12, 4).Style.Font.SetBold().Font.SetFontColor(XLColor.Red);
             }
 
             // ==========================================
-            // HOJA 2: BITACORA ANALITICA
+            // TABLA DETALLADA (Inicia debajo del Dashboard)
             // ==========================================
-            var wsDet = workbook.Worksheets.Add("BITACORA DE FLOTA");
-            var detHeader = wsDet.Range("A1:F1");
-            detHeader.Merge().Value = "DETALLE DE NOVEDADES POR VEHICULO";
-            detHeader.Style.Font.SetBold().Font.SetFontSize(14).Font.SetFontColor(XLColor.White).Fill.SetBackgroundColor(colorNavy);
-            detHeader.Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center).Alignment.SetVertical(XLAlignmentVerticalValues.Center);
-            wsDet.Row(1).Height = 30;
-
             var dTable = groupedData.Select(x => new { 
                 PLACA = x.Placa, 
                 VEHICULO = x.Detalles, 
@@ -546,12 +533,12 @@ namespace Softcoinp.Backend.Controllers
                 ESTADO = x.Estado 
             });
 
-            var tblElite = wsDet.Cell(3, 1).InsertTable(dTable);
+            var tblElite = wsMain.Cell(16, 1).InsertTable(dTable);
             tblElite.Theme = XLTableTheme.TableStyleMedium4;
             tblElite.ShowAutoFilter = true;
 
             if (groupedData.Count > 0) {
-               var recurrenciaRange = wsDet.Range(4, 3, 4 + groupedData.Count - 1, 3);
+               var recurrenciaRange = wsMain.Range(17, 3, 17 + groupedData.Count - 1, 3);
                recurrenciaRange.AddConditionalFormat().DataBar(XLColor.FromHtml("#FCA5A5"));
             }
 
@@ -566,26 +553,17 @@ namespace Softcoinp.Backend.Controllers
                 }
             }
 
-            wsDet.Columns().AdjustToContents();
-            wsDet.Column(4).Width = 85; 
-            wsDet.Column(4).Style.Alignment.SetWrapText(true);
-            wsDet.Column(1).Width = 15;
+            wsMain.Column(4).Style.Alignment.SetWrapText(true);
 
             // PROTECCION
-            void ProtectSheet(IXLWorksheet ws) {
-               ws.Protect("Softcoinp2026")
-                 .SetAutoFilter(true)
-                 .SetFormatColumns(true)
-                 .SetFormatRows(true)
-                 .SetSelectLockedCells(true)
-                 .SetSelectUnlockedCells(true);
-            }
-            ProtectSheet(wsDash);
-            ProtectSheet(wsDet);
+            wsMain.Protect("Softcoinp2026")
+                  .AllowElement(XLSheetProtectionElements.AutoFilter)
+                  .AllowElement(XLSheetProtectionElements.FormatColumns)
+                  .AllowElement(XLSheetProtectionElements.FormatRows);
 
             using var stream = new MemoryStream();
             workbook.SaveAs(stream);
-            try { await _audit.LogAsync("AnotacionesExportVehiculoExcelElite", "Anotacion", null, new { vehiculos = vehsTot }); } catch { }
+            try { await _audit.LogAsync("AnotacionesExportVehiculoExcelEliteUnified", "Anotacion", null, new { vehiculos = vehsTot }); } catch { }
 
             return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 
                 $"Security_Vehicle_Report_{nowLocal:yyyyMMdd}.xlsx");

@@ -215,13 +215,32 @@ export default function HistorialNovedadesPage() {
             </div>
           </div>
           
-          <button
-            onClick={() => router.push("/novedades")}
-            className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-xl shadow-lg transition-all duration-300 flex items-center justify-center gap-2 text-sm font-bold active:scale-95 whitespace-nowrap"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-            Panel de Novedades
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+               onClick={handleExportExcel}
+               disabled={exporting || novedades.length === 0}
+               className="bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-4 rounded-xl shadow-lg shadow-emerald-200 transition-all duration-300 flex items-center justify-center gap-2 text-sm font-bold active:scale-95 whitespace-nowrap disabled:opacity-50"
+            >
+              {exporting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                  Generando...
+                </>
+              ) : (
+                <>
+                  <span className="text-lg">📥</span>
+                  Exportar Excel
+                </>
+              )}
+            </button>
+            <button
+              onClick={() => router.push("/novedades")}
+              className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-xl shadow-lg transition-all duration-300 flex items-center justify-center gap-2 text-sm font-bold active:scale-95 whitespace-nowrap"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+              Panel de Novedades
+            </button>
+          </div>
         </div>
 
         {/* 🔍 Barra de Filtros (Compacta) */}
@@ -291,13 +310,6 @@ export default function HistorialNovedadesPage() {
           </div>
 
           <div className="flex gap-2 ml-auto">
-            <button
-               onClick={handleExportExcel}
-               disabled={exporting || novedades.length === 0}
-               className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-[10px] font-black transition-all shadow-lg shadow-emerald-100 active:scale-95 flex items-center gap-2 uppercase tracking-widest disabled:opacity-50"
-            >
-              {exporting ? <span>Generando...</span> : <><span>📥 Reporte</span></>}
-            </button>
             <button
               onClick={fetchAllNovedades}
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-[10px] font-black transition-all shadow-lg shadow-blue-100 active:scale-95 flex items-center gap-2 uppercase tracking-widest"

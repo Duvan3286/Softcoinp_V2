@@ -901,9 +901,13 @@ namespace Softcoinp.Backend.Controllers
             var accentColor = XLColor.FromHtml("#e2e8f0"); // Slate 200 (for stripes)
             var borderColor = XLColor.FromHtml("#cbd5e1"); // Slate 300
 
+            // Fetch ClientName from SystemSettings
+            var clientSetting = await _db.SystemSettings.FirstOrDefaultAsync(s => s.Key == "ClientName");
+            string clientName = clientSetting?.Value ?? "SOFTCOINP";
+
             // 1. Título Principal (Banner Premium)
             var titleRange = worksheet.Range(1, 1, 1, 11);
-            titleRange.Merge().Value = "CONTROL DE ACCESO - REPORTE GERENCIAL DE PERSONAS";
+            titleRange.Merge().Value = $"{clientName} - REPORTE GERENCIAL DE PERSONAS";
             titleRange.Style
                 .Font.SetBold()
                 .Font.SetFontSize(16)

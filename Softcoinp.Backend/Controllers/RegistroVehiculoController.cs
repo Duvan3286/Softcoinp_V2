@@ -249,9 +249,13 @@ namespace Softcoinp.Backend.Controllers
             var accentColor = XLColor.FromHtml("#eef2ff"); // Indigo 50 (for stripes)
             var borderColor = XLColor.FromHtml("#c7d2fe"); // Indigo 200
 
+            // Fetch ClientName from SystemSettings
+            var clientSetting = await _db.SystemSettings.FirstOrDefaultAsync(s => s.Key == "ClientName");
+            string clientName = clientSetting?.Value ?? "SOFTCOINP";
+
             // 1. Título Principal
             var titleRange = worksheet.Range(1, 1, 1, 9);
-            titleRange.Merge().Value = "CONTROL DE ACCESO - HISTORIAL DE INGRESOS VEHICULARES";
+            titleRange.Merge().Value = $"{clientName} - HISTORIAL VEHICULAR";
             titleRange.Style
                 .Font.SetBold()
                 .Font.SetFontSize(16)

@@ -4,12 +4,16 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { tipoService, TipoPersonal } from "@/services/tipoService";
 import CustomModal, { ModalType } from "@/components/CustomModal";
+import { settingsService } from "@/services/settingsService";
 
 export default function TiposConfigPage() {
   const router = useRouter();
   const [tipos, setTipos] = useState<TipoPersonal[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [systemVersion, setSystemVersion] = useState("");
+  const [clientName, setClientName] = useState("");
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTipo, setEditingTipo] = useState<TipoPersonal | null>(null);
@@ -47,6 +51,8 @@ export default function TiposConfigPage() {
 
   useEffect(() => {
     fetchTipos();
+    settingsService.getSystemVersion().then(setSystemVersion);
+    settingsService.getClientName().then(setClientName);
   }, []);
 
   const handleOpenModal = (tipo?: TipoPersonal) => {
@@ -263,6 +269,12 @@ export default function TiposConfigPage() {
         message={modalConfig.message}
         type={modalConfig.type}
       />
+
+      <div className="w-full max-w-4xl flex justify-center mt-auto pb-4 shrink-0 px-2 lg:px-0">
+         <p className="text-[9px] text-slate-300 font-black tracking-[0.3em] uppercase">
+            Control de Acceso Softcoinp {systemVersion || "..."} • {clientName || "Panel de Administración Profesional"}
+         </p>
+      </div>
     </div>
   );
 }

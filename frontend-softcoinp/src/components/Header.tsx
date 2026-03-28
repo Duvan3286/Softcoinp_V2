@@ -13,6 +13,7 @@ interface AuthUser {
 export default function Header() {
   const [usuario, setUsuario] = useState("");
   const [clientName, setClientName] = useState("SOFTCOINP");
+  const [systemVersion, setSystemVersion] = useState("");
   const pathname = usePathname();
   const router = useRouter();
 
@@ -26,6 +27,10 @@ export default function Header() {
         // Cargar nombre del cliente
         const name = await settingsService.getClientName();
         setClientName(name);
+
+        // Cargar versión del sistema
+        const version = await settingsService.getSystemVersion();
+        setSystemVersion(version);
       } catch {
         // El interceptor 401 se encarga de la redirección si falla
       }
@@ -87,7 +92,7 @@ export default function Header() {
 
         {/* Nombre del sistema */}
         <div className="flex flex-col leading-tight items-start">
-          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.12em] leading-none mb-0.5">Control de Acceso Softcoinp v2.0</span>
+          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.12em] leading-none mb-0.5">Control de Acceso Softcoinp {systemVersion || "..."}</span>
           <span className="text-sm font-black text-slate-800 tracking-tight leading-tight uppercase">
             {clientName}
           </span>

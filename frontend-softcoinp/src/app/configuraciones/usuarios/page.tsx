@@ -6,12 +6,16 @@ import { userService, User } from "@/services/userService";
 import UserTable from "@/components/configuraciones/UserTable";
 import UserModal from "@/components/configuraciones/UserModal";
 import CustomModal, { ModalType } from "@/components/CustomModal";
+import { settingsService } from "@/services/settingsService";
 
 export default function UsuariosConfigPage() {
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [systemVersion, setSystemVersion] = useState("");
+  const [clientName, setClientName] = useState("");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -50,6 +54,8 @@ export default function UsuariosConfigPage() {
 
   useEffect(() => {
     fetchUsers();
+    settingsService.getSystemVersion().then(setSystemVersion);
+    settingsService.getClientName().then(setClientName);
   }, []);
 
   const handleOpenModal = (user?: User) => {
@@ -172,6 +178,12 @@ export default function UsuariosConfigPage() {
           type={modalConfig.type}
         />
       </main>
+
+      <div className="w-full max-w-4xl flex justify-center mt-auto pb-4 shrink-0 px-2 lg:px-0">
+         <p className="text-[9px] text-slate-300 font-black tracking-[0.3em] uppercase">
+            Control de Acceso Softcoinp {systemVersion || "..."} • {clientName || "Panel de Administración Profesional"}
+         </p>
+      </div>
     </div>
   );
 }

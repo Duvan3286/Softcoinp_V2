@@ -3,10 +3,13 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getCurrentUser, UserPayload } from "@/utils/auth";
+import { settingsService } from "@/services/settingsService";
 
 export default function ConfiguracionesHubPage() {
   const router = useRouter();
   const [usuario, setUsuario] = useState<UserPayload | null>(null);
+  const [systemVersion, setSystemVersion] = useState("");
+  const [clientName, setClientName] = useState("");
 
   useEffect(() => {
     const user = getCurrentUser();
@@ -15,6 +18,10 @@ export default function ConfiguracionesHubPage() {
       return;
     }
     setUsuario(user);
+
+    // Cargar versión y nombre del cliente
+    settingsService.getSystemVersion().then(setSystemVersion);
+    settingsService.getClientName().then(setClientName);
   }, [router]);
 
   const menuItems = [
@@ -116,7 +123,7 @@ export default function ConfiguracionesHubPage() {
       
       <div className="w-full flex justify-center mt-auto pb-4 shrink-0">
          <p className="text-[9px] text-slate-300 font-black tracking-[0.3em] uppercase">
-            SOFTCOINP v2 • Panel de Administración Profesional
+            Control de Acceso Softcoinp {systemVersion || "..."} • {clientName || "Panel de Administración Profesional"}
          </p>
       </div>
     </div>

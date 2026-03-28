@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { auditService, AuditLog } from "@/services/auditService";
 import { getCurrentUser } from "@/utils/auth";
+import { settingsService } from "@/services/settingsService";
 
 export default function AuditoriaPage() {
   const router = useRouter();
@@ -19,6 +20,9 @@ export default function AuditoriaPage() {
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
+
+  const [systemVersion, setSystemVersion] = useState("");
+  const [clientName, setClientName] = useState("");
 
   // Filtros
   const [actionFilter, setActionFilter] = useState("");
@@ -60,6 +64,8 @@ export default function AuditoriaPage() {
 
   useEffect(() => {
     loadLogs();
+    settingsService.getSystemVersion().then(setSystemVersion);
+    settingsService.getClientName().then(setClientName);
   }, []);
 
   const loadLogs = async () => {
@@ -115,9 +121,22 @@ export default function AuditoriaPage() {
                 </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
-              <select 
-                className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-[10px] font-bold uppercase tracking-tight focus:ring-2 focus:ring-amber-200 outline-none min-w-[150px] shadow-sm"
+            <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => router.push("/configuraciones")}
+                  className="bg-white text-slate-500 hover:text-indigo-600 py-2 px-4 rounded-xl font-black border border-slate-200 shadow-sm transition-all active:scale-95 flex items-center gap-2 text-[10px] uppercase tracking-widest"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                  Volver
+                </button>
+            </div>
+        </div>
+        <div className="w-full h-px bg-slate-200 mt-4 mb-2 opacity-50"></div>
+
+        {/* Filtros */}
+        <div className="flex flex-wrap items-center gap-3 w-full animate-in fade-in slide-in-from-top duration-300">
+             <select 
+                className="px-4 py-3 bg-white border border-slate-200 rounded-xl text-[10px] font-bold uppercase tracking-tight focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none min-w-[200px] shadow-sm flex-1 lg:flex-none transition-all"
                 value={actionFilter}
                 onChange={(e) => setActionFilter(e.target.value)}
               >
@@ -128,25 +147,18 @@ export default function AuditoriaPage() {
               </select>
               <input 
                 type="date" 
-                className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-[10px] font-bold uppercase focus:ring-2 focus:ring-amber-200 outline-none shadow-sm"
+                className="px-4 py-3 bg-white border border-slate-200 rounded-xl text-[10px] font-bold uppercase focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none shadow-sm flex-1 lg:flex-none transition-all"
                 value={desdeFilter}
                 onChange={(e) => setDesdeFilter(e.target.value)}
               />
               <button 
                 onClick={loadLogs}
-                className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-md active:scale-95"
+                className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-amber-100 transition-all active:scale-95 flex items-center gap-2"
               >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                 Buscar
               </button>
-              <button 
-                onClick={() => router.push("/configuraciones")}
-                className="bg-white text-slate-500 hover:text-indigo-600 py-2 px-4 rounded-xl font-black border border-slate-200 shadow-sm transition-all active:scale-95 flex items-center gap-2 text-[10px] uppercase tracking-widest"
-              >
-                Volver
-              </button>
-            </div>
         </div>
-        <div className="w-full h-px bg-slate-200 mt-4 opacity-50"></div>
       </div>
 
       <main className="w-full max-w-5xl flex flex-col min-h-0 overflow-y-auto pr-1 pb-10 custom-scrollbar">
@@ -206,7 +218,7 @@ export default function AuditoriaPage() {
 
       <div className="w-full max-w-5xl flex justify-between items-center mt-auto pb-4 shrink-0 px-2 lg:px-0">
          <p className="text-[9px] text-slate-300 font-black tracking-[0.3em] uppercase">
-            SOFTCOINP v2 • Registro de Auditoría
+            Control de Acceso Softcoinp {systemVersion || "..."} • {clientName || "Registro de Auditoría"}
          </p>
          <div className="flex items-center gap-4">
             <span className="text-[9px] font-black text-slate-400 uppercase bg-slate-200/50 px-3 py-1 rounded-lg">Total: {total}</span>

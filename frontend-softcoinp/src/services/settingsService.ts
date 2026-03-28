@@ -29,5 +29,14 @@ export const settingsService = {
     } catch {
       return "SISTEMA DE SEGURIDAD";
     }
+  },
+
+  getSystemVersion: async () => {
+    try {
+      const res = await api.get<SystemSetting>("/settings/SystemVersion");
+      return res.data.value;
+    } catch {
+      return ""; // No hardcoded fallback
+    }
   }
 };

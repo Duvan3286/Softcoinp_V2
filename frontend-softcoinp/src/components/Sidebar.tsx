@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { getCurrentUser } from "@/utils/auth";
 import { useSidebar } from "@/context/SidebarContext";
+import { settingsService } from "@/services/settingsService";
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -12,6 +13,7 @@ export default function Sidebar() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [usuario, setUsuario] = useState<{ role?: string; id?: string } | null>(null);
   const [hayNovedades, setHayNovedades] = useState(false);
+  const [systemVersion, setSystemVersion] = useState("");
 
   // Estados para grupos colapsables
   const [isHistorialOpen, setIsHistorialOpen] = useState(false);
@@ -22,6 +24,9 @@ export default function Sidebar() {
   useEffect(() => {
     if (pathname === "/login") return;
     setUsuario(getCurrentUser() as any);
+
+    // Cargar versión
+    settingsService.getSystemVersion().then(setSystemVersion);
 
     // Auto-abrir grupos si la ruta actual pertenece a ellos
     if (pathname.includes("registros")) setIsHistorialOpen(true);
@@ -124,9 +129,9 @@ export default function Sidebar() {
 
         <div className="mt-auto pt-4 border-t border-slate-200 text-center overflow-hidden flex flex-col items-center justify-center min-h-[40px]">
            {isExpanded ? (
-             <p className="text-[10px] text-slate-400 font-bold tracking-widest whitespace-nowrap animate-in fade-in duration-300">SOFTCOINP V1.0</p>
+             <p className="text-[10px] text-slate-400 font-bold tracking-widest whitespace-nowrap animate-in fade-in duration-300 uppercase">Control de Acceso Softcoinp {systemVersion || "..."}</p>
            ) : (
-             <p className="text-[10px] text-slate-400 font-bold tracking-widest">V1.0</p>
+             <p className="text-[10px] text-slate-400 font-bold tracking-widest uppercase">{systemVersion ? systemVersion.substring(0, 4) : "..."}</p>
            )}
         </div>
       </aside>

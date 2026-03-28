@@ -277,9 +277,13 @@ namespace Softcoinp.Backend.Controllers
             wsMain.Column(6).Width = 15; // ESTADO
             wsMain.Column(7).Width = 5;  // Margen Extra
 
+            // Fetch ClientName from SystemSettings
+            var clientSetting = await _db.SystemSettings.FirstOrDefaultAsync(s => s.Key == "ClientName");
+            string clientName = clientSetting?.Value ?? "SOFTCOINP";
+
             // Banner Principal
             var mainTitle = wsMain.Range("B2:F2");
-            mainTitle.Merge().Value = "INFORME ESTRATEGICO DE SEGURIDAD Y CONTROL";
+            mainTitle.Merge().Value = $"{clientName} - INFORME ESTRATEGICO";
             mainTitle.Style.Font.SetBold().Font.SetFontSize(22).Font.SetFontColor(colorNavy);
             mainTitle.Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Left);
             
@@ -474,8 +478,12 @@ namespace Softcoinp.Backend.Controllers
             wsMain.Column(6).Width = 15; // ESTADO
             wsMain.Column(7).Width = 5;  // Margen Extra
 
+            // Fetch ClientName from SystemSettings
+            var clientSetting2 = await _db.SystemSettings.FirstOrDefaultAsync(s => s.Key == "ClientName");
+            string clientName2 = clientSetting2?.Value ?? "SOFTCOINP";
+
             var mainTitle = wsMain.Range("B2:F2");
-            mainTitle.Merge().Value = "INFORME ESTRATEGICO DE SEGURIDAD VEHICULAR";
+            mainTitle.Merge().Value = $"{clientName2} - INFORME VEHICULAR";
             mainTitle.Style.Font.SetBold().Font.SetFontSize(22).Font.SetFontColor(colorNavy);
             mainTitle.Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Left);
             

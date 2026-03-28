@@ -35,7 +35,7 @@ export default function NotificationModal({ show, title, message, type = 'succes
                 <button 
                     onClick={onClose}
                     className={`w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg transition-all active:scale-95
-                        ${type === 'success' ? 'bg-indigo-600 text-white shadow-indigo-100 hover:bg-indigo-700' : 
+                        ${type === 'success' ? 'bg-emerald-600 text-white shadow-emerald-100 hover:bg-emerald-700' : 
                           type === 'error' ? 'bg-slate-800 text-white shadow-slate-200 hover:bg-slate-900' :
                           'bg-blue-600 text-white shadow-blue-100 hover:bg-blue-700'}
                     `}

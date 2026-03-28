@@ -71,7 +71,6 @@ export default function Sidebar() {
                 >
                 {hasPermission("novedades-personas") && <NavItem icon="👥" text="Novedades Personas" path="/novedades" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />}
                 {hasPermission("novedades-vehicular") && <NavItem icon="🚗" text="Novedades Vehicular" path="/novedades-vehiculares" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />}
-                {hasPermission("historial-novedades") && <NavItem icon="📋" text="Historial Novedades" path="/historial-novedades" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />}
                 </NavGroup>
             )}
 
@@ -102,7 +101,6 @@ export default function Sidebar() {
                 >
                 {hasPermission("historial-personas") && <NavItem icon="👥" text="Historial Personas" path="/registros" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />}
                 {hasPermission("historial-vehiculos") && <NavItem icon="🚗" text="Historial Vehículos" path="/registros-vehiculos" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />}
-                {hasPermission("historial-vehiculares") && <NavItem icon="📋" text="Historial Novedades Veh." path="/historial-vehiculares" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />}
                 </NavGroup>
             )}
 

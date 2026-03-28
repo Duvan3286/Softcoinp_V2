@@ -132,12 +132,21 @@ export default function PermissionsPage() {
         <div className="h-full bg-slate-50 flex flex-col lg:flex-row overflow-hidden">
             {/* Sidebar Usuarios */}
             <div className="w-full lg:w-80 bg-white border-r border-slate-200 flex flex-col shadow-sm">
-                <div className="p-6 border-b border-slate-100 bg-white sticky top-0 z-10">
-                    <h2 className="text-sm font-black text-slate-800 uppercase tracking-tight flex items-center gap-2">
-                        <span className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">👥</span> 
-                        Usuarios del Sistema
-                    </h2>
-                    <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-wider">Selecciona para gestionar</p>
+                <div className="p-6 border-b border-slate-100 bg-white sticky top-0 z-10 flex items-center justify-between">
+                    <div>
+                        <h2 className="text-sm font-black text-slate-700 uppercase tracking-tight flex items-center gap-2">
+                            <span className="p-1.5 bg-slate-100 text-slate-700 rounded-lg">👥</span> 
+                            Usuarios
+                        </h2>
+                        <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-wider">Gestión</p>
+                    </div>
+                    <button 
+                        onClick={() => router.push("/configuraciones")}
+                        className="bg-white text-slate-500 hover:text-slate-700 py-1.5 px-3 rounded-xl font-black border border-slate-200 shadow-sm transition-all active:scale-95 flex items-center gap-1.5 text-[9px] uppercase tracking-widest"
+                    >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                        Volver
+                    </button>
                 </div>
                 <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-1 custom-scrollbar">
                     {users.map(u => (
@@ -146,12 +155,12 @@ export default function PermissionsPage() {
                             onClick={() => handleSelectUser(u)}
                             className={`w-full text-left p-4 rounded-2xl transition-all duration-200 flex items-center gap-4 group relative overflow-hidden border
                                 ${selectedUser?.id === u.id 
-                                    ? 'bg-indigo-50 border-indigo-100 text-indigo-700 shadow-sm' 
+                                    ? 'bg-slate-100 border-slate-200 text-slate-900 shadow-sm' 
                                     : 'bg-transparent border-transparent hover:bg-slate-50 text-slate-600 hover:text-slate-900'}
                             `}
                         >
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs shrink-0 transition-transform group-hover:scale-110
-                                ${selectedUser?.id === u.id ? 'bg-indigo-600 text-white shadow-lg' : 'bg-slate-100 text-slate-500'}
+                                ${selectedUser?.id === u.id ? 'bg-slate-700 text-white shadow-lg' : 'bg-slate-100 text-slate-500'}
                             `}>
                                 {u.nombre.charAt(0).toUpperCase()}
                             </div>
@@ -176,15 +185,15 @@ export default function PermissionsPage() {
                         <div className="p-6 lg:p-10 border-b border-slate-200 bg-white flex flex-col lg:flex-row lg:items-center justify-between gap-4 sticky top-0 z-10 shadow-sm">
                             <div>
                                 <h1 className="text-xl lg:text-2xl font-black text-slate-800 uppercase tracking-tight leading-none flex items-center gap-3">
-                                    Permisos de <span className="text-indigo-600">{selectedUser.nombre}</span>
+                                    Permisos de <span className="text-slate-900 drop-shadow-sm">{selectedUser.nombre}</span>
                                 </h1>
                                 <p className="text-[10px] lg:text-[11px] font-bold text-slate-400 mt-2 uppercase tracking-[0.2em]">Configuración de acceso granular por categorías</p>
                             </div>
                             <button
                                 onClick={handleSave}
                                 disabled={saving}
-                                className={`px-8 py-4 bg-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-indigo-100 transition-all active:scale-95
-                                    ${saving ? 'opacity-50 cursor-not-allowed' : 'hover:bg-indigo-700 hover:-translate-y-1 hover:shadow-indigo-200'}
+                                className={`px-8 py-4 bg-emerald-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-emerald-100 transition-all active:scale-95
+                                    ${saving ? 'opacity-50 cursor-not-allowed' : 'hover:bg-emerald-700 hover:-translate-y-1 hover:shadow-emerald-200'}
                                 `}
                             >
                                 {saving ? "Guardando..." : "Guardar Cambios"}
@@ -210,9 +219,9 @@ export default function PermissionsPage() {
                                                     onClick={() => toggleCategory(category, views.map(v => v.key))}
                                                     className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-tighter transition-all border
                                                         ${allCategorySelected 
-                                                            ? 'bg-indigo-600 text-white border-indigo-700 shadow-md' 
+                                                            ? 'bg-slate-700 text-white border-slate-800 shadow-md' 
                                                             : someCategorySelected 
-                                                                ? 'bg-indigo-50 text-indigo-600 border-indigo-100'
+                                                                ? 'bg-slate-100 text-slate-700 border-slate-300'
                                                                 : 'bg-white text-slate-400 border-slate-200 hover:bg-slate-50'}
                                                     `}
                                                 >
@@ -220,38 +229,38 @@ export default function PermissionsPage() {
                                                 </button>
                                             </div>
 
-                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
                                                 {views.map(view => {
                                                     const isSelected = userPermissions.includes(view.key);
                                                     return (
                                                         <div 
                                                             key={view.key}
                                                             onClick={() => togglePermission(view.key)}
-                                                            className={`group p-6 rounded-3xl border-2 transition-all cursor-pointer flex flex-col justify-between min-h-[140px] relative overflow-hidden
+                                                            className={`group p-2.5 rounded-xl border transition-all cursor-pointer flex items-center gap-3 relative
                                                                 ${isSelected 
-                                                                    ? 'bg-white border-indigo-600 shadow-indigo-100 shadow-xl' 
-                                                                    : 'bg-white border-slate-100 hover:border-indigo-200 hover:shadow-lg opacity-60 hover:opacity-100'}
+                                                                    ? 'bg-slate-700 border-slate-800 shadow-md shadow-slate-200' 
+                                                                    : 'bg-white border-slate-200 hover:border-slate-400 hover:bg-slate-50'}
                                                             `}
                                                         >
-                                                            {/* Indicador de check */}
-                                                            {isSelected && (
-                                                                <div className="absolute top-0 right-0 w-10 h-10 bg-indigo-600 flex items-center justify-center rounded-bl-2xl animate-in zoom-in duration-300">
-                                                                    <span className="text-white text-base">✓</span>
-                                                                </div>
-                                                            )}
-
-                                                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl transition-transform group-hover:scale-110
-                                                                ${isSelected ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-50 text-slate-400'}
+                                                            {/* Indicador de Selección */}
+                                                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-all
+                                                                ${isSelected 
+                                                                    ? 'bg-white border-white scale-110' 
+                                                                    : 'bg-transparent border-slate-300 group-hover:border-slate-500'}
                                                             `}>
-                                                                {view.icon}
+                                                                {isSelected && <div className="w-1.5 h-1.5 bg-slate-700 rounded-full" />}
                                                             </div>
                                                             
-                                                            <div className="mt-4">
-                                                                <h3 className={`text-xs font-black uppercase tracking-tight transition-colors ${isSelected ? 'text-slate-800' : 'text-slate-500'}`}>
+                                                            <div className="flex-1 min-w-0">
+                                                                <h3 className={`text-[9.5px] font-black uppercase tracking-tight transition-colors truncate leading-none
+                                                                    ${isSelected ? 'text-white' : 'text-slate-700'}
+                                                                `}>
                                                                     {view.name}
                                                                 </h3>
-                                                                <p className="text-[9px] font-bold text-slate-400 uppercase mt-1 tracking-tighter">
-                                                                     Vista: {view.key}
+                                                                <p className={`text-[7.5px] font-bold uppercase mt-0.5 tracking-tighter truncate opacity-60
+                                                                    ${isSelected ? 'text-slate-300' : 'text-slate-400'}
+                                                                `}>
+                                                                     {view.key}
                                                                 </p>
                                                             </div>
                                                         </div>

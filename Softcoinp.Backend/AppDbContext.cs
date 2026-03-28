@@ -17,6 +17,7 @@ namespace Softcoinp.Backend
         public DbSet<SystemSetting> SystemSettings { get; set; }
         public DbSet<Correspondencia> Correspondencias { get; set; }
         public DbSet<RegistroVehiculo> RegistrosVehiculos { get; set; }
+        public DbSet<UserPermission> UserPermissions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -58,6 +59,17 @@ namespace Softcoinp.Backend
                 new TipoPersonal { Id = Guid.Parse("00000000-0000-0000-0000-000000000001"), Nombre = "Empleado", Activo = true },
                 new TipoPersonal { Id = Guid.Parse("00000000-0000-0000-0000-000000000002"), Nombre = "Visitante", Activo = true }
             );
+
+            // Unique ViewKey per User
+            modelBuilder.Entity<UserPermission>()
+                .HasIndex(up => new { up.UserId, up.ViewKey })
+                .IsUnique();
+
+            modelBuilder.Entity<UserPermission>()
+                .HasOne(up => up.User)
+                .WithMany()
+                .HasForeignKey(up => up.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             base.OnModelCreating(modelBuilder);
         }

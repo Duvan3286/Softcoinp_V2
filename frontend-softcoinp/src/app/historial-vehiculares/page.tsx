@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/services/api";
+import { useAuth } from "@/context/AuthContext";
+import NotificationModal from "@/components/NotificationModal";
 
 const BACKEND_BASE_URL = "http://localhost:5004/static";
 
@@ -29,6 +31,12 @@ interface VehiculoAgrupado {
 
 export default function HistorialVehicularesPage() {
   const router = useRouter();
+  const { hasPermission } = useAuth();
+  const [notification, setNotification] = useState<{ show: boolean; title: string; message: string; type: 'success' | 'error' }>({
+    show: false, title: '', message: '', type: 'success'
+  });
+  
+  // ... rest of state ...
   const [novedades, setNovedades] = useState<AnotacionItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -93,7 +101,12 @@ export default function HistorialVehicularesPage() {
       link.remove();
     } catch (error) {
       console.error("Error exportando excel:", error);
-      alert("No se pudo generar el reporte. Verifique su conexiÃ³n.");
+      setNotification({
+        show: true,
+        title: "Error de Exportación",
+        message: "No se pudo generar el reporte. Verifique su conexión.",
+        type: 'error'
+      });
     } finally {
       setExporting(false);
     }
@@ -184,7 +197,8 @@ export default function HistorialVehicularesPage() {
   }, [filtroBusqueda, desdeFilter, hastaFilter, reporterFilter, statusFilter]);
 
   return (
-    <div className="flex-1 h-auto lg:h-full flex flex-col min-h-0 bg-gray-50 p-2 lg:p-4 lg:overflow-hidden">
+    <>
+      <div className="flex-1 h-auto lg:h-full flex flex-col min-h-0 bg-gray-50 p-2 lg:p-4 lg:overflow-hidden relative">
       <div className="max-w-[1400px] mx-auto w-full h-full flex flex-col min-h-0">
         {/* Header Section */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-3 shrink-0">
@@ -199,23 +213,25 @@ export default function HistorialVehicularesPage() {
           </div>
           
           <div className="flex items-center gap-2">
-            <button
-              onClick={handleExportExcel}
-              disabled={exporting}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-4 rounded-xl shadow-lg shadow-emerald-200 transition-all duration-300 flex items-center justify-center gap-2 text-sm font-bold active:scale-95 whitespace-nowrap disabled:opacity-50"
-            >
-              {exporting ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-                  Generando...
-                </>
-              ) : (
-                <>
-                  <span className="text-lg">📥</span>
-                  Exportar Excel
-                </>
-              )}
-            </button>
+            {hasPermission("exportar-historial-vehiculares") && (
+              <button
+                onClick={handleExportExcel}
+                disabled={exporting}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-4 rounded-xl shadow-lg shadow-emerald-200 transition-all duration-300 flex items-center justify-center gap-2 text-sm font-bold active:scale-95 whitespace-nowrap disabled:opacity-50"
+              >
+                {exporting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                    Generando...
+                  </>
+                ) : (
+                  <>
+                    <span className="text-lg">📥</span>
+                    Exportar Excel
+                  </>
+                )}
+              </button>
+            )}
             <button
               onClick={() => router.push("/novedades-vehiculares")}
               className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-xl shadow-lg transition-all duration-300 flex items-center justify-center gap-2 text-sm font-bold active:scale-95 whitespace-nowrap"
@@ -539,6 +555,15 @@ export default function HistorialVehicularesPage() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+
+      <NotificationModal 
+        show={notification.show}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+        onClose={() => setNotification({ ...notification, show: false })}
+      />
+    </>
   );
 }

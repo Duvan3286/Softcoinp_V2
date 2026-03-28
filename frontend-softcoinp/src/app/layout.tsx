@@ -16,6 +16,8 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+import { AuthProvider } from "@/context/AuthContext";
+
 export const metadata: Metadata = {
   title: "SOFTCOINP | Control de Acceso",
   description: "Sistema de Control de Acceso",
@@ -32,18 +34,20 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-100 lg:h-screen lg:overflow-hidden min-h-screen flex flex-col`}
       >
         <SidebarProvider>
-          {/* 🔝 HEADER GLOBAL */}
-          <Header />
+          <AuthProvider>
+            {/* 🔝 HEADER GLOBAL */}
+            <Header />
 
-          {/* 📄 CONTENIDO */}
-          <main className="flex flex-row flex-1 w-full overflow-hidden relative">
-            <SessionGuard>
-              <Sidebar />
-              <div className="flex-1 lg:overflow-hidden overflow-y-auto bg-slate-50 w-full relative flex flex-col min-h-0">
-                {children}
-              </div>
-            </SessionGuard>
-          </main>
+            {/* 📄 CONTENIDO */}
+            <main className="flex flex-row flex-1 w-full overflow-hidden relative">
+              <SessionGuard>
+                <Sidebar />
+                <div className="flex-1 lg:overflow-hidden overflow-y-auto bg-slate-50 w-full relative flex flex-col min-h-0">
+                  {children}
+                </div>
+              </SessionGuard>
+            </main>
+          </AuthProvider>
         </SidebarProvider>
       </body>
     </html>

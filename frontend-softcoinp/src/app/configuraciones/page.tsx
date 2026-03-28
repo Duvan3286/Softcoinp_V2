@@ -27,11 +27,20 @@ export default function ConfiguracionesHubPage() {
   const menuItems = [
     {
       title: "Gestión de Usuarios",
-      description: "Crear, editar y administrar permisos de usuarios del sistema.",
+      description: "Crear, editar y administrar usuarios del sistema.",
       icon: "👥",
       path: "/configuraciones/usuarios",
       color: "bg-purple-100 text-purple-600",
       btnColor: "bg-purple-600 hover:bg-purple-700",
+      roles: ["admin", "superadmin"]
+    },
+    {
+      title: "Gestión de Permisos",
+      description: "Controla qué vistas puede ver cada usuario en el sistema.",
+      icon: "🔑",
+      path: "/configuraciones/permisos",
+      color: "bg-indigo-100 text-indigo-600",
+      btnColor: "bg-indigo-600 hover:bg-indigo-700",
       roles: ["admin", "superadmin"]
     },
     {

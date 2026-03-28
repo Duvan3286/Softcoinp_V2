@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace Softcoinp.Backend.Models
@@ -22,6 +23,7 @@ namespace Softcoinp.Backend.Models
 
         public string RefreshToken { get; set; } = string.Empty;
         public DateTime RefreshTokenExpiry { get; set; }
-
+        
+        public ICollection<UserPermission> Permissions { get; set; } = new List<UserPermission>();
     }
 }

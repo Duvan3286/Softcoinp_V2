@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { registroVehiculoService, RegistroVehiculoDto } from "@/services/registroVehiculoService";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+import NotificationModal from "@/components/NotificationModal";
 import api from "@/services/api";
 
 const BACKEND_BASE_URL = "http://localhost:5004/static";
@@ -36,6 +38,10 @@ export default function RegistrosVehiculosPage() {
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
   const router = useRouter();
+  const { hasPermission } = useAuth();
+  const [notification, setNotification] = useState<{ show: boolean; title: string; message: string; type: 'success' | 'error' }>({
+    show: false, title: '', message: '', type: 'success'
+  });
 
   const [placa, setPlaca] = useState("");
   const [desde, setDesde] = useState("");
@@ -87,7 +93,12 @@ export default function RegistrosVehiculosPage() {
       link.remove();
     } catch (err) {
       console.error("Error exportando registros de vehículos", err);
-      alert("No se pudo generar el reporte. Verifique su conexiÃ³n.");
+      setNotification({
+        show: true,
+        title: "Error de Exportación",
+        message: "No se pudo generar el reporte. Verifique su conexión.",
+        type: 'error'
+      });
     } finally {
       setExporting(false);
     }
@@ -127,23 +138,25 @@ export default function RegistrosVehiculosPage() {
             >
                📜 Ver Personas
             </button>
-            <button
-              onClick={handleExportExcel}
-              disabled={exporting}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-black shadow-lg shadow-emerald-100 transition-all active:scale-95 flex items-center justify-center gap-2 text-xs uppercase disabled:opacity-50"
-            >
-              {exporting ? (
-                 <>
-                   <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-                   Generando...
-                 </>
-              ) : (
-                <>
-                  <span className="text-lg">📥</span>
-                  Exportar Excel
-                </>
-              )}
-            </button>
+            {hasPermission("exportar-registros-vehiculos") && (
+              <button
+                onClick={handleExportExcel}
+                disabled={exporting}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-black shadow-lg shadow-emerald-100 transition-all active:scale-95 flex items-center justify-center gap-2 text-xs uppercase disabled:opacity-50"
+              >
+                {exporting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                    Generando...
+                  </>
+                ) : (
+                  <>
+                    <span className="text-lg">📥</span>
+                    Exportar Excel
+                  </>
+                )}
+              </button>
+            )}
           </div>
         </div>
 
@@ -331,6 +344,14 @@ export default function RegistrosVehiculosPage() {
           )}
         </div>
       </div>
+
+      <NotificationModal 
+        show={notification.show}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+        onClose={() => setNotification({ ...notification, show: false })}
+      />
     </div>
   );
 }

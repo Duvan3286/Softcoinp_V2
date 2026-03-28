@@ -2,20 +2,17 @@
 
 import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { getCurrentUser } from "@/utils/auth";
 import { useSidebar } from "@/context/SidebarContext";
 import { settingsService } from "@/services/settingsService";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { isOpen, setIsOpen } = useSidebar();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [usuario, setUsuario] = useState<{ role?: string; id?: string } | null>(null);
-  const [hayNovedades, setHayNovedades] = useState(false);
+  const { user, hasPermission, loading: authLoading } = useAuth();
   const [systemVersion, setSystemVersion] = useState("");
-
-  // Estados para grupos colapsables
   const [isHistorialOpen, setIsHistorialOpen] = useState(false);
   const [isEnSitioOpen, setIsEnSitioOpen] = useState(false);
   const [isNovedadesOpen, setIsNovedadesOpen] = useState(false);
@@ -23,7 +20,6 @@ export default function Sidebar() {
 
   useEffect(() => {
     if (pathname === "/login") return;
-    setUsuario(getCurrentUser() as any);
 
     // Cargar versión
     settingsService.getSystemVersion().then(setSystemVersion);
@@ -38,7 +34,7 @@ export default function Sidebar() {
     setIsOpen(false);
   }, [pathname, setIsOpen]);
 
-  if (pathname === "/login") return null;
+  if (pathname === "/login" || authLoading) return null;
 
   return (
     <>
@@ -60,69 +56,84 @@ export default function Sidebar() {
         onMouseLeave={() => setIsExpanded(false)}
       >
          <nav className="flex flex-col gap-2 flex-grow px-4 overflow-y-auto overflow-x-hidden custom-scrollbar mt-4">
-            <NavItem icon="🏢" text="Dashboard" path="/dashboard" currentPath={pathname} isExpanded={isExpanded} router={router} />
+            {hasPermission("dashboard") && (
+                <NavItem icon="🏢" text="Dashboard" path="/dashboard" currentPath={pathname} isExpanded={isExpanded} router={router} />
+            )}
             
             {/* Grupo Novedades */}
-            <NavGroup 
-               icon="📁" 
-               text="Novedades" 
-               isOpen={isNovedadesOpen && isExpanded} 
-               isExpanded={isExpanded} 
-               onToggle={() => setIsNovedadesOpen(!isNovedadesOpen)}
-            >
-               <NavItem icon="👥" text="Novedades Personas" path="/novedades" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />
-               <NavItem icon="🚗" text="Novedades Vehicular" path="/novedades-vehiculares" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />
-            </NavGroup>
+            {(hasPermission("novedades-personas") || hasPermission("novedades-vehicular")) && (
+                <NavGroup 
+                icon="📁" 
+                text="Novedades" 
+                isOpen={isNovedadesOpen && isExpanded} 
+                isExpanded={isExpanded} 
+                onToggle={() => setIsNovedadesOpen(!isNovedadesOpen)}
+                >
+                {hasPermission("novedades-personas") && <NavItem icon="👥" text="Novedades Personas" path="/novedades" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />}
+                {hasPermission("novedades-vehicular") && <NavItem icon="🚗" text="Novedades Vehicular" path="/novedades-vehiculares" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />}
+                {hasPermission("historial-novedades") && <NavItem icon="📋" text="Historial Novedades" path="/historial-novedades" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />}
+                </NavGroup>
+            )}
 
             {/* Grupo Analítica y Catálogos */}
-            <NavGroup 
-               icon="📊" 
-               text="Analítica & Catálogos" 
-               isOpen={isAnaliticaOpen && isExpanded} 
-               isExpanded={isExpanded}
-               onToggle={() => setIsAnaliticaOpen(!isAnaliticaOpen)}
-            >
-               <NavItem icon="📈" text="Dashboard Analítico" path="/reportes" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />
-               <NavItem icon="👥" text="Catálogo Personas" path="/reportes/personas" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />
-               <NavItem icon="🚗" text="Catálogo Vehículos" path="/reportes/vehiculos" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />
-            </NavGroup>
+            {(hasPermission("analitica-dashboard") || hasPermission("analitica-personas") || hasPermission("analitica-vehiculos")) && (
+                <NavGroup 
+                icon="📊" 
+                text="Analítica & Catálogos" 
+                isOpen={isAnaliticaOpen && isExpanded} 
+                isExpanded={isExpanded}
+                onToggle={() => setIsAnaliticaOpen(!isAnaliticaOpen)}
+                >
+                {hasPermission("analitica-dashboard") && <NavItem icon="📈" text="Dashboard Analítico" path="/reportes" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />}
+                {hasPermission("analitica-personas") && <NavItem icon="👥" text="Catálogo Personas" path="/reportes/personas" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />}
+                {hasPermission("analitica-vehiculos") && <NavItem icon="🚗" text="Catálogo Vehículos" path="/reportes/vehiculos" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />}
+                {hasPermission("exportar-reportes") && <p className="hidden" />} {/* Marcador de permiso */}
+                </NavGroup>
+            )}
             
             {/* Grupo Historial */}
-           <NavGroup 
-              icon="📜" 
-              text="Historial De Ingresos" 
-              isOpen={isHistorialOpen && isExpanded} 
-              isExpanded={isExpanded}
-              onToggle={() => setIsHistorialOpen(!isHistorialOpen)}
-           >
-              <NavItem icon="👥" text="Historial Personas" path="/registros" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />
-              <NavItem icon="🚗" text="Historial Vehículos" path="/registros-vehiculos" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />
-           </NavGroup>
+            {(hasPermission("historial-personas") || hasPermission("historial-vehiculos") || hasPermission("historial-vehiculares")) && (
+                <NavGroup 
+                icon="📜" 
+                text="Historial De Ingresos" 
+                isOpen={isHistorialOpen && isExpanded} 
+                isExpanded={isExpanded}
+                onToggle={() => setIsHistorialOpen(!isHistorialOpen)}
+                >
+                {hasPermission("historial-personas") && <NavItem icon="👥" text="Historial Personas" path="/registros" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />}
+                {hasPermission("historial-vehiculos") && <NavItem icon="🚗" text="Historial Vehículos" path="/registros-vehiculos" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />}
+                {hasPermission("historial-vehiculares") && <NavItem icon="📋" text="Historial Novedades Veh." path="/historial-vehiculares" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />}
+                </NavGroup>
+            )}
 
-           {/* Grupo En Sitio */}
-           <NavGroup 
-              icon="📍" 
-              text="En Sitio" 
-              isOpen={isEnSitioOpen && isExpanded} 
-              isExpanded={isExpanded}
-              onToggle={() => setIsEnSitioOpen(!isEnSitioOpen)}
-           >
-              <NavItem icon="👤" text="Personas Activas" path="/personal-activo" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />
-              <NavItem icon="🚘" text="Vehículos Activos" path="/vehiculos-activos" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />
-           </NavGroup>
+            {/* Grupo En Sitio */}
+            {(hasPermission("sitio-personas") || hasPermission("sitio-vehiculos")) && (
+                <NavGroup 
+                icon="📍" 
+                text="En Sitio" 
+                isOpen={isEnSitioOpen && isExpanded} 
+                isExpanded={isExpanded}
+                onToggle={() => setIsEnSitioOpen(!isEnSitioOpen)}
+                >
+                {hasPermission("sitio-personas") && <NavItem icon="👤" text="Personas Activas" path="/personal-activo" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />}
+                {hasPermission("sitio-vehiculos") && <NavItem icon="🚘" text="Vehículos Activos" path="/vehiculos-activos" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />}
+                </NavGroup>
+            )}
 
-           <NavItem icon="📦" text="Correspondencia" path="/correspondencia" currentPath={pathname} isExpanded={isExpanded} router={router} />
+            {hasPermission("correspondencia") && (
+                <NavItem icon="📦" text="Correspondencia" path="/correspondencia" currentPath={pathname} isExpanded={isExpanded} router={router} />
+            )}
 
-           {(usuario?.role === "admin" || usuario?.role === "superadmin") && (
-              <div className="mt-2 pt-2 border-t border-slate-200">
-                  <NavItem icon="🔑" text="Configuraciones" path="/configuraciones" currentPath={pathname} isExpanded={isExpanded} router={router} />
-              </div>
-           )}
+            {(user?.role === "admin" || user?.role === "superadmin") && hasPermission("configuraciones") && (
+               <div className="mt-2 pt-2 border-t border-slate-200">
+                   <NavItem icon="🔑" text="Configuraciones" path="/configuraciones" currentPath={pathname} isExpanded={isExpanded} router={router} />
+               </div>
+            )}
 
-           {usuario?.role === "superadmin" && (
+           {user?.role === "superadmin" && (
               <div className="mt-2 text-[10px] uppercase font-black text-slate-300 px-4 mb-1">Super Admin</div>
            )}
-           {usuario?.role === "superadmin" && (
+           {user?.role === "superadmin" && (
               <NavItem icon="🛠️" text="Mantenimiento" path="/configuraciones/general?mantenimiento=true" currentPath={pathname} isExpanded={isExpanded} router={router} highlightRed />
            )}
         </nav>

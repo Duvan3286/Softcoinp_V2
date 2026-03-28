@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -108,13 +110,16 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuditService, AuditService>();
 
 // Configurar CORS
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() 
+    ?? new[] { "http://localhost:3000" };
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend",
         policy =>
         {
             // La URL de tu frontend Next.js (necesaria para CORS)
-            policy.WithOrigins("http://localhost:3000") 
+            policy.WithOrigins(allowedOrigins) 
                   .AllowAnyHeader()
                   .AllowAnyMethod();
         });
@@ -145,7 +150,17 @@ if (Directory.Exists(webRootPath))
         RequestPath = "/static", 
         OnPrepareResponse = ctx =>
         {
-            ctx.Context.Response.Headers.Append("Access-Control-Allow-Origin", "http://localhost:3000");
+            var requestOrigin = ctx.Context.Request.Headers["Origin"].ToString();
+            if (allowedOrigins.Contains(requestOrigin))
+            {
+                ctx.Context.Response.Headers.Append("Access-Control-Allow-Origin", requestOrigin);
+            }
+            else if (allowedOrigins.Length > 0 && string.IsNullOrEmpty(requestOrigin))
+            {
+                // Fallback for direct loads if necessary, though CORS usually only applies to XHR/Fetch
+                // For strictness, if no origin header, we might not want to send the CORS header at all
+            }
+            
             ctx.Context.Response.Headers.Append("Access-Control-Allow-Methods", "GET");
             ctx.Context.Response.Headers.Remove("Content-Disposition");
         }

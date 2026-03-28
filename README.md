@@ -1,87 +1,83 @@
-# SOFTCOINP - Sistema de Gestión y Auditoría
+# 🛡️ SOFTCOINP - Sistema de Gestión y Auditoría de Seguridad (Elite v2.1.8)
 
-SOFTCOINP es una plataforma integral diseñada para la gestión de ingresos, control de personal activo y auditoría detallada de operaciones administrativas.
+**SOFTCOINP** es una plataforma integral de seguridad diseñada para la gestión de ingresos, control de personal activo, supervisión vehicular y auditoría detallada de operaciones administrativas. Esta versión **Elite** introduce una interfaz de usuario premium, personalización dinámica de marca y herramientas avanzadas de mantenimiento de datos.
+
+---
 
 ## 🚀 Arquitectura del Proyecto
 
-El sistema está dividido en dos componentes principales:
+El sistema está construido siguiendo una arquitectura moderna de alto rendimiento:
 
-### 1. Frontend (`/frontend-softcoinp`)
-- **Tecnología:** Next.js 14+ (App Router)
-- **Lenguaje:** TypeScript
-- **Estilos:** Tailwind CSS (Diseño adaptable de alto rendimiento)
-- **Responsive:** Sidebar tipo "Drawer" en móviles y diseño optimizado para tablets/celulares.
-- **Estado:** React Hooks & Context API (SidebarContext para navegación móvil)
-- **Cliente API:** Axios (Centralizado en `src/services/api.ts`)
+### 🎨 Frontend (`/frontend-softcoinp`)
+- **Framework:** [Next.js 14+](https://nextjs.org/) (App Router & Turbopack)
+- **Lenguaje:** TypeScript (Tipado estricto para mayor robustez)
+- **Estilos:** Tailwind CSS (Diseño "Glassmorphism" con animaciones fluidas)
+- **UI/UX:** Componentes reactivos, Sidebar tipo "Drawer" inteligente y diseño 100% responsivo.
+- **Estado Global:** React Context API & Hooks avanzados.
+- **Cliente API:** Axios con interceptores para gestión automática de sesiones (JWT).
 
-### 2. Backend (`/Softcoinp.Backend`)
-- **Tecnología:** ASP.NET Core 8.0 Web API
-- **Base de Datos:** PostgreSQL con Entity Framework Core
-- **Seguridad:** Autenticación JWT (JSON Web Tokens)
-- **Patrones:** Repository/Service, DTOs, Middlewares personalizados
+### ⚙️ Backend (`/Softcoinp.Backend`)
+- **Framework:** [ASP.NET Core 8.0 Web API](https://dotnet.microsoft.com/)
+- **Base de Datos:** PostgreSQL con Entity Framework Core.
+- **Seguridad:** Autenticación y Autorización basada en Roles (RBAC) con **JSON Web Tokens (JWT)**.
+- **Patrones:** Repository/Service, DTOs y Middlewares personalizados de auditoría.
+- **API Documentation:** Swagger/OpenAPI integrada para pruebas rápidas.
 
-## ✨ Funcionalidades Destacadas
+---
 
-- **Dashboard Inteligente:** Panel interactivo con reloj en tiempo real, búsqueda rápida y visualización dual (Persona/Vehículo).
-- **Gestión de Registros (Entradas/Salidas):** 
-  - Formulario unificado con validación avanzada (asistencia visual en rojo y auto-foco).
-  - Soporte para **Captura de Fotos** mediante webcam para personal y vehículos.
-  - Limpieza automática de campos sensibles ("Motivo" y "Destino") para garantizar datos precisos.
-- **Control de Personal y Vehículos Activos:** Monitoreo en tiempo real de quién y qué vehículo se encuentra en las instalaciones.
-- **Seguridad y Antecedentes:** Sistema de alertas para personas con novedades de seguridad, incluyendo un modal de línea de tiempo con historial detallado.
-- **Reportes Avanzados:** Módulo de consulta con filtros por fecha, tipo y documento, con exportación a Excel y CSV.
-- **Auditoría Integral (Bitácora):** Rastreo de cada acción realizada en el sistema con descripciones amigables en español y nombres de usuario.
-- **Optimización de UX:** Navegación por teclado completa (soporte de tecla `Enter`), modales de retroalimentación inmediata y carga fluida de datos.
-- **Diseño Responsive:** Interfaz adaptable que garantiza la visibilidad del sidebar y la usabilidad de los formularios incluso en dispositivos móviles pequeños.
+## ✨ Funcionalidades Destacadas (v2.1.8-elite)
 
-## 🛠️ Instalación y Ejecución
+- **🏢 Personalización "White-Label":** Capacidad de cambiar dinámicamente el nombre de la institución (Identidad) y la versión del sistema desde el panel administrativo, reflejándose en tiempo real en Header, Sidebar, Login y Footers.
+- **📊 Dashboard Administrativo:** Panel interactivo con métricas en tiempo real, búsqueda global rápida y visualización dual avanzada (Personas/Vehículos).
+- **📋 Auditoría Integral (Bitácora):** Rastreo persistente de cada acción realizada (creaciones, ediciones, inicios de sesión, exportaciones), con nombres amigables en español y tallas de tiempo exactas.
+- **🛠️ Mantenimiento Crítico:** Interfaz intuitiva para realizar backups en JSON, restauración completa del sistema y limpieza profunda de datos operativos con un solo clic.
+- **🏷️ Gestión de Personal y Tipos:** Administrador de categorías de personal (Empleado, Visitante, Contratista, etc.) con estados (Activo/Inactivo).
+- **📝 Registros y Novedades:** Formulario de ingreso inteligente con validaciones visuales, soporte para captura de fotos y sistema de alertas para personas con antecedentes de seguridad.
 
-### Requisitos Previos
-- Node.js (v18+)
-- .NET SDK (v8.0+)
-- PostgreSQL Instalado y Corriendo
+---
 
-### Configuración del Backend
-1. Entra a `Softcoinp.Backend/`.
-2. Configura tu cadena de conexión en `appsettings.json`.
-3. Ejecuta las migraciones: `dotnet ef database update`.
-4. Inicia el servidor: `dotnet run`.
+## 🛠️ Instalación y Configuración
 
-### Configuración del Frontend
-1. Entra a `frontend-softcoinp/`.
-2. Instala dependencias: `npm install`.
-3. Inicia el entorno de desarrollo: `npm run dev`.
-4. Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
+### 📋 Requisitos Previos
+- [Node.js](https://nodejs.org/) (v18 o superior)
+- [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- [PostgreSQL](https://www.postgresql.org/) (Instalado y en ejecución)
+
+### ⚙️ Configuración del Backend
+1. Navega a la carpeta `Softcoinp.Backend/`.
+2. Actualiza la cadena de conexión en `appsettings.json` o `appsettings.Development.json`.
+3. Ejecuta las migraciones para preparar la base de datos:
+   ```bash
+   dotnet ef database update
+   ```
+4. Inicia el servidor API:
+   ```bash
+   dotnet run
+   ```
+
+### 🎨 Configuración del Frontend
+1. Navega a la carpeta `frontend-softcoinp/`.
+2. Instala las dependencias:
+   ```bash
+   npm install
+   ```
+3. Inicia el entorno de desarrollo:
+   ```bash
+   npm run dev
+   ```
+4. Abre [http://localhost:3000](http://localhost:3000) para acceder al sistema.
+
+---
 
 ## 🧹 Mantenimiento de Base de Datos
 
-El sistema incluye herramientas para realizar limpiezas controladas y reseteos globales de la información.
+El sistema está diseñado para facilitar el mantenimiento preventivo y correctivo desde la interfaz de **Mantenimiento Crítico** dentro de Configuraciones.
 
-### Limpieza Profunda y Re-sembrado (Recomendado)
-Este proceso elimina todos los datos operativos (Registros, Anotaciones, Auditoría y Personal) y restaura los valores iniciales del sistema.
-
-#### Opción A: Desde PowerShell (Más Rápido)
-Abre una terminal nueva (mientras el backend corre) y ejecuta:
-```powershell
-Invoke-RestMethod -Method Post -Uri "http://localhost:5004/api/Maintenance/deep-clean-and-seed"
-```
-
-#### Opción B: Desde Swagger (Visual)
-1. Ve a `http://localhost:5004/swagger/index.html`.
-2. Busca la sección **Maintenance**.
-3. Abre el POST de `deep-clean-and-seed`.
-4. Dale a **Try it out** y luego a **Execute**.
-
-#### Opción C: Desde Postman / Insomnia
-- **Método:** `POST`
-- **URL:** `http://localhost:5004/api/Maintenance/deep-clean-and-seed`
-
-**Resultado del Proceso:**
-- Base de datos vacía, con el usuario `admin@local` (Contraseña: `Admin123`) y los tipos de personal básicos (`Empleado`, `Visitante`) creados.
-
-### Limpieza de Datos Operativos
-Si solo deseas borrar los movimientos (entradas, salidas y reportes) pero conservar al personal creado y los usuarios:
-- Ejecuta: `POST http://localhost:5004/api/Maintenance/clear-operational-data`
+### Acciones Disponibles:
+- **🗃️ Deep Clean & Seed:** Borra todos los datos (Personal, Auditoría, Registros) y restaura el usuario maestro (`admin@local` / `Admin123`) y configuraciones base. 
+- **💾 Exportar Backup:** Genera un archivo JSON descargable con el estado actual de toda la base de datos.
+- **🔄 Restaurar Sistema:** Permite cargar un archivo JSON de respaldo para sobrescribir y recuperar el sistema al estado anterior.
+- **🗑️ Limpieza Operativa:** Elimina los movimientos históricos (entradas/salidas) pero mantiene al personal y las cuentas de usuario intactas.
 
 ---
-© 2026 SOFTCOINP - Sistema de Control y Auditoria
+© 2026 SOFTCOINP - Sistema de Control y Auditoría Elite v2.1.8

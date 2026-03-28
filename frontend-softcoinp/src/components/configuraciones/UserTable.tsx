@@ -28,16 +28,16 @@ export default function UserTable({ users, onEdit, onDelete, onResetPassword }: 
       {users.map((user) => (
         <div 
           key={user.id} 
-          className="w-full bg-white rounded-2xl p-4 lg:px-8 lg:py-4 border border-slate-100 shadow-sm flex items-center gap-4 lg:gap-8 transition-all hover:bg-purple-50/40 hover:border-purple-100 hover:shadow-md group"
+          className="w-full bg-white rounded-2xl p-4 lg:px-8 lg:py-4 border border-slate-100 shadow-sm flex items-center gap-4 lg:gap-8 transition-all hover:bg-emerald-50/40 hover:border-emerald-100 hover:shadow-md group"
         >
           {/* Avatar / Icono */}
-          <div className={`w-12 h-12 shrink-0 ${user.role === 'superadmin' ? 'bg-rose-100 text-rose-600' : 'bg-purple-100 text-purple-600'} rounded-xl flex items-center justify-center text-sm font-black shadow-inner transition-all group-hover:scale-110 uppercase`}>
+          <div className={`w-12 h-12 shrink-0 ${user.role === 'superadmin' ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'} rounded-xl flex items-center justify-center text-sm font-black shadow-inner transition-all group-hover:scale-110 uppercase`}>
             {user.nombre?.substring(0, 2) || "U"}
           </div>
 
           {/* Info Principal */}
           <div className="flex-1 min-w-0">
-            <h2 className="text-sm font-black text-slate-800 uppercase tracking-tight group-hover:text-purple-600 transition-colors truncate">
+            <h2 className="text-sm font-black text-slate-800 uppercase tracking-tight group-hover:text-emerald-600 transition-colors truncate">
                 {user.nombre || "Usuario sin nombre"}
             </h2>
             <div className="flex items-center gap-3 mt-1">
@@ -55,7 +55,7 @@ export default function UserTable({ users, onEdit, onDelete, onResetPassword }: 
           <div className="hidden md:block">
             <span className={`px-3 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg ${
                 user.role === "superadmin" ? "bg-rose-50 text-rose-600 border border-rose-100" :
-                user.role === "admin" ? "bg-purple-50 text-purple-600 border border-purple-100" : 
+                user.role === "admin" ? "bg-emerald-50 text-emerald-600 border border-emerald-100" : 
                 "bg-blue-50 text-blue-600 border border-blue-100"
             }`}>
                 {user.role}
@@ -68,7 +68,7 @@ export default function UserTable({ users, onEdit, onDelete, onResetPassword }: 
                 <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
                     <button
                         onClick={() => onEdit(user)}
-                        className="p-2 bg-slate-50 text-slate-500 hover:bg-purple-600 hover:text-white rounded-lg transition-all shadow-sm"
+                        className="p-2 bg-slate-50 text-slate-500 hover:bg-emerald-600 hover:text-white rounded-lg transition-all shadow-sm"
                         title="Editar Usuario"
                     >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>

@@ -132,7 +132,7 @@ export default function TiposConfigPage() {
                 </button>
                 <button
                   onClick={() => handleOpenModal()}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-100 transition-all active:scale-95"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-100 transition-all active:scale-95"
                 >
                   + Nuevo Tipo
                 </button>
@@ -217,12 +217,12 @@ export default function TiposConfigPage() {
       {isModalOpen && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden transform transition-all animate-in fade-in zoom-in duration-200 border border-slate-100">
-            <div className="bg-blue-600 p-8 text-white relative">
+            <div className="bg-emerald-600 p-8 text-white relative">
               <h3 className="text-xl font-black uppercase tracking-tight">{editingTipo ? 'Editar Tipo' : 'Nuevo Tipo'}</h3>
               <p className="text-[10px] font-bold text-blue-100 uppercase tracking-[0.2em] mt-1">Definición de categoría de personal</p>
               <button 
                 onClick={() => setIsModalOpen(false)} 
-                className="absolute right-6 top-8 hover:rotate-90 transition-transform duration-200 p-2 bg-blue-500 rounded-xl"
+                className="absolute right-6 top-8 hover:rotate-90 transition-transform duration-200 p-2 bg-emerald-500 rounded-xl"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
@@ -250,7 +250,7 @@ export default function TiposConfigPage() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-6 py-4 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all active:scale-[0.98]"
+                  className="flex-1 px-6 py-4 bg-emerald-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-emerald-100 hover:bg-emerald-700 transition-all active:scale-[0.98]"
                 >
                   {editingTipo ? 'Guardar Cambios' : 'Crear Tipo'}
                 </button>

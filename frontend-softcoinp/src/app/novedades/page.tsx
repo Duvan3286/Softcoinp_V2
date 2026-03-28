@@ -272,7 +272,7 @@ export default function NovedadesPersonasPage() {
           <div className="flex-1 flex flex-col items-center justify-center p-8 bg-white rounded-3xl border-2 border-dashed border-slate-200 animate-in fade-in zoom-in duration-500">
             <div className="relative mb-6">
                 <div className="absolute inset-0 bg-blue-500 blur-3xl opacity-10 animate-pulse"></div>
-                <div className="relative w-32 h-32 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white shadow-2xl shadow-blue-200">
+                <div className="relative w-32 h-32 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center text-white shadow-2xl shadow-blue-200">
                     <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>

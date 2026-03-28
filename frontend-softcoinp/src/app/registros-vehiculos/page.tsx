@@ -122,7 +122,7 @@ export default function RegistrosVehiculosPage() {
         {/* 📋 Header Section */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-4 shrink-0">
           <div className="flex items-center gap-3">
-             <div className="p-2 bg-indigo-600 rounded-xl text-white shadow-md shadow-indigo-100">
+             <div className="p-2 bg-blue-600 rounded-xl text-white shadow-md shadow-blue-100">
                <span className="text-xl">🚗</span>
             </div>
             <div>
@@ -170,7 +170,7 @@ export default function RegistrosVehiculosPage() {
                 placeholder="ABC-123"
                 value={placa}
                 onChange={(e) => setPlaca(e.target.value.toUpperCase())}
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-black focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all uppercase placeholder:normal-case"
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-black focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all uppercase placeholder:normal-case"
               />
             </div>
             <div className="space-y-1">
@@ -179,7 +179,7 @@ export default function RegistrosVehiculosPage() {
                 type="date"
                 value={desde}
                 onChange={(e) => setDesde(e.target.value)}
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all"
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all"
               />
             </div>
             <div className="space-y-1">
@@ -188,7 +188,7 @@ export default function RegistrosVehiculosPage() {
                 type="date"
                 value={hasta}
                 onChange={(e) => setHasta(e.target.value)}
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all"
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all"
               />
             </div>
 
@@ -207,7 +207,7 @@ export default function RegistrosVehiculosPage() {
               </button>
               <button
                 onClick={handleBuscar}
-                className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-black shadow-lg shadow-indigo-100 transition-all active:scale-95 flex items-center justify-center gap-2 text-xs uppercase"
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-black shadow-lg shadow-blue-100 transition-all active:scale-95 flex items-center justify-center gap-2 text-xs uppercase"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                 Filtrar Vehículos
@@ -220,7 +220,7 @@ export default function RegistrosVehiculosPage() {
         <div className="flex-1 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col min-h-0 overflow-hidden">
            {loading ? (
             <div className="flex-1 flex flex-col items-center justify-center gap-3">
-              <div className="w-10 h-10 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div>
+              <div className="w-10 h-10 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin"></div>
               <p className="text-xs font-black text-slate-400 uppercase tracking-widest animate-pulse">Buscando Vehículos...</p>
             </div>
           ) : (
@@ -269,7 +269,7 @@ export default function RegistrosVehiculosPage() {
                               </div>
                             </td>
                             <td className="px-5 py-4 whitespace-nowrap">
-                              <span className="text-[14px] font-black text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded shadow-sm border border-indigo-100 tracking-wider">
+                              <span className="text-[14px] font-black text-blue-700 bg-blue-50 px-2.5 py-1 rounded shadow-sm border border-blue-100 tracking-wider">
                                 {r.placa}
                               </span>
                             </td>
@@ -314,14 +314,14 @@ export default function RegistrosVehiculosPage() {
                   <button
                     disabled={page <= 1}
                     onClick={() => setPage((p) => p - 1)}
-                    className="p-2 bg-white text-slate-600 border border-slate-200 rounded-xl hover:bg-indigo-50 hover:text-indigo-600 disabled:opacity-30 disabled:hover:bg-white disabled:hover:text-slate-600 transition-all shadow-sm active:scale-95"
+                    className="p-2 bg-white text-slate-600 border border-slate-200 rounded-xl hover:bg-blue-50 hover:text-blue-600 disabled:opacity-30 disabled:hover:bg-white disabled:hover:text-slate-600 transition-all shadow-sm active:scale-95"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 19l-7-7 7-7" /></svg>
                   </button>
                   
                   <div className="flex items-center bg-white px-4 py-1.5 rounded-xl border border-slate-200 shadow-sm">
                     <span className="text-xs font-black text-slate-400 uppercase tracking-widest mr-2">Pág.</span>
-                    <span className="text-sm font-black text-indigo-600">{page}</span>
+                    <span className="text-sm font-black text-blue-600">{page}</span>
                     <span className="text-xs font-black text-slate-400 uppercase tracking-widest mx-2">/</span>
                     <span className="text-sm font-black text-slate-700">{totalPages || 1}</span>
                   </div>
@@ -329,7 +329,7 @@ export default function RegistrosVehiculosPage() {
                   <button
                     disabled={page >= totalPages || totalPages === 0}
                     onClick={() => setPage((p) => p + 1)}
-                    className="p-2 bg-white text-slate-600 border border-slate-200 rounded-xl hover:bg-indigo-50 hover:text-indigo-600 disabled:opacity-30 disabled:hover:bg-white disabled:hover:text-slate-600 transition-all shadow-sm active:scale-95"
+                    className="p-2 bg-white text-slate-600 border border-slate-200 rounded-xl hover:bg-blue-50 hover:text-blue-600 disabled:opacity-30 disabled:hover:bg-white disabled:hover:text-slate-600 transition-all shadow-sm active:scale-95"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7" /></svg>
                   </button>
@@ -337,7 +337,7 @@ export default function RegistrosVehiculosPage() {
 
                 <div className="hidden md:flex items-center bg-white px-4 py-1.5 rounded-xl border border-slate-200 shadow-sm">
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mr-2">Vehículos Registrados:</span>
-                  <span className="text-sm font-black text-indigo-700">{totalCount}</span>
+                  <span className="text-sm font-black text-blue-700">{totalCount}</span>
                 </div>
               </div>
             </>

@@ -136,7 +136,7 @@ export default function AuditoriaPage() {
         {/* Filtros */}
         <div className="flex flex-wrap items-center gap-3 w-full animate-in fade-in slide-in-from-top duration-300">
              <select 
-                className="px-4 py-3 bg-white border border-slate-200 rounded-xl text-[10px] font-bold uppercase tracking-tight focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none min-w-[200px] shadow-sm flex-1 lg:flex-none transition-all"
+                className="px-4 py-3 bg-white border border-slate-200 rounded-xl text-[10px] font-bold uppercase tracking-tight focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none min-w-[200px] shadow-sm flex-1 lg:flex-none transition-all"
                 value={actionFilter}
                 onChange={(e) => setActionFilter(e.target.value)}
               >
@@ -147,13 +147,13 @@ export default function AuditoriaPage() {
               </select>
               <input 
                 type="date" 
-                className="px-4 py-3 bg-white border border-slate-200 rounded-xl text-[10px] font-bold uppercase focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none shadow-sm flex-1 lg:flex-none transition-all"
+                className="px-4 py-3 bg-white border border-slate-200 rounded-xl text-[10px] font-bold uppercase focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none shadow-sm flex-1 lg:flex-none transition-all"
                 value={desdeFilter}
                 onChange={(e) => setDesdeFilter(e.target.value)}
               />
               <button 
                 onClick={loadLogs}
-                className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-amber-100 transition-all active:scale-95 flex items-center gap-2"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-100 transition-all active:scale-95 flex items-center gap-2"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                 Buscar
@@ -164,7 +164,7 @@ export default function AuditoriaPage() {
       <main className="w-full max-w-5xl flex flex-col min-h-0 overflow-y-auto pr-1 pb-10 custom-scrollbar">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 text-slate-300 gap-4">
-            <div className="w-10 h-10 border-4 border-slate-200 border-t-amber-500 rounded-full animate-spin"></div>
+            <div className="w-10 h-10 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin"></div>
             <p className="text-[10px] font-black uppercase tracking-[0.2em]">Cargando logs...</p>
           </div>
         ) : logs.length === 0 ? (
@@ -177,7 +177,7 @@ export default function AuditoriaPage() {
             {logs.map((log) => (
               <div 
                 key={log.id} 
-                className="w-full bg-white rounded-2xl p-4 lg:px-6 lg:py-3 border border-slate-100 shadow-sm flex items-center gap-4 transition-all hover:bg-amber-50/40 hover:border-amber-100 group"
+                className="w-full bg-white rounded-2xl p-4 lg:px-6 lg:py-3 border border-slate-100 shadow-sm flex items-center gap-4 transition-all hover:bg-blue-50/40 hover:border-blue-100 group"
               >
                 {/* Hora mini */}
                 <div className="w-16 shrink-0 flex flex-col items-center justify-center border-r border-slate-100 pr-4">
@@ -195,7 +195,7 @@ export default function AuditoriaPage() {
                         <span className={getActionBadge(log.action)}>
                           {getFriendlyAction(log.action)}
                         </span>
-                        <h2 className="text-[11px] font-black text-slate-700 uppercase tracking-tight truncate group-hover:text-amber-600 transition-colors">
+                        <h2 className="text-[11px] font-black text-slate-700 uppercase tracking-tight truncate group-hover:text-blue-600 transition-colors">
                             {getLogDetail(log)}
                         </h2>
                     </div>
@@ -229,7 +229,7 @@ export default function AuditoriaPage() {
                 setHastaFilter("");
                 loadLogs();
               }}
-              className="text-[9px] font-black text-amber-600 uppercase tracking-widest hover:underline"
+              className="text-[9px] font-black text-blue-600 uppercase tracking-widest hover:underline"
             >
               Limpiar filtros
             </button>

@@ -112,7 +112,7 @@ export default function UsuariosConfigPage() {
       <div className="w-full max-w-4xl flex flex-col items-start shrink-0">
         <div className="flex items-center justify-between w-full mb-2">
             <div className="flex items-center gap-4">
-                <div className="p-2.5 bg-purple-600 rounded-xl text-white shadow-lg shadow-purple-100 transition-transform hover:scale-110">
+                <div className="p-2.5 bg-emerald-600 rounded-xl text-white shadow-lg shadow-emerald-100 transition-transform hover:scale-110">
                     <span className="text-xl">👥</span>
                 </div>
                 <div>
@@ -130,7 +130,7 @@ export default function UsuariosConfigPage() {
                 </button>
                 <button
                   onClick={() => handleOpenModal()}
-                  className="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-purple-100 transition-all active:scale-95"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-100 transition-all active:scale-95"
                 >
                   + Nuevo Usuario
                 </button>

@@ -399,7 +399,7 @@ export default function CorrespondenciaPage() {
               </div>
               <button 
                 onClick={handleBuscar}
-                className="bg-slate-800 hover:bg-slate-900 text-white px-6 py-2 rounded-xl font-bold shadow-md transition-all active:scale-95 text-xs flex-shrink-0"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl font-black shadow-lg shadow-blue-100 transition-all active:scale-95 text-[10px] uppercase flex-shrink-0"
               >
                 🔍 BUSCAR
               </button>

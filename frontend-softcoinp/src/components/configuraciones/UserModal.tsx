@@ -79,9 +79,9 @@ export default function UserModal({ user, onClose, onSave }: UserModalProps) {
 
       {/* Modal Content */}
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm relative z-10 overflow-hidden flex flex-col max-h-[85vh] transform transition-all animate-in zoom-in slide-in-from-bottom border border-slate-100">
-        <div className="bg-white px-5 py-3 border-b border-slate-100 flex justify-between items-center bg-gradient-to-r from-purple-50 to-white">
+        <div className="bg-white px-5 py-3 border-b border-slate-100 flex justify-between items-center bg-gradient-to-r from-emerald-50 to-white">
           <div className="flex items-center gap-2">
-            <div className="w-1.5 h-4 bg-purple-600 rounded-full"></div>
+            <div className="w-1.5 h-4 bg-emerald-600 rounded-full"></div>
             <h2 className="text-xs font-black uppercase tracking-widest text-slate-700">
                 {isEditing ? "Editar Usuario" : "Nuevo Usuario"}
             </h2>
@@ -179,7 +179,7 @@ export default function UserModal({ user, onClose, onSave }: UserModalProps) {
             type="submit"
             form="user-form"
             disabled={loading}
-            className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg font-black text-[9px] uppercase tracking-widest shadow-md shadow-purple-100 hover:bg-purple-700 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg font-black text-[9px] uppercase tracking-widest shadow-md shadow-emerald-100 hover:bg-emerald-700 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "Procesando..." : isEditing ? "Guardar" : "Crear Usuario"}
           </button>

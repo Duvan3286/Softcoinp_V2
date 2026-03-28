@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { getApiResponse } from "@/services/api";
 import { useSidebar } from "@/context/SidebarContext";
+import { settingsService } from "@/services/settingsService";
 
 interface AuthUser {
   nombre: string;
@@ -11,20 +12,25 @@ interface AuthUser {
 
 export default function Header() {
   const [usuario, setUsuario] = useState("");
+  const [clientName, setClientName] = useState("SOFTCOINP");
   const pathname = usePathname();
   const router = useRouter();
 
   useEffect(() => {
     if (pathname === "/login") return;
-    const cargarUsuario = async () => {
+    const cargarDatos = async () => {
       try {
         const res = await getApiResponse<AuthUser>("/auth/me");
         setUsuario(res.data.nombre);
+        
+        // Cargar nombre del cliente
+        const name = await settingsService.getClientName();
+        setClientName(name);
       } catch {
         // El interceptor 401 se encarga de la redirección si falla
       }
     };
-    cargarUsuario();
+    cargarDatos();
   }, [pathname]);
 
   const handleLogout = () => {
@@ -80,10 +86,10 @@ export default function Header() {
         </div>
 
         {/* Nombre del sistema */}
-        <div className="flex flex-col leading-tight">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] leading-none">Sistema de Control de Acceso</span>
-          <span className="text-base font-black text-slate-800 tracking-tight leading-tight">
-            SOFT<span className="text-blue-600">COINP</span>
+        <div className="flex flex-col leading-tight items-start">
+          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.12em] leading-none mb-0.5">Control de Acceso Softcoinp v2.0</span>
+          <span className="text-sm font-black text-slate-800 tracking-tight leading-tight uppercase">
+            {clientName}
           </span>
         </div>
       </div>

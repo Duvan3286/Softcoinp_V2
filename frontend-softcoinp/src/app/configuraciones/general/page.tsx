@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { getCurrentUser, UserPayload } from "@/utils/auth";
 import api from "@/services/api";
 import CustomModal, { ModalType } from "@/components/CustomModal";
+import { settingsService } from "@/services/settingsService";
 
 function GeneralContent() {
   const router = useRouter();
@@ -13,6 +14,8 @@ function GeneralContent() {
 
   const [usuario, setUsuario] = useState<UserPayload | null>(null);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [clientName, setClientName] = useState("");
   const [modal, setModal] = useState({ 
     isOpen: false, 
     title: "", 
@@ -23,18 +26,47 @@ function GeneralContent() {
 
   useEffect(() => {
     setUsuario(getCurrentUser());
+    cargarConfiguraciones();
   }, []);
+
+  const cargarConfiguraciones = async () => {
+    try {
+      const name = await settingsService.getClientName();
+      setClientName(name);
+    } catch (err) {
+      console.error("Error al cargar configuraciones", err);
+    }
+  };
+
+  const handleUpdateClientName = async () => {
+    if (!clientName.trim()) {
+      showModal("El nombre del cliente no puede estar vacío.", "warning");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await settingsService.update({ key: "ClientName", value: clientName.toUpperCase() });
+      showModal("✅ Identidad del sistema actualizada con éxito. Recalibrando interfaz...", "success", "Cambio Guardado");
+      // Forzar recarga o actualización de estado global si fuera necesario
+      setTimeout(() => window.location.reload(), 2000);
+    } catch (err: any) {
+      showModal("❌ Error al actualizar el nombre del cliente.", "error");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const showModal = (message: string, type: ModalType, title?: string, onConfirm?: () => void) => {
     setModal({ isOpen: true, message, type, title: title || "Aviso", onConfirm });
   };
 
   const systemInfo = [
-    { label: "Nombre del Sistema", value: "SOFTCOINP" },
-    { label: "Versión", value: "2.1.5-prod" },
-    { label: "Ambiente", value: "Producción Local" },
-    { label: "Base de Datos", value: "PostgreSQL / Entity Framework Core" },
-    { label: "Rol Actual", value: usuario?.role.toUpperCase() || "CARGANDO..." }
+    { label: "Versión de Software", value: "2.1.8-elite" },
+    { label: "Ambiente de Ejecución", value: "Producción Cloud / Local" },
+    { label: "Motor de Base de Datos", value: "PostgreSQL 15" },
+    { label: "Módulo de Seguridad", value: "JWT + RBAC" },
+    { label: "Rol Administrativo", value: usuario?.role.toUpperCase() || "CARGANDO..." }
   ];
 
   const handleDeepClean = async () => {
@@ -140,7 +172,7 @@ function GeneralContent() {
                         {isMaintMode ? "Mantenimiento Crítico" : "Configuración General"}
                     </h1>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mt-1">
-                        {isMaintMode ? "Acciones de sistema y depuración" : "Información técnica y ajustes globales"}
+                        {isMaintMode ? "Acciones de sistema y depuración" : "Personalización y ajustes globales"}
                     </p>
                 </div>
             </div>
@@ -156,10 +188,51 @@ function GeneralContent() {
         </div>
 
         <div className="w-full max-w-4xl flex flex-col gap-8 overflow-y-auto pr-1 pb-10 custom-scrollbar">
-          {/* ℹ️ INFORMACIÓN DEL SISTEMA (Solo si NO es mantenimiento) */}
+          
+          {/* 🏢 PERSONALIZACIÓN DE MARCA (White-labeling) */}
+          {!isMaintMode && (
+             <section className="bg-white border border-slate-200/60 rounded-3xl p-6 lg:p-8 shadow-sm">
+                <div className="flex items-center gap-4 mb-6">
+                    <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl shadow-inner">🏢</div>
+                    <div>
+                        <h2 className="text-sm font-black text-slate-800 uppercase tracking-tight">Identidad del Cliente</h2>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Define el nombre que aparecerá en el encabezado y reportes</p>
+                    </div>
+                </div>
+
+                <div className="flex flex-col md:flex-row gap-4">
+                    <div className="flex-1 space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Nombre de la Institución / Conjunto</label>
+                        <div className="relative group">
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-emerald-500 transition-colors">🏛️</span>
+                            <input 
+                                type="text"
+                                placeholder="Ej: CONJUNTO BRISAS DEL CAMPO"
+                                value={clientName}
+                                onChange={(e) => setClientName(e.target.value.toUpperCase())}
+                                className="w-full pl-10 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-xs font-black text-slate-700 focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 outline-none transition-all uppercase placeholder:normal-case shadow-inner"
+                            />
+                        </div>
+                    </div>
+                    <button
+                        onClick={handleUpdateClientName}
+                        disabled={saving}
+                        className="md:self-end bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-100 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 group min-w-[180px]"
+                    >
+                        {saving ? (
+                            <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                        ) : (
+                            <span className="group-hover:translate-x-1 transition-transform">💾 Guardar Cambios</span>
+                        )}
+                    </button>
+                </div>
+             </section>
+          )}
+
+          {/* ℹ️ INFORMACIÓN DEL SISTEMA */}
           {!isMaintMode && (
             <section className="animate-in fade-in slide-in-from-top duration-500">
-              <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 px-2">Información del Sistema</h2>
+              <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 px-2">Detalles Técnicos y Versión</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {systemInfo.map((info, idx) => (
                   <div key={idx} className="p-4 bg-white rounded-2xl border border-slate-100 shadow-sm transition-all hover:border-indigo-100 group">
@@ -171,7 +244,7 @@ function GeneralContent() {
             </section>
           )}
 
-          {/* 🛠️ ACCIONES DE MANTENIMIENTO (Estilo Renglones) */}
+          {/* 🛠️ ACCIONES DE MANTENIMIENTO */}
           {usuario?.role === "superadmin" && isMaintMode && (
             <section className="animate-in fade-in slide-in-from-bottom duration-500">
                <div className="bg-rose-50/50 border border-rose-100 rounded-3xl p-6 lg:p-8 mb-6">
@@ -309,7 +382,7 @@ function GeneralContent() {
         
         <div className="w-full flex justify-center mt-auto pb-4 shrink-0">
            <p className="text-[9px] text-slate-300 font-black tracking-[0.3em] uppercase">
-              SOFTCOINP v2 • Sistema de Gestión de Infraestructura
+              SOFTCOINP v2 • Panel de Administración Profesional
            </p>
         </div>
       </div>

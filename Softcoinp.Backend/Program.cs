@@ -16,6 +16,8 @@ using Microsoft.Extensions.FileProviders;
 using System.IO; 
 using Microsoft.AspNetCore.Http; 
 
+using Microsoft.EntityFrameworkCore.Diagnostics;
+
 var builder = WebApplication.CreateBuilder(args);
 
 
@@ -175,5 +177,29 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Seed de configuraciones iniciales
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<AppDbContext>();
+        if (!context.SystemSettings.Any(s => s.Key == "ClientName"))
+        {
+            context.SystemSettings.Add(new SystemSetting { 
+                Key = "ClientName", 
+                Value = "CONJUNTO RESIDENCIAL", 
+                UpdatedAt = DateTime.UtcNow 
+            });
+            context.SaveChanges();
+        }
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Ocurrido un error al hacer seed de configuraciones.");
+    }
+}
 
 app.Run();

@@ -14,6 +14,7 @@ namespace Softcoinp.Backend
         public DbSet<Anotacion> Anotaciones { get; set; }
         public DbSet<TipoPersonal> TiposPersonal { get; set; }
         public DbSet<Vehiculo> Vehiculos { get; set; }
+        public DbSet<SystemSetting> SystemSettings { get; set; }
         public DbSet<Correspondencia> Correspondencias { get; set; }
         public DbSet<RegistroVehiculo> RegistrosVehiculos { get; set; }
 

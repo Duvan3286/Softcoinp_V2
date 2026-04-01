@@ -10,6 +10,7 @@ import { registroVehiculoService } from "@/services/registroVehiculoService";
 import CustomModal, { ModalType } from "@/components/CustomModal";
 import { getCurrentUser, UserPayload } from "@/utils/auth";
 import ImageZoomModal from "@/components/ImageZoomModal";
+import { useTheme } from "next-themes";
 
 
 // CONFIGURACIÓN CRÍTICA: La URL base de tu API de C#.
@@ -140,6 +141,7 @@ export default function DashboardPage() {
   const [fotoZoomUrl, setFotoZoomUrl] = useState<string | null>(null);
 
   const router = useRouter();
+  const { resolvedTheme } = useTheme();
 
   useEffect(() => {
     const fetchTipos = async () => {
@@ -445,40 +447,8 @@ export default function DashboardPage() {
         fotoVehiculo: fotoVehiculoBase64,
       });
 
-      const camposActualizados: string[] = [];
-      if (nombres.trim() && nombres !== datosOriginales.nombre)
-        camposActualizados.push(`👤 Nombre: ${nombres}`);
-      if (apellidos.trim() && apellidos !== datosOriginales.apellido)
-        camposActualizados.push(`👤 Apellido: ${apellidos}`);
-      if (telefono.trim() && telefono !== datosOriginales.telefono)
-        camposActualizados.push(`📞 Teléfono: ${telefono}`);
-      if (tipo.trim() && tipo !== datosOriginales.tipo)
-        camposActualizados.push(`🪪 Tipo: ${tipo}`);
-      if (fotoBase64 && fotoBase64 !== datosOriginales.fotoBase64)
-        camposActualizados.push(`📸 Foto de persona actualizada`);
-      
-      if (placa.trim()) {
-        const pModificada = placa.trim() !== (datosOriginales.placa || "").trim();
-        if (pModificada) camposActualizados.push(`🚗 Placa: ${placa}`);
-        
-        if (marca.trim() && marca !== datosOriginales.marca)
-          camposActualizados.push(`   • Marca: ${marca}`);
-        if (modelo.trim() && modelo !== datosOriginales.modelo)
-          camposActualizados.push(`   • Modelo: ${modelo}`);
-        if (color.trim() && color !== datosOriginales.color)
-          camposActualizados.push(`   • Color: ${color}`);
-        if (tipoVehiculo.trim() && tipoVehiculo !== datosOriginales.tipoVehiculo)
-          camposActualizados.push(`   • Tipo vehículo: ${tipoVehiculo}`);
-        if (fotoVehiculoBase64 && fotoVehiculoBase64 !== datosOriginales.fotoVehiculoBase64)
-          camposActualizados.push(`   📸 Foto del vehículo actualizada`);
-      }
-
-      const resumen = camposActualizados.length > 0
-        ? `✅ Campos actualizados:\n${camposActualizados.join("\n")}`
-        : "✅ Datos guardados. No se detectaron cambios.";
-
+      const resumen = "✅ Información sincronizada correctamente.";
       showModal(resumen, "success");
-      // Refrescar datos desde el servidor para asegurar sincronía
       handleBuscar();
     } catch (err: any) {
       console.error("Error al actualizar datos:", err);
@@ -560,7 +530,6 @@ export default function DashboardPage() {
           setColor(persona.colorVehiculo || "");
           setTipoVehiculo(persona.tipoVehiculo || "");
 
-          // 🚫 Bug fix #1: Consultar el estado de bloqueo del vehículo inmediatamente
           if (persona.placaVehiculo) {
             try {
               const vRes = (await api.get(`/vehiculos/placa/${persona.placaVehiculo}`)) as { data: { data?: any } };
@@ -707,14 +676,12 @@ export default function DashboardPage() {
               if (pBase64_local) setFotoBase64(pBase64_local);
             }
             
-            // Buscar historial/novedades del propietario
             if (vehiculo.propietarioId) {
                const alerts = await anotacionService.getAnotacionesPorPersonal(vehiculo.propietarioId);
                setAnotacionesAlerta(alerts);
             }
         }
 
-        // 📸 Snapshot para búsqueda por placa usando variables locales
         setDatosOriginales({
           nombre: nombres || vehiculo.propietarioNombre || "",
           apellido: apellidos || vehiculo.propietarioApellido || "",
@@ -736,50 +703,46 @@ export default function DashboardPage() {
        if (err.response?.status === 404) {
          setIsVehiculoNuevo(true);
          showModal("⚠️ Vehículo Nuevo. Por normas de seguridad, debe registrar los datos del conductor en el panel izquierdo para vincularlo como propietario o conductor frecuente la primera vez.", "warning");
-       } else {
-         console.error("Error al buscar placa:", err);
        }
     }
   };
 
-  // Componente Modal local eliminado para usar CustomModal
-
   const TimelineModal = ({ isOpen, onClose, anotaciones, nombre }: any) => {
     if (!isOpen) return null;
     return (
-      <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden animate-in fade-in zoom-in duration-300">
+      <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-colors">
+        <div className="bg-card rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden animate-in fade-in zoom-in duration-300">
           <div className="bg-red-600 p-4 text-white flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-xl">⚠️</span>
-              <h3 className="text-lg font-bold uppercase tracking-tight">Antecedentes de Seguridad: {nombre}</h3>
+              <h3 className="text-lg font-bold uppercase tracking-tight">Antecedentes: {nombre}</h3>
             </div>
             <button onClick={onClose} className="hover:bg-red-700 p-1 rounded-full transition-colors">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
           </div>
-          <div className="p-6 max-h-[60vh] overflow-y-auto bg-gray-50 custom-scrollbar">
-            <div className="space-y-4 relative before:content-[''] before:absolute before:left-[11px] before:top-0 before:bottom-0 before:w-0.5 before:bg-red-100">
+          <div className="p-6 max-h-[60vh] overflow-y-auto bg-background custom-scrollbar">
+            <div className="space-y-4 relative before:content-[''] before:absolute before:left-[11px] before:top-0 before:bottom-0 before:w-0.5 before:bg-red-100 dark:before:bg-red-900/30">
               {anotaciones.map((a: any) => (
                 <div key={a.id} className="relative pl-8">
-                  <div className="absolute left-0 top-1.5 w-6 h-6 rounded-full bg-white border-4 border-red-500 shadow-sm z-10" />
-                  <div className="bg-white rounded-xl p-4 border border-red-100 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="absolute left-0 top-1.5 w-6 h-6 rounded-full bg-card border-4 border-red-500 shadow-sm z-10" />
+                  <div className="bg-card rounded-xl p-4 border border-border shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex justify-between items-center mb-1">
-                      <span className="text-[10px] font-bold text-gray-400 uppercase">
+                      <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">
                         {new Date(a.fechaCreacionUtc).toLocaleString("es-CO", { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                       </span>
                       {a.registradoPorEmail && (
                         <span className="text-[9px] text-red-500 font-bold uppercase italic">{a.registradoPorEmail.split('@')[0]}</span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-700 font-medium">{a.texto}</p>
+                    <p className="text-sm text-foreground font-medium">{a.texto}</p>
                   </div>
                 </div>
               ))}
             </div>
           </div>
-          <div className="p-4 bg-white border-t border-gray-100 flex justify-end">
-            <button onClick={onClose} className="bg-gray-800 text-white px-6 py-2 rounded-lg font-bold hover:bg-gray-900 transition-all shadow-sm">Cerrar</button>
+          <div className="p-4 bg-card border-t border-border flex justify-end">
+            <button onClick={onClose} className="btn-secondary">Cerrar</button>
           </div>
         </div>
       </div>
@@ -834,10 +797,9 @@ export default function DashboardPage() {
         title={fotoZoomUrl === (fotoBase64 || (fotoUrl ? (fotoUrl.startsWith('http') ? fotoUrl : `${BACKEND_BASE_URL}${fotoUrl}`) : null)) ? "Persona" : "Vehículo"}
       />
 
-      <div className="flex-1 w-full flex flex-col relative z-0 lg:overflow-hidden">
+      <div className="flex-1 w-full flex flex-col relative z-0 lg:overflow-hidden bg-background transition-colors duration-300">
         
-        {/* Halo decorativo */}
-        <div className="fixed top-0 left-0 w-full h-96 bg-gradient-to-b from-blue-50/40 to-transparent -z-10 pointer-events-none"></div>
+        <div className="fixed top-0 left-0 w-full h-96 bg-gradient-to-b from-indigo-100/40 dark:from-indigo-900/10 to-transparent -z-10 pointer-events-none"></div>
 
         <div className="flex flex-col-reverse lg:flex-row-reverse gap-4 flex-1 min-h-0 w-full max-w-[1700px] mx-auto p-3 lg:p-4 overflow-y-auto lg:overflow-hidden">
 
@@ -847,22 +809,20 @@ export default function DashboardPage() {
           <div className="w-full lg:w-96 xl:w-[26rem] flex flex-col gap-3 flex-shrink-0">
 
             {/* ── Bloque Vehículo ── */}
-            <div className="flex-1 bg-white rounded-3xl border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.03)] p-4 lg:p-5 flex flex-col gap-3 lg:overflow-hidden relative">
+            <div className="flex-1 bg-card rounded-3xl border border-border shadow-[0_8px_30px_rgb(0,0,0,0.03)] p-4 lg:p-5 flex flex-col gap-3 lg:overflow-hidden relative transition-colors duration-300">
               <div className="flex items-center gap-3 mb-2 flex-shrink-0">
-                {/* Título — izquierda */}
                 <div className="flex flex-col justify-center flex-1 min-w-0">
-                  <h3 className="text-sm lg:text-base font-black text-slate-800 flex items-center gap-2 tracking-tight uppercase">
-                    <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl flex-shrink-0 shadow-sm">
+                  <h3 className="text-sm lg:text-base font-black text-foreground flex items-center gap-2 tracking-tight uppercase">
+                    <div className="p-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl flex-shrink-0 shadow-sm">
                       <span className="text-lg">🚗</span>
                     </div>
                     Vehículo
                   </h3>
-                  <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-tighter hidden lg:block">
+                  <p className="text-[9px] font-bold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-tighter hidden lg:block">
                     {fotoVehiculoBase64 ? 'Capturado' : 'Pendiente'}
                   </p>
                 </div>
 
-                {/* Foto vehículo — derecha */}
                 <div className="flex items-center gap-3">
                   <div
                     className="flex flex-col items-center cursor-pointer group flex-shrink-0"
@@ -874,13 +834,13 @@ export default function DashboardPage() {
                   >
                     <div className="relative w-20 h-20 lg:w-24 lg:h-24 transition-all duration-500 group-hover:scale-105">
                       <div className={`absolute inset-0 rounded-3xl blur-2xl opacity-10 transition-all duration-500 ${(fotoVehiculoBase64 || fotoVehiculoUrl) ? 'bg-indigo-500' : 'bg-slate-400 group-hover:bg-indigo-400'}`}></div>
-                      <div className={`relative w-full h-full border-2 rounded-3xl flex items-center justify-center overflow-hidden bg-slate-50 transition-all duration-300 ${(fotoVehiculoBase64 || fotoVehiculoUrl) ? 'border-indigo-400 rotate-2' : 'border-slate-100 group-hover:border-indigo-200 group-hover:-rotate-1'}`}>
+                      <div className={`relative w-full h-full border-2 rounded-3xl flex items-center justify-center overflow-hidden bg-input transition-all duration-300 ${(fotoVehiculoBase64 || fotoVehiculoUrl) ? 'border-indigo-400 rotate-2' : 'border-border dark:border-slate-800 group-hover:border-indigo-200 dark:group-hover:border-indigo-800 group-hover:-rotate-1'}`}>
                         {fotoVehiculoBase64 ? (
                           <img src={fotoVehiculoBase64} alt="Vehículo" className="w-full h-full object-cover" />
                         ) : fotoVehiculoUrl ? (
                           <img src={fotoVehiculoUrl.startsWith('http') ? fotoVehiculoUrl : `${BACKEND_BASE_URL}${fotoVehiculoUrl}`} alt="Vehículo" className="w-full h-full object-cover" />
                         ) : (
-                          <svg className="w-10 lg:w-12 h-10 lg:h-12 text-slate-200 group-hover:text-indigo-300 transition duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.218A2 2 0 0110.125 4h3.75a2 2 0 011.664.89l.812 1.218A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                          <svg className="w-10 lg:w-12 h-10 lg:h-12 text-slate-200 dark:text-slate-700 group-hover:text-indigo-300 transition duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.218A2 2 0 0110.125 4h3.75a2 2 0 011.664.89l.812 1.218A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         )}
                       </div>
                     </div>
@@ -889,19 +849,18 @@ export default function DashboardPage() {
               </div>
               
               {isVehiculoBloqueado && (
-                <div className="bg-rose-50 text-rose-800 p-3 rounded-2xl shadow-sm border border-rose-100 animate-in slide-in-from-top duration-300 mb-1 flex-shrink-0 relative overflow-hidden">
+                <div className="bg-rose-50 dark:bg-rose-950/30 text-rose-800 dark:text-rose-200 p-3 rounded-2xl shadow-sm border border-rose-100 dark:border-rose-900/50 animate-in slide-in-from-top duration-300 mb-1 flex-shrink-0 relative overflow-hidden transition-colors">
                   <div className="flex items-center gap-3">
                     <div className="text-2xl animate-pulse">🛑</div>
                     <div>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-rose-600 leading-tight">Acceso Denegado</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-rose-600 dark:text-rose-400 leading-tight">Acceso Denegado</p>
                       <p className="text-[11px] font-bold leading-tight mt-0.5">"{motivoBloqueoVehiculo}"</p>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Campos del vehículo */}
-              <div className="flex-1 overflow-y-auto custom-scrollbar min-h-0 flex flex-col gap-2.5">
+              <div className="flex-1 overflow-y-auto custom-scrollbar min-h-0 flex flex-col gap-2.5 transition-colors">
                 <div className="relative">
                   <input
                     ref={placaRef}
@@ -913,11 +872,7 @@ export default function DashboardPage() {
                       setCamposErrores(prev => prev.filter(err => err !== "placa"));
                     }}
                     onBlur={handleBuscarPlaca}
-                    className={`input-standard !p-3 !text-sm !font-black !uppercase ${
-                      isVehiculoBloqueado ? '!border-rose-300 !bg-rose-50 !text-rose-900 !ring-rose-500/10' :
-                      camposErrores.includes("placa") ? '!border-rose-500 !bg-rose-50 !ring-rose-500/10' : 
-                      anotacionesVehiculoAlerta.length > 0 ? '!border-amber-300 !bg-amber-50 !text-amber-900 !ring-amber-400/20' : ''
-                    }`}
+                    className="input-standard !p-3 !text-sm !font-black !uppercase"
                   />
                   {(anotacionesVehiculoAlerta.length > 0 || isVehiculoBloqueado) && (
                     <button
@@ -937,9 +892,7 @@ export default function DashboardPage() {
                       setTipoVehiculo(e.target.value);
                       setCamposErrores(prev => prev.filter(err => err !== "tipoVehiculo"));
                     }}
-                    className={`input-standard appearance-none cursor-pointer ${
-                      camposErrores.includes("tipoVehiculo") ? '!border-rose-500 !bg-rose-50 !text-rose-900' : ''
-                    }`}
+                    className="input-standard appearance-none cursor-pointer"
                   >
                     <option value="">Tipo de Vehículo</option>
                     <option value="carro">Carro</option>
@@ -964,7 +917,7 @@ export default function DashboardPage() {
                     setMarca(e.target.value);
                     setCamposErrores(prev => prev.filter(err => err !== "marca"));
                   }}
-                  className={`input-standard ${camposErrores.includes("marca") ? '!border-rose-500 !bg-rose-50' : ''}`}
+                  className="input-standard"
                 />
 
                 <div className="grid grid-cols-2 gap-2.5">
@@ -977,7 +930,7 @@ export default function DashboardPage() {
                       setModelo(e.target.value);
                       setCamposErrores(prev => prev.filter(err => err !== "modelo"));
                     }}
-                    className={`input-standard ${camposErrores.includes("modelo") ? '!border-rose-500 !bg-rose-50' : ''}`}
+                    className="input-standard"
                   />
                   <input
                     ref={colorRef}
@@ -988,17 +941,16 @@ export default function DashboardPage() {
                       setColor(e.target.value);
                       setCamposErrores(prev => prev.filter(err => err !== "color"));
                     }}
-                    className={`input-standard ${camposErrores.includes("color") ? '!border-rose-500 !bg-rose-50' : ''}`}
+                    className="input-standard"
                   />
                 </div>
 
-                {/* Botones de Entrada/Salida para Vehículo */}
-                <div className="grid grid-cols-2 gap-3 mt-2">
+                <div className="grid grid-cols-2 gap-3 mt-2 transition-colors">
                   <button
                     onClick={() => handleRegistrarVehiculo("entrada")}
                     disabled={!!registroVehiculoActivo || isVehiculoBloqueado || isVehiculoNuevo}
                     className={`btn-success !py-3 !text-[9px] ${
-                      (registroVehiculoActivo || isVehiculoBloqueado || isVehiculoNuevo) && '!bg-slate-100 !text-slate-300 !border-slate-100 !shadow-none'
+                      (registroVehiculoActivo || isVehiculoBloqueado || isVehiculoNuevo) && '!bg-slate-100 dark:!bg-slate-800 !text-slate-300 dark:!text-slate-600 !border-border dark:!border-slate-800 !shadow-none'
                     }`}
                   >
                     {isVehiculoBloqueado ? "🚫 BLOQUEO" : !!isVehiculoNuevo ? "⚠️ NUEVO" : "📥 ENTRADA"}
@@ -1007,7 +959,7 @@ export default function DashboardPage() {
                     onClick={() => handleRegistrarVehiculo("salida")}
                     disabled={!registroVehiculoActivo}
                     className={`btn-danger !py-3 !text-[9px] ${
-                      !registroVehiculoActivo && '!bg-slate-100 !text-slate-300 !border-slate-100 !shadow-none'
+                      !registroVehiculoActivo && '!bg-slate-100 dark:!bg-slate-800 !text-slate-300 dark:!text-slate-600 !border-border dark:!border-slate-800 !shadow-none'
                     }`}
                   >
                     📤 SALIDA
@@ -1024,54 +976,49 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* ── Bloque Reloj / Fecha ── */}
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.02)] p-5 flex flex-col items-center justify-center gap-1.5 text-center relative overflow-hidden group">
-              <div className="absolute inset-0 bg-indigo-50/30 -translate-y-full group-hover:translate-y-0 transition-transform duration-700"></div>
+            <div className="bg-card rounded-3xl border border-border shadow-[0_8px_30px_rgb(0,0,0,0.02)] p-5 flex flex-col items-center justify-center gap-1.5 text-center relative overflow-hidden group transition-colors duration-300">
+              <div className="absolute inset-0 bg-indigo-50/30 dark:bg-indigo-900/10 -translate-y-full group-hover:translate-y-0 transition-transform duration-700"></div>
               {mounted ? (
                 <>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] leading-tight relative z-10">
+                  <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.4em] leading-tight relative z-10">
                     {fechaHora.toLocaleDateString("es-CO", { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' })}
                   </p>
                   <div className="flex items-baseline gap-1 mt-1 relative z-10">
-                    <p className="text-5xl font-black text-indigo-600 tracking-tighter leading-none drop-shadow-sm">
+                    <p className="text-5xl font-black text-indigo-600 dark:text-indigo-400 tracking-tighter leading-none drop-shadow-sm">
                       {fechaHora.toLocaleTimeString("es-CO", { hour: '2-digit', minute: '2-digit', hour12: false })}
                     </p>
-                    <span className="text-2xl font-black text-indigo-300 animate-pulse">:{fechaHora.getSeconds().toString().padStart(2, '0')}</span>
+                    <span className="text-2xl font-black text-indigo-300 dark:text-indigo-800 animate-pulse">:{fechaHora.getSeconds().toString().padStart(2, '0')}</span>
                   </div>
                 </>
               ) : (
                 <div className="animate-pulse flex flex-col items-center gap-2">
-                  <div className="h-2.5 w-28 bg-slate-100 rounded-full"></div>
-                  <div className="h-10 w-40 bg-slate-100 rounded-full"></div>
+                  <div className="h-2.5 w-28 bg-border rounded-full"></div>
+                  <div className="h-10 w-40 bg-border rounded-full"></div>
                 </div>
               )}
             </div>
 
-          </div>{/* fin sección derecha */}
+          </div>
 
           {/* ══════════════════════════════════════════
               SECCIÓN IZQUIERDA: Formulario Persona + Acciones
           ══════════════════════════════════════════ */}
-          <div className="flex-1 flex flex-col bg-white rounded-[2.5rem] border border-slate-200 shadow-[0_8px_40px_rgb(0,0,0,0.04)] p-5 lg:p-7 lg:overflow-hidden min-h-0 relative">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50 rounded-full -mr-32 -mt-32 blur-3xl opacity-40"></div>
+          <div className="flex-1 flex flex-col bg-card rounded-[2.5rem] border border-border shadow-[0_8px_40px_rgb(0,0,0,0.04)] p-5 lg:p-7 lg:overflow-hidden min-h-0 relative transition-colors duration-300">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50 dark:bg-indigo-900/10 rounded-full -mr-32 -mt-32 blur-3xl opacity-40"></div>
             
-            {/* Cabecera: Título izq + Foto derecha */}
             <div className="flex items-center gap-4 mb-4 flex-shrink-0 relative z-10">
-
-              {/* Título — izquierda */}
               <div className="flex flex-col justify-center flex-1 min-w-0">
-                <h2 className="text-base lg:text-lg font-black text-slate-900 flex items-center gap-3 tracking-tight uppercase">
-                  <div className="p-2.5 bg-indigo-600 rounded-2xl text-white flex-shrink-0 shadow-lg shadow-indigo-200 rotate-3">
+                <h2 className="text-base lg:text-lg font-black text-foreground flex items-center gap-3 tracking-tight uppercase">
+                  <div className="p-2.5 bg-indigo-600 rounded-2xl text-white flex-shrink-0 shadow-lg shadow-indigo-200 dark:shadow-none rotate-3">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                   </div>
                   Registro de Persona
                 </h2>
-                <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-[0.3em] hidden lg:block">
+                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-2 uppercase tracking-[0.3em] hidden lg:block">
                   {fotoBase64 ? 'Fotografía capturada con éxito' : 'Diligencie la información básica'}
                 </p>
               </div>
 
-              {/* Foto persona — derecha */}
               <div className="flex items-center gap-4">
                 <div
                   className="flex flex-col items-center cursor-pointer group flex-shrink-0"
@@ -1083,32 +1030,31 @@ export default function DashboardPage() {
                 >
                   <div className="relative w-24 h-24 lg:w-28 lg:h-28 transition-all duration-500 group-hover:scale-105">
                     <div className={`absolute inset-0 rounded-[2.5rem] blur-2xl opacity-10 transition-all duration-500 ${(fotoBase64 || fotoUrl) ? 'bg-emerald-500' : 'bg-indigo-400 group-hover:bg-indigo-600'}`}></div>
-                    <div className={`relative w-full h-full border-2 rounded-[2.5rem] flex items-center justify-center overflow-hidden bg-slate-50 transition-all duration-300 ${(fotoBase64 || fotoUrl) ? 'border-emerald-400 rotate-3 shadow-xl' : 'border-slate-100 group-hover:border-indigo-300'}`}>
+                    <div className={`relative w-full h-full border-2 rounded-[2.5rem] flex items-center justify-center overflow-hidden bg-input transition-all duration-300 ${(fotoBase64 || fotoUrl) ? 'border-emerald-400 rotate-3 shadow-xl' : 'border-border dark:border-slate-800 group-hover:border-indigo-300 dark:group-hover:border-indigo-700'}`}>
                       {fotoBase64 ? (
                         <img src={fotoBase64} alt="Foto" className="w-full h-full object-cover" />
                       ) : fotoUrl ? (
                         <img src={fotoUrl.startsWith('http') ? fotoUrl : `${BACKEND_BASE_URL}${fotoUrl}`} alt="Foto" className="w-full h-full object-cover" />
                       ) : (
-                        <svg className="w-12 lg:w-14 h-12 lg:h-14 text-slate-200 group-hover:text-indigo-300 transition duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                        <svg className="w-12 lg:w-14 h-12 lg:h-14 text-slate-200 dark:text-slate-700 group-hover:text-indigo-300 transition duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                       )}
                     </div>
                   </div>
                 </div>
 
-                {/* Botones Acciones Persona */}
                 <div className="flex flex-col gap-2">
                   {(fotoBase64 || fotoUrl) && (
                     <>
                       <button
                         onClick={() => setIsCameraOpen(true)}
-                        className="p-2.5 bg-white border border-slate-100 rounded-2xl shadow-sm hover:bg-indigo-50 hover:text-indigo-600 transition-all active:scale-90"
+                        className="p-2.5 bg-card border border-border rounded-2xl shadow-sm hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all active:scale-90"
                         title="Cambiar foto"
                       >
                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.218A2 2 0 0110.125 4h3.75a2 2 0 011.664.89l.812 1.218A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                       </button>
                       <button
                         onClick={() => { setFotoBase64(null); setFotoUrl(null); }}
-                        className="p-2.5 bg-white border border-slate-100 rounded-2xl shadow-sm hover:bg-rose-50 hover:text-rose-600 transition-all active:scale-90"
+                        className="p-2.5 bg-card border border-border rounded-2xl shadow-sm hover:bg-rose-50 dark:hover:bg-rose-900/30 hover:text-rose-600 dark:hover:text-rose-400 transition-all active:scale-90"
                         title="Eliminar foto"
                       >
                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
@@ -1117,16 +1063,14 @@ export default function DashboardPage() {
                   )}
                 </div>
               </div>
-
             </div>
 
-            {/* Alerta bloqueo */}
             {isBloqueado && (
-              <div className="bg-rose-50 text-rose-800 p-4 rounded-3xl shadow-sm border border-rose-100 animate-in slide-in-from-top duration-300 mb-4 flex-shrink-0 relative overflow-hidden">
+              <div className="bg-rose-50 dark:bg-rose-950/30 text-rose-800 dark:text-rose-200 p-4 rounded-3xl shadow-sm border border-rose-100 dark:border-rose-900/50 animate-in slide-in-from-top duration-300 mb-4 flex-shrink-0 relative overflow-hidden transition-colors">
                 <div className="flex items-center gap-4 relative z-10">
                   <div className="text-3xl animate-pulse">🛑</div>
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-rose-600">Alerta de Seguridad</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-rose-600 dark:text-rose-400">Alerta de Seguridad</p>
                     <p className="text-sm font-black mt-1">Persona Bloqueada: "{motivoBloqueo}"</p>
                   </div>
                 </div>
@@ -1134,13 +1078,10 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Campos optimizados en grid de 3 columnas para PC */}
             <div className="flex-1 overflow-y-auto lg:overflow-visible custom-scrollbar min-h-0 pr-1 relative z-10">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 pb-2">
-
-                {/* Identificación */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 pb-2 transition-colors">
                 <div className="relative sm:col-span-2 lg:col-span-1">
-                  <span className="absolute left-3.5 top-2.5 text-[9px] text-indigo-500 font-black uppercase tracking-widest z-10">Documento</span>
+                  <span className="absolute left-3.5 top-2.5 text-[9px] text-indigo-500 dark:text-indigo-400 font-black uppercase tracking-widest z-10">Documento</span>
                   <input
                     ref={identificacionRef}
                     type="text"
@@ -1150,11 +1091,7 @@ export default function DashboardPage() {
                       setCamposErrores(prev => prev.filter(err => err !== "identificacion"));
                     }}
                     onBlur={handleBuscar}
-                    className={`input-standard !pt-7 !font-black !text-base ${
-                      isBloqueado ? '!border-rose-300 !bg-rose-50 !text-rose-900 !ring-rose-500/10' :
-                      camposErrores.includes("identificacion") ? '!border-rose-500 !bg-rose-50 !ring-rose-500/10' :
-                      anotacionesAlerta.length > 0 ? '!border-amber-300 !bg-amber-50 !text-amber-900 !ring-amber-400/20' : ''
-                    }`}
+                    className="input-standard !pt-7 !font-black !text-base"
                   />
                   {(anotacionesAlerta.length > 0 || isBloqueado) && (
                     <button
@@ -1167,7 +1104,7 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <span className="text-[9px] text-slate-400 font-black uppercase tracking-widest px-2">Nombres</span>
+                  <span className="text-[9px] text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest px-2">Nombres</span>
                   <input 
                     ref={nombresRef}
                     type="text" 
@@ -1177,11 +1114,11 @@ export default function DashboardPage() {
                       setNombres(e.target.value);
                       setCamposErrores(prev => prev.filter(err => err !== "nombres"));
                     }}
-                    className={`input-standard ${camposErrores.includes("nombres") ? '!border-rose-500 !bg-rose-50' : ''}`} />
+                    className="input-standard" />
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <span className="text-[9px] text-slate-400 font-black uppercase tracking-widest px-2">Apellidos</span>
+                  <span className="text-[9px] text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest px-2">Apellidos</span>
                   <input 
                     ref={apellidosRef}
                     type="text" 
@@ -1191,66 +1128,74 @@ export default function DashboardPage() {
                       setApellidos(e.target.value);
                       setCamposErrores(prev => prev.filter(err => err !== "apellidos"));
                     }}
-                    className={`input-standard ${camposErrores.includes("apellidos") ? '!border-rose-500 !bg-rose-50' : ''}`} />
+                    className="input-standard" />
                 </div>
 
-                <input type="text" placeholder="Teléfono" value={telefono} onChange={(e) => setTelefono(e.target.value.replace(/[^0-9]/g, ""))}
-                  className="input-standard" />
+                <div className="flex flex-col gap-1">
+                  <span className="text-[9px] text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest px-2">Teléfono</span>
+                  <input type="text" placeholder="Solo números" value={telefono} onChange={(e) => setTelefono(e.target.value.replace(/[^0-9]/g, ""))}
+                    className="input-standard" />
+                </div>
 
-                <input type="text" placeholder="Cargo u Oficio (Opcional)" value={cargo} onChange={(e) => setCargo(e.target.value)}
-                  className="input-standard" />
+                <div className="flex flex-col gap-1">
+                  <span className="text-[9px] text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest px-2">Cargo</span>
+                  <input type="text" placeholder="Opcional" value={cargo} onChange={(e) => setCargo(e.target.value)}
+                    className="input-standard" />
+                </div>
 
-                <input 
-                  ref={destinoRef}
-                  type="text" 
-                  placeholder="Destino" 
-                  value={destino} 
-                  onChange={(e) => {
-                    setDestino(e.target.value);
-                    setCamposErrores(prev => prev.filter(err => err !== "destino"));
-                  }}
-                  className={`input-standard ${camposErrores.includes("destino") ? '!border-rose-500 !bg-rose-50' : ''}`} />
+                <div className="flex flex-col gap-1">
+                  <span className="text-[9px] text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest px-2">Destino</span>
+                  <input 
+                    ref={destinoRef}
+                    type="text" 
+                    placeholder="Oficina/Apto" 
+                    value={destino} 
+                    onChange={(e) => {
+                      setDestino(e.target.value);
+                      setCamposErrores(prev => prev.filter(err => err !== "destino"));
+                    }}
+                    className="input-standard" />
+                </div>
 
-                <div className="relative group/select">
+                <div className="flex flex-col gap-1 relative group/select">
+                  <span className="text-[9px] text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest px-2">Tipo Persona</span>
                   <select value={tipo} onChange={(e) => setTipo(e.target.value)} disabled={loadingTipos || tipos.length === 0}
                     className="input-standard appearance-none cursor-pointer">
                     {tipos.length > 0 ? tipos.map(t => <option key={t.id} value={t.nombre.toLowerCase()}>{t.nombre}</option>) : <option value="">{loadingTipos ? "Cargando..." : "Sin tipos"}</option>}
                   </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-400 group-hover/select:text-indigo-500 transition-colors">
+                  <div className="pointer-events-none absolute bottom-3.5 right-4 flex items-center text-slate-400 group-hover/select:text-indigo-500 transition-colors">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" /></svg>
                   </div>
                 </div>
 
-                <div className="sm:col-span-2 lg:col-span-2 relative">
+                <div className="sm:col-span-2 lg:col-span-2 flex flex-col gap-1 relative">
+                  <span className="text-[9px] text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest px-2">Motivo</span>
                   <textarea 
                     ref={motivoRef}
-                    placeholder="Motivo de ingreso..." 
+                    placeholder="Escriba el motivo del ingreso..." 
                     value={motivo} 
                     onChange={(e) => {
                       setMotivo(e.target.value);
                       setCamposErrores(prev => prev.filter(err => err !== "motivo"));
                     }}
                     maxLength={250}
-                    className={`input-standard resize-none min-h-[48px] ${
-                      camposErrores.includes("motivo") ? '!border-rose-500 !bg-rose-50' : ''
-                    }`}
+                    className="input-standard resize-none min-h-[48px]"
                     rows={1} 
                   />
-                  <div className="absolute right-3 bottom-2 text-[8px] font-black text-slate-300 pointer-events-none uppercase">
+                  <div className="absolute right-3 bottom-2 text-[8px] font-black text-slate-400 dark:text-slate-700 pointer-events-none uppercase">
                     {motivo.length}/250
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Botones de acción (fijos abajo) */}
-            <div className="flex-shrink-0 pt-5 mt-2 border-t border-slate-100 flex flex-col gap-3 relative z-10">
+            <div className="flex-shrink-0 pt-5 mt-2 border-t border-border flex flex-col gap-3 relative z-10 transition-colors">
               <div className="grid grid-cols-2 gap-4">
                 <button
                   onClick={() => handleRegistrar("entrada")}
                   disabled={isBloqueado || isVehiculoBloqueado || !!registroActivo}
                   className={`btn-success !py-4 !text-xs ${
-                    (isBloqueado || isVehiculoBloqueado || !!registroActivo) && '!bg-slate-100 !text-slate-300 !border-slate-100 !shadow-none'
+                    (isBloqueado || isVehiculoBloqueado || !!registroActivo) && '!bg-slate-100 dark:!bg-slate-800 !text-slate-300 dark:!text-slate-600 !border-border dark:!border-slate-800 !shadow-none'
                   }`}
                 >
                   {isBloqueado ? "🚫 BLOQUEADO" : "✅ REGISTRAR ENTRADA"}
@@ -1259,7 +1204,7 @@ export default function DashboardPage() {
                   onClick={() => handleRegistrar("salida")}
                   disabled={!registroActivo}
                   className={`btn-danger !py-4 !text-xs ${
-                    !registroActivo && '!bg-slate-100 !text-slate-300 !border-slate-100 !shadow-none'
+                    !registroActivo && '!bg-slate-100 dark:!bg-slate-800 !text-slate-300 dark:!text-slate-600 !border-border dark:!border-slate-800 !shadow-none'
                   }`}
                 >
                   🚪 REGISTRAR SALIDA
@@ -1268,7 +1213,7 @@ export default function DashboardPage() {
               <div className="flex gap-3">
                 <button
                   onClick={handleActualizarDatos}
-                  className="btn-primary flex-1 !py-3 !bg-indigo-50 !text-indigo-600 !shadow-none !border-indigo-100 hover:!bg-indigo-600 hover:!text-white !text-[9px] !tracking-[0.2em]"
+                  className="btn-primary flex-1 !py-3 !bg-indigo-50 dark:!bg-indigo-900/20 !text-indigo-600 dark:!text-indigo-400 !shadow-none !border-indigo-100 dark:!border-indigo-900/50 hover:!bg-indigo-600 hover:!text-white !text-[9px] !tracking-[0.2em]"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                   Sincronizar Información
@@ -1282,9 +1227,7 @@ export default function DashboardPage() {
                 </button>
               </div>
             </div>
-
-          </div>{/* fin sección izquierda */}
-
+          </div>
         </div>
       </div>
     </>

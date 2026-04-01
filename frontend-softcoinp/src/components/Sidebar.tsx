@@ -47,7 +47,7 @@ export default function Sidebar() {
       )}
 
       <aside 
-        className={`bg-white text-slate-700 flex flex-col pt-2 pb-4 flex-shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.05)] border-r border-slate-200 transition-all duration-300 ease-in-out
+        className={`bg-card text-foreground flex flex-col pt-2 pb-4 flex-shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.05)] dark:shadow-none border-r border-border transition-all duration-300 ease-in-out
           fixed inset-y-0 left-0 z-[120] lg:static lg:z-10 h-full
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           ${isExpanded ? 'w-72' : 'w-72 lg:w-[88px]'}
@@ -123,24 +123,24 @@ export default function Sidebar() {
             )}
 
             {(user?.role === "admin" || user?.role === "superadmin") && hasPermission("configuraciones") && (
-               <div className="mt-2 pt-2 border-t border-slate-200">
+               <div className="mt-2 pt-2 border-t border-border">
                    <NavItem icon="🔑" text="Configuraciones" path="/configuraciones" currentPath={pathname} isExpanded={isExpanded} router={router} />
                </div>
             )}
 
            {user?.role === "superadmin" && (
-              <div className="mt-2 text-[10px] uppercase font-black text-slate-300 px-4 mb-1">Super Admin</div>
+              <div className="mt-2 text-[10px] uppercase font-black text-slate-300 dark:text-slate-600 px-4 mb-1">Super Admin</div>
            )}
            {user?.role === "superadmin" && (
               <NavItem icon="🛠️" text="Mantenimiento" path="/configuraciones/general?mantenimiento=true" currentPath={pathname} isExpanded={isExpanded} router={router} highlightRed />
            )}
         </nav>
 
-        <div className="mt-auto pt-4 border-t border-slate-200 text-center overflow-hidden flex flex-col items-center justify-center min-h-[40px]">
+        <div className="mt-auto pt-4 border-t border-border text-center overflow-hidden flex flex-col items-center justify-center min-h-[40px]">
            {isExpanded ? (
-             <p className="text-[10px] text-slate-400 font-bold tracking-widest whitespace-nowrap animate-in fade-in duration-300 uppercase">Control de Acceso Softcoinp {systemVersion || "..."}</p>
+             <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold tracking-widest whitespace-nowrap animate-in fade-in duration-300 uppercase">Softcoinp {systemVersion || "..."}</p>
            ) : (
-             <p className="text-[10px] text-slate-400 font-bold tracking-widest uppercase">{systemVersion ? systemVersion.substring(0, 4) : "..."}</p>
+             <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold tracking-widest uppercase">{systemVersion ? systemVersion.substring(0, 4) : "..."}</p>
            )}
         </div>
       </aside>
@@ -154,7 +154,9 @@ function NavGroup({ icon, text, isOpen, isExpanded, onToggle, children }: any) {
             <button 
                 onClick={onToggle}
                 className={`flex items-center p-3 rounded-2xl transition-all duration-200 font-semibold border whitespace-nowrap overflow-hidden group relative w-full
-                    ${isOpen ? 'bg-slate-50 text-blue-700 border-slate-100' : 'text-slate-500 border-transparent hover:bg-slate-50 hover:text-slate-800'}
+                    ${isOpen 
+                        ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 border-indigo-100 dark:border-indigo-900/50' 
+                        : 'text-slate-500 dark:text-slate-400 border-transparent hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200'}
                 `}
                 title={text}
             >
@@ -171,7 +173,7 @@ function NavGroup({ icon, text, isOpen, isExpanded, onToggle, children }: any) {
                 )}
             </button>
             {isOpen && (
-                <div className="flex flex-col gap-1 ml-4 border-l-2 border-slate-100 pl-2 animate-in slide-in-from-top-2 duration-200">
+                <div className="flex flex-col gap-1 ml-4 border-l-2 border-slate-100 dark:border-slate-800 pl-2 animate-in slide-in-from-top-2 duration-200">
                     {children}
                 </div>
             )}
@@ -185,13 +187,13 @@ function NavItem({ icon, text, path, currentPath, isExpanded, alert, highlightRe
   let baseClass = `flex items-center ${isSubItem ? 'p-2' : 'p-3'} rounded-2xl transition-all duration-200 font-semibold border whitespace-nowrap overflow-hidden group relative `;
   
   if (highlightRed) {
-     baseClass += `bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100 animate-pulse-red `;
+     baseClass += `bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-900/50 hover:bg-rose-100 dark:hover:bg-rose-900/40 animate-pulse-red `;
   } else if (alert) {
-     baseClass += `bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100 animate-pulse shadow-[0_0_15px_rgba(225,29,72,0.1)] `;
+     baseClass += `bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-900/50 hover:bg-rose-100 dark:hover:bg-rose-900/40 animate-pulse shadow-[0_0_15px_rgba(225,29,72,0.1)] `;
   } else if (isActive) {
-     baseClass += `bg-blue-50 text-blue-700 border-blue-200 shadow-[0_4px_20px_rgba(37,99,235,0.08)] `;
+     baseClass += `bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800 shadow-[0_4px_20px_rgba(79,70,229,0.08)] `;
   } else {
-     baseClass += `text-slate-500 border-transparent hover:bg-slate-50 hover:text-slate-800 `;
+     baseClass += `text-slate-500 dark:text-slate-400 border-transparent hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200 `;
   }
 
   return (
@@ -204,7 +206,7 @@ function NavItem({ icon, text, path, currentPath, isExpanded, alert, highlightRe
        </span>
        {/* Pill indicator for active state when collapsed */}
        {!isExpanded && isActive && (
-         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-1/2 bg-blue-600 rounded-r-full shadow-sm"></div>
+         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-1/2 bg-indigo-600 dark:bg-indigo-500 rounded-r-full shadow-sm"></div>
        )}
     </button>
   );

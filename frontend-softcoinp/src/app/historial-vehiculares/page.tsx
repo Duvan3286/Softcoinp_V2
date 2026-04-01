@@ -16,15 +16,15 @@ interface AnotacionItem {
   fechaCreacionUtc: string;
   registradoPor: string;
   registradoPorEmail?: string;
-  vehiculoFotoUrl?: string; // 📸 Nueva propiedad
-  vehiculoIsBloqueado?: boolean; // 🔒 Estado actual
+  vehiculoFotoUrl?: string; 
+  vehiculoIsBloqueado?: boolean; 
 }
 
 interface VehiculoAgrupado {
   vehiculoId: string;
   placa: string;
-  fotoUrl?: string; // 📸 Nueva propiedad
-  isBloqueado?: boolean; // 🔒 Estado del sistema
+  fotoUrl?: string; 
+  isBloqueado?: boolean; 
   novedades: AnotacionItem[];
   ultimaFecha: string;
 }
@@ -36,7 +36,6 @@ export default function HistorialVehicularesPage() {
     show: false, title: '', message: '', type: 'success'
   });
   
-  // ... rest of state ...
   const [novedades, setNovedades] = useState<AnotacionItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -44,7 +43,7 @@ export default function HistorialVehicularesPage() {
   const [desdeFilter, setDesdeFilter] = useState("");
   const [hastaFilter, setHastaFilter] = useState("");
   const [reporterFilter, setReporterFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState(""); // "" | "bloqueado" | "habilitado"
+  const [statusFilter, setStatusFilter] = useState(""); 
   const [selectedVehiculo, setSelectedVehiculo] = useState<VehiculoAgrupado | null>(null);
 
   // Paginación
@@ -69,7 +68,6 @@ export default function HistorialVehicularesPage() {
     setLoading(true);
     try {
       const res = await api.get<{ data: AnotacionItem[] }>("/anotaciones");
-      // Filtro para traer SÓLO las de vehículos
       const onlyVehiculos = (res.data.data || []).filter(a => a.vehiculoId);
       setNovedades(onlyVehiculos);
     } catch {
@@ -113,7 +111,6 @@ export default function HistorialVehicularesPage() {
   };
 
   const novedadesFiltradas = novedades.filter(n => {
-    // 1. Filtro por Texto (Búsqueda Libre)
     const q = filtroBusqueda.toLowerCase();
     if (q) {
       const matchesText = 
@@ -123,7 +120,6 @@ export default function HistorialVehicularesPage() {
       if (!matchesText) return false;
     }
 
-    // 3. Filtro por Fechas
     if (desdeFilter || hastaFilter) {
       const fechaLog = new Date(n.fechaCreacionUtc);
       const year = fechaLog.getFullYear();
@@ -135,10 +131,8 @@ export default function HistorialVehicularesPage() {
       if (hastaFilter && localDateStr > hastaFilter) return false;
     }
 
-    // 4. Filtro por Reportante
     if (reporterFilter && n.registradoPorEmail !== reporterFilter) return false;
 
-    // 5. Filtro por Estado (Bloqueados / Habilitados)
     if (statusFilter) {
       const currentlyBlocked = n.vehiculoIsBloqueado === true;
       if (statusFilter === "bloqueado") {
@@ -151,10 +145,8 @@ export default function HistorialVehicularesPage() {
     return true;
   });
 
-  // Obtener lista única de reportantes para el filtro
   const uniqueReporters = Array.from(new Set(novedades.map(n => n.registradoPorEmail).filter(Boolean)));
 
-  // AGRUPACIÓN POR VEHÍCULO
   const vehiculosAgrupados: VehiculoAgrupado[] = Object.values(
     novedadesFiltradas.reduce((acc: { [key: string]: VehiculoAgrupado }, n) => {
       const vid = n.vehiculoId;
@@ -169,7 +161,6 @@ export default function HistorialVehicularesPage() {
         };
       }
       acc[vid].novedades.push(n);
-      // Mantener la fecha más reciente para ordenar
       if (new Date(n.fechaCreacionUtc) > new Date(acc[vid].ultimaFecha)) {
         acc[vid].ultimaFecha = n.fechaCreacionUtc;
       }
@@ -186,29 +177,27 @@ export default function HistorialVehicularesPage() {
     setCurrentPage(1);
   };
 
-  // Cálculo de paginación
   const totalPages = Math.ceil(vehiculosAgrupados.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const vehiculosPaginados = vehiculosAgrupados.slice(startIndex, startIndex + itemsPerPage);
 
-  // Reset pagina al filtrar
   useEffect(() => {
     setCurrentPage(1);
   }, [filtroBusqueda, desdeFilter, hastaFilter, reporterFilter, statusFilter]);
 
   return (
     <>
-      <div className="flex-1 h-auto lg:h-full flex flex-col min-h-0 bg-gray-50 p-2 lg:p-4 lg:overflow-hidden relative">
+      <div className="flex-1 h-auto lg:h-full flex flex-col min-h-0 bg-background p-2 lg:p-4 lg:overflow-hidden relative transition-colors duration-300">
       <div className="max-w-[1400px] mx-auto w-full h-full flex flex-col min-h-0">
         {/* Header Section */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-3 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-slate-800 rounded-xl text-white shadow-md">
+            <div className="p-2 bg-indigo-600 rounded-xl text-white shadow-md shadow-indigo-100 dark:shadow-none">
                <span className="text-xl">📋</span>
             </div>
             <div>
-              <h1 className="text-lg lg:text-xl font-black text-slate-800 uppercase tracking-tight leading-none">Historial de Novedades Vehiculares</h1>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Gestión integral de anotaciones de seguridad vehicular</p>
+              <h1 className="text-lg lg:text-xl font-black text-foreground uppercase tracking-tight leading-none">Historial de Novedades Vehiculares</h1>
+              <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest mt-1">Gestión integral de anotaciones de seguridad vehicular</p>
             </div>
           </div>
           
@@ -217,7 +206,7 @@ export default function HistorialVehicularesPage() {
               <button
                 onClick={handleExportExcel}
                 disabled={exporting}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-4 rounded-xl shadow-lg shadow-emerald-200 transition-all duration-300 flex items-center justify-center gap-2 text-sm font-bold active:scale-95 whitespace-nowrap disabled:opacity-50"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-4 rounded-xl shadow-lg shadow-emerald-200 dark:shadow-none transition-all duration-300 flex items-center justify-center gap-2 text-sm font-bold active:scale-95 whitespace-nowrap disabled:opacity-50"
               >
                 {exporting ? (
                   <>
@@ -234,7 +223,7 @@ export default function HistorialVehicularesPage() {
             )}
             <button
               onClick={() => router.push("/novedades-vehiculares")}
-              className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-xl shadow-lg transition-all duration-300 flex items-center justify-center gap-2 text-sm font-bold active:scale-95 whitespace-nowrap"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-xl shadow-lg shadow-indigo-100 dark:shadow-none transition-all duration-300 flex items-center justify-center gap-2 text-sm font-bold active:scale-95 whitespace-nowrap"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
               Panel de Novedades
@@ -243,10 +232,10 @@ export default function HistorialVehicularesPage() {
         </div>
 
         {/* 🔍 Barra de Filtros (Compacta) */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-3 mb-3 flex flex-wrap items-end gap-2 shrink-0">
+        <div className="bg-card rounded-2xl shadow-sm border border-border p-3 mb-3 flex flex-wrap items-end gap-2 shrink-0">
           {/* Búsqueda por Texto */}
           <div className="flex flex-col gap-1 flex-1 min-w-[180px]">
-            <label className="text-[9px] uppercase font-black text-slate-400 px-1 tracking-widest">Búsqueda Libre</label>
+            <label className="text-[9px] uppercase font-black text-slate-400 dark:text-slate-500 px-1 tracking-widest">Búsqueda Libre</label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">🔍</span>
               <input
@@ -254,39 +243,39 @@ export default function HistorialVehicularesPage() {
                 value={filtroBusqueda}
                 onChange={e => setFiltroBusqueda(e.target.value)}
                 placeholder="Placa o detalle..."
-                className="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-100 rounded-xl text-[13px] font-bold focus:ring-4 focus:ring-blue-500/5 focus:border-blue-400 outline-none transition-all placeholder-slate-300 uppercase tracking-widest"
+                className="w-full pl-8 pr-3 py-2 bg-background border border-border rounded-xl text-[13px] font-bold focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-400 outline-none transition-all placeholder-slate-300 dark:placeholder-slate-700 text-foreground uppercase tracking-widest"
               />
             </div>
           </div>
 
           <div className="flex items-end gap-2">
             <div className="flex flex-col gap-1 w-32 lg:w-36">
-              <label className="text-[9px] uppercase font-black text-slate-400 px-1 tracking-widest">Desde</label>
+              <label className="text-[9px] uppercase font-black text-slate-400 dark:text-slate-500 px-1 tracking-widest">Desde</label>
               <input
                 type="date"
                 value={desdeFilter}
                 onChange={e => setDesdeFilter(e.target.value)}
-                className="px-3 py-2 bg-slate-50 border border-slate-100 rounded-xl text-[13px] font-bold focus:ring-4 focus:ring-blue-500/5 focus:border-blue-400 outline-none transition-all"
+                className="px-3 py-2 bg-background border border-border rounded-xl text-[13px] font-bold focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-400 outline-none transition-all text-foreground [color-scheme:light] dark:[color-scheme:dark]"
               />
             </div>
 
             <div className="flex flex-col gap-1 w-32 lg:w-36">
-              <label className="text-[9px] uppercase font-black text-slate-400 px-1 tracking-widest">Hasta</label>
+              <label className="text-[9px] uppercase font-black text-slate-400 dark:text-slate-500 px-1 tracking-widest">Hasta</label>
               <input
                 type="date"
                 value={hastaFilter}
                 onChange={e => setHastaFilter(e.target.value)}
-                className="px-3 py-2 bg-slate-50 border border-slate-100 rounded-xl text-[13px] font-bold focus:ring-4 focus:ring-blue-500/5 focus:border-blue-400 outline-none transition-all"
+                className="px-3 py-2 bg-background border border-border rounded-xl text-[13px] font-bold focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-400 outline-none transition-all text-foreground [color-scheme:light] dark:[color-scheme:dark]"
               />
             </div>
           </div>
 
           <div className="flex flex-col gap-1 w-44">
-            <label className="text-[9px] uppercase font-black text-slate-400 px-1 tracking-widest">Autor</label>
+            <label className="text-[9px] uppercase font-black text-slate-400 dark:text-slate-500 px-1 tracking-widest">Autor</label>
             <select
               value={reporterFilter}
               onChange={e => setReporterFilter(e.target.value)}
-              className="px-3 py-2 bg-slate-50 border border-slate-100 rounded-xl text-[13px] font-bold focus:ring-4 focus:ring-blue-500/5 focus:border-blue-400 outline-none transition-all"
+              className="px-3 py-2 bg-background border border-border rounded-xl text-[13px] font-bold focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-400 outline-none transition-all text-foreground"
             >
               <option value="">Cualquier Usuario</option>
               {uniqueReporters.map(email => (
@@ -296,11 +285,11 @@ export default function HistorialVehicularesPage() {
           </div>
 
           <div className="flex flex-col gap-1 w-40">
-            <label className="text-[9px] uppercase font-black text-slate-400 px-1 tracking-widest">Estado</label>
+            <label className="text-[9px] uppercase font-black text-slate-400 dark:text-slate-500 px-1 tracking-widest">Estado</label>
             <select
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value)}
-              className="px-3 py-2 bg-slate-50 border border-slate-100 rounded-xl text-[13px] font-bold focus:ring-4 focus:ring-blue-500/5 focus:border-blue-400 outline-none transition-all shadow-sm"
+              className="px-3 py-2 bg-background border border-border rounded-xl text-[13px] font-bold focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-400 outline-none transition-all shadow-sm text-foreground"
             >
               <option value="">Todos los Eventos</option>
               <option value="bloqueado">🚫 Bloqueados</option>
@@ -311,13 +300,13 @@ export default function HistorialVehicularesPage() {
           <div className="flex gap-2 ml-auto">
             <button
               onClick={fetchAllNovedades}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-[10px] font-black transition-all shadow-lg shadow-blue-100 active:scale-95 flex items-center gap-2 uppercase tracking-widest"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-[10px] font-black transition-all shadow-lg shadow-indigo-100 dark:shadow-none active:scale-95 flex items-center gap-2 uppercase tracking-widest"
             >
               <span>Filtrar</span>
             </button>
             <button
               onClick={clearFilters}
-              className="bg-slate-100 hover:bg-slate-200 text-slate-500 px-4 py-2 rounded-xl text-[10px] font-black transition-all active:scale-95 uppercase tracking-widest"
+              className="bg-background hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 px-4 py-2 rounded-xl text-[10px] font-black transition-all border border-border active:scale-95 uppercase tracking-widest"
             >
               Borrar
             </button>
@@ -326,7 +315,7 @@ export default function HistorialVehicularesPage() {
 
         {/* Conteo y Status */}
         <div className="flex items-center justify-between mb-2 px-1 shrink-0">
-          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+          <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">
             {loading ? "Cargando..." : (
               vehiculosAgrupados.length === 0 
                 ? "No se hallaron registros" 
@@ -338,23 +327,23 @@ export default function HistorialVehicularesPage() {
         {/* 📋 Lista de vehículos agrupados (Con Scroll Interno) */}
         <div className="flex-1 overflow-y-auto pr-1 min-h-0 custom-scrollbar pb-4 space-y-2">
           {loading ? (
-            <div className="bg-white rounded-2xl p-20 flex flex-col items-center justify-center text-slate-400 gap-4 border border-slate-100">
-               <div className="w-10 h-10 border-4 border-slate-200 border-t-blue-500 rounded-full animate-spin"></div>
+            <div className="bg-card rounded-2xl p-20 flex flex-col items-center justify-center text-slate-400 gap-4 border border-border">
+               <div className="w-10 h-10 border-4 border-slate-200 border-t-indigo-500 rounded-full animate-spin"></div>
                <p className="text-xs font-black uppercase tracking-widest">Sincronizando Historial...</p>
             </div>
           ) : vehiculosAgrupados.length === 0 ? (
-            <div className="bg-white rounded-2xl py-20 text-center text-slate-300 border-2 border-dashed border-slate-100 flex flex-col items-center gap-3">
+            <div className="bg-card rounded-2xl py-20 text-center text-slate-300 dark:text-slate-700 border-2 border-dashed border-border flex flex-col items-center gap-3">
                <span className="text-5xl grayscale opacity-20">📭</span>
                <p className="text-xs font-black uppercase tracking-widest">No se encontraron resultados para los filtros aplicados</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-2">
               {vehiculosPaginados.map(v => (
-                <div key={v.vehiculoId} className="bg-white rounded-xl shadow-sm border border-slate-100 p-2.5 px-4 hover:border-blue-200 hover:shadow-md transition-all group">
+                <div key={v.vehiculoId} className="bg-card rounded-xl shadow-sm border border-border p-2.5 px-4 hover:border-indigo-200 dark:hover:border-indigo-800 hover:shadow-md transition-all group">
                   <div className="flex items-center justify-between gap-4">
                     {/* Info del Vehículo */}
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-white font-black text-xs shrink-0 shadow-md overflow-hidden border border-slate-200">
+                      <div className="w-10 h-10 rounded-lg bg-slate-800 dark:bg-slate-950 flex items-center justify-center text-white font-black text-xs shrink-0 shadow-md overflow-hidden border border-border">
                         {v.fotoUrl ? (
                           <img 
                             src={v.fotoUrl.startsWith('http') ? v.fotoUrl : `${BACKEND_BASE_URL}${v.fotoUrl}`} 
@@ -366,29 +355,29 @@ export default function HistorialVehicularesPage() {
                         )}
                       </div>
                        <div className="min-w-0">
-                         <p className="text-[13px] font-black text-slate-800 truncate uppercase leading-none mb-1 flex items-center gap-2">
-                           PLACA: <span className="text-blue-600">{v.placa}</span>
+                         <p className="text-[13px] font-black text-foreground truncate uppercase leading-none mb-1 flex items-center gap-2">
+                           PLACA: <span className="text-indigo-600 dark:text-indigo-400">{v.placa}</span>
                            {v.isBloqueado && (
-                             <span className="bg-red-100 text-red-600 text-[8px] px-1.5 py-0.5 rounded-md border border-red-200 animate-pulse">
+                             <span className="bg-red-100 dark:bg-red-950/20 text-red-600 dark:text-red-400 text-[8px] px-1.5 py-0.5 rounded-md border border-red-200 dark:border-red-900/30 animate-pulse">
                                BLOQUEADO
                              </span>
                            )}
                          </p>
-                         <p className="text-[10px] text-slate-500 font-bold tracking-tighter uppercase">
+                         <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold tracking-tighter uppercase">
                             Vehículo
                          </p>
                        </div>
                     </div>
 
                     {/* Resumen Novedades */}
-                    <div className="flex-1 min-w-0 hidden md:block border-l border-slate-50 pl-4">
+                    <div className="flex-1 min-w-0 hidden md:block border-l border-border pl-4">
                       <div className="flex items-center gap-3">
-                        <span className="text-[10px] font-black text-slate-700 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100 uppercase tracking-tighter">
+                        <span className="text-[10px] font-black text-slate-700 dark:text-slate-300 bg-background px-2 py-1 rounded-lg border border-border uppercase tracking-tighter">
                           {v.novedades.length} Eventos
                         </span>
                         <div className="flex items-center gap-1.5 opacity-60">
                            <span className="text-[10px]">📅</span>
-                           <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">
+                           <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight">
                               Último: {new Date(v.ultimaFecha).toLocaleDateString("es-CO", { day: '2-digit', month: 'short', year: 'numeric' })}
                            </span>
                         </div>
@@ -399,7 +388,7 @@ export default function HistorialVehicularesPage() {
                     <div className="flex items-center gap-2 shrink-0">
                       <button
                         onClick={() => setSelectedVehiculo(v)}
-                        className="bg-slate-50 hover:bg-blue-600 hover:text-white text-blue-600 px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase tracking-widest border border-blue-100 shadow-sm active:scale-95"
+                        className="bg-background hover:bg-indigo-600 dark:hover:bg-indigo-700 hover:text-white text-indigo-600 dark:text-indigo-400 px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase tracking-widest border border-border shadow-sm active:scale-95"
                       >
                         Ver Detalle
                       </button>
@@ -413,15 +402,15 @@ export default function HistorialVehicularesPage() {
 
         {/* 🔢 Paginador (Premium) */}
         {totalPages > 1 && (
-          <div className="bg-white border-t border-slate-100 p-3 flex items-center justify-between shrink-0">
-             <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+          <div className="bg-card border-t border-border p-3 flex items-center justify-between shrink-0">
+             <div className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
                 Página {currentPage} de {totalPages}
              </div>
              <div className="flex items-center gap-1">
                 <button
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage(prev => prev - 1)}
-                  className="p-2 hover:bg-slate-50 rounded-lg text-slate-400 disabled:opacity-30 transition-all border border-transparent hover:border-slate-100"
+                  className="p-2 hover:bg-background rounded-lg text-slate-400 dark:text-slate-600 disabled:opacity-30 transition-all border border-transparent hover:border-border"
                 >
                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg>
                 </button>
@@ -429,10 +418,9 @@ export default function HistorialVehicularesPage() {
                 <div className="flex gap-1">
                    {[...Array(totalPages)].map((_, i) => {
                      const page = i + 1;
-                     // Mostrar solo algunas páginas si hay muchas
                      if (totalPages > 7) {
                        if (page > 1 && page < totalPages && Math.abs(page - currentPage) > 1) {
-                         if (page === 2 || page === totalPages - 1) return <span key={page} className="px-1 text-slate-300">...</span>;
+                         if (page === 2 || page === totalPages - 1) return <span key={page} className="px-1 text-slate-300 dark:text-slate-700">...</span>;
                          return null;
                        }
                      }
@@ -443,8 +431,8 @@ export default function HistorialVehicularesPage() {
                         onClick={() => setCurrentPage(page)}
                         className={`w-8 h-8 rounded-lg text-[10px] font-black transition-all ${
                           currentPage === page 
-                            ? "bg-blue-600 text-white shadow-lg shadow-blue-100 scale-110" 
-                            : "bg-white text-slate-500 hover:bg-slate-50 border border-slate-100"
+                            ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100 dark:shadow-none scale-110" 
+                            : "bg-background text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-border"
                         }`}
                       >
                         {page}
@@ -456,7 +444,7 @@ export default function HistorialVehicularesPage() {
                 <button
                   disabled={currentPage === totalPages}
                   onClick={() => setCurrentPage(prev => prev + 1)}
-                  className="p-2 hover:bg-slate-50 rounded-lg text-slate-400 disabled:opacity-30 transition-all border border-transparent hover:border-slate-100"
+                  className="p-2 hover:bg-background rounded-lg text-slate-400 dark:text-slate-600 disabled:opacity-30 transition-all border border-transparent hover:border-border"
                 >
                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
                 </button>
@@ -468,11 +456,11 @@ export default function HistorialVehicularesPage() {
       {/* MODAL DE DETALLE (Línea de Tiempo por Vehículo) */}
       {selectedVehiculo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[75vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200 border border-gray-200">
+          <div className="bg-card rounded-2xl shadow-2xl w-full max-w-lg max-h-[75vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200 border border-border">
             {/* Header Modal */}
-            <div className="bg-slate-900 p-4 flex items-center justify-between shrink-0 border-b border-white/10">
+            <div className="bg-slate-900 dark:bg-slate-950 p-4 flex items-center justify-between shrink-0 border-b border-white/10">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white text-xl font-black shadow-lg shadow-blue-500/20 overflow-hidden border-2 border-white/20">
+                <div className="w-14 h-10 rounded-lg bg-indigo-600 flex items-center justify-center text-white text-xl font-black shadow-lg shadow-indigo-500/20 overflow-hidden border-2 border-white/20">
                   {selectedVehiculo.fotoUrl ? (
                     <img 
                       src={selectedVehiculo.fotoUrl.startsWith('http') ? selectedVehiculo.fotoUrl : `${BACKEND_BASE_URL}${selectedVehiculo.fotoUrl}`} 
@@ -493,7 +481,7 @@ export default function HistorialVehicularesPage() {
                     )}
                   </h3>
                   <div className="flex items-center gap-3 mt-1.5">
-                    <span className="text-slate-400 text-[10px] font-bold uppercase tracking-tight">
+                    <span className="text-slate-400 dark:text-slate-500 text-[10px] font-bold uppercase tracking-tight">
                        {selectedVehiculo.novedades.length} Eventos registrados
                     </span>
                   </div>
@@ -508,33 +496,33 @@ export default function HistorialVehicularesPage() {
             </div>
 
             {/* Cuerpo Modal (Línea de tiempo scrollable) */}
-            <div className="flex-1 overflow-y-auto p-5 custom-scrollbar bg-slate-50/30">
-              <div className="space-y-4 relative before:content-[''] before:absolute before:left-[13px] before:top-2 before:bottom-0 before:w-0.5 before:bg-slate-200">
+            <div className="flex-1 overflow-y-auto p-5 custom-scrollbar bg-background">
+              <div className="space-y-4 relative before:content-[''] before:absolute before:left-[13px] before:top-2 before:bottom-0 before:w-0.5 before:bg-border">
                 {selectedVehiculo.novedades
                   .sort((a, b) => new Date(b.fechaCreacionUtc).getTime() - new Date(a.fechaCreacionUtc).getTime())
                   .map((anot) => (
                   <div key={anot.id} className="relative pl-9 group">
                     {/* Punto del timeline */}
-                    <div className="absolute left-0 top-1.5 w-[28px] h-[28px] rounded-full bg-white border-2 border-blue-500 shadow-sm flex items-center justify-center z-10 transition-transform group-hover:scale-110">
+                    <div className="absolute left-0 top-1.5 w-[28px] h-[28px] rounded-full bg-card border-2 border-indigo-500 shadow-sm flex items-center justify-center z-10 transition-transform group-hover:scale-110">
                       <span className="text-[12px]">📝</span>
                     </div>
                     
-                    <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm transition-all hover:shadow-md hover:border-blue-100">
+                    <div className="bg-card rounded-2xl p-4 border border-border shadow-sm transition-all hover:shadow-md hover:border-indigo-100 dark:hover:border-indigo-900/50">
                       <div className="flex items-center justify-between mb-2">
-                        <div className="p-0.5 px-2 bg-slate-50 rounded border border-slate-100">
-                          <span className="text-[10px] font-black text-slate-500 uppercase tracking-tighter">
+                        <div className="p-0.5 px-2 bg-background rounded border border-border">
+                          <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-tighter">
                             {new Date(anot.fechaCreacionUtc).toLocaleString("es-CO", {
                               day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit"
                             })}
                           </span>
                         </div>
                         {anot.registradoPorEmail && (
-                          <span className="text-[9px] text-blue-600 font-black bg-blue-50 px-2 py-0.5 rounded tracking-widest uppercase italic border border-blue-100/50">
+                          <span className="text-[9px] text-indigo-600 dark:text-indigo-400 font-black bg-indigo-50 dark:bg-indigo-950/20 px-2 py-0.5 rounded tracking-widest uppercase italic border border-indigo-100/50 dark:border-indigo-900/30">
                              {anot.registradoPorEmail.split('@')[0]}
                           </span>
                         )}
                       </div>
-                      <p className="text-[13px] text-slate-700 leading-snug font-bold whitespace-pre-wrap">
+                      <p className="text-[13px] text-card-foreground leading-snug font-bold whitespace-pre-wrap">
                         {anot.texto}
                       </p>
                     </div>
@@ -544,10 +532,10 @@ export default function HistorialVehicularesPage() {
             </div>
 
             {/* Footer Modal */}
-            <div className="p-3 bg-white border-t border-slate-100 flex justify-end shrink-0">
+            <div className="p-3 bg-card border-t border-border flex justify-end shrink-0">
               <button
                 onClick={() => setSelectedVehiculo(null)}
-                className="bg-slate-800 hover:bg-slate-900 text-white px-8 py-2.5 rounded-xl font-black text-[10px] transition-all shadow-md active:scale-95 uppercase tracking-widest"
+                className="bg-slate-800 dark:bg-slate-700 hover:bg-slate-900 dark:hover:bg-slate-600 text-white px-8 py-2.5 rounded-xl font-black text-[10px] transition-all shadow-md active:scale-95 uppercase tracking-widest"
               >
                 Cerrar
               </button>

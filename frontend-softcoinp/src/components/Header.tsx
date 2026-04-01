@@ -57,12 +57,12 @@ export default function Header() {
   const { toggleSidebar } = useSidebar();
 
   return (
-    <header className="relative w-full h-14 bg-white dark:bg-slate-900 border-b border-slate-200/80 dark:border-slate-800 px-4 lg:px-5 flex items-center gap-2 lg:gap-4 shadow-sm z-[110] transition-colors duration-300">
+    <header className="relative w-full h-14 bg-card border-b border-border px-4 lg:px-5 flex items-center gap-2 lg:gap-4 shadow-sm z-[110] transition-colors duration-300">
       
       {/* 📱 BOTÓN MENU (Solo móvil) */}
       <button 
         onClick={toggleSidebar}
-        className="lg:hidden p-2 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+        className="lg:hidden p-2 rounded-xl bg-background text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
       >
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -77,7 +77,7 @@ export default function Header() {
 
         <div className="flex flex-col leading-tight min-w-0">
           <span className="text-[10px] font-medium text-slate-400 dark:text-slate-500 uppercase tracking-widest">Activo</span>
-          <span className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate max-w-[140px]">
+          <span className="text-sm font-bold text-foreground truncate max-w-[140px]">
             {usuario || "—"}
           </span>
         </div>
@@ -94,7 +94,7 @@ export default function Header() {
 
         <div className="flex flex-col leading-tight items-start">
           <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.12em] leading-none mb-0.5">Softcoinp {systemVersion || "..."}</span>
-          <span className="text-sm font-black text-slate-800 dark:text-slate-100 tracking-tight leading-tight uppercase">
+          <span className="text-sm font-black text-foreground tracking-tight leading-tight uppercase">
             {clientName}
           </span>
         </div>
@@ -106,7 +106,7 @@ export default function Header() {
           <button
             onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
             title={`Cambiar a modo ${resolvedTheme === 'dark' ? 'claro' : 'oscuro'}`}
-            className="group relative flex items-center justify-center w-9 h-9 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-500 transition-all active:scale-90"
+            className="group relative flex items-center justify-center w-9 h-9 rounded-xl bg-background border border-border hover:border-indigo-300 dark:hover:border-indigo-500 transition-all active:scale-90"
           >
             <div className="relative w-5 h-5 flex items-center justify-center">
               {resolvedTheme === 'dark' ? (
@@ -120,7 +120,7 @@ export default function Header() {
 
         <button
           onClick={handleLogout}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-[10px] font-black uppercase tracking-widest hover:bg-rose-50 dark:hover:bg-rose-900/20 hover:border-rose-200 dark:hover:border-rose-800 hover:text-rose-600 dark:hover:text-rose-400 transition-all duration-200 group shadow-sm"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-background border border-border text-slate-600 dark:text-slate-400 text-[10px] font-black uppercase tracking-widest hover:bg-rose-50 dark:hover:bg-rose-900/20 hover:border-rose-200 dark:hover:border-rose-800 hover:text-rose-600 dark:hover:text-rose-400 transition-all duration-200 group shadow-sm"
         >
           <svg className="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

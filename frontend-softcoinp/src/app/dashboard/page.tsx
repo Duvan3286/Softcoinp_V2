@@ -847,23 +847,23 @@ export default function DashboardPage() {
           <div className="w-full lg:w-96 xl:w-[26rem] flex flex-col gap-3 flex-shrink-0">
 
             {/* ── Bloque Vehículo ── */}
-            <div className="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm p-3 lg:p-4 flex flex-col gap-2.5 lg:overflow-hidden">
-              <div className="flex items-center gap-3 mb-1 flex-shrink-0">
+            <div className="flex-1 bg-white rounded-3xl border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.03)] p-4 lg:p-5 flex flex-col gap-3 lg:overflow-hidden relative">
+              <div className="flex items-center gap-3 mb-2 flex-shrink-0">
                 {/* Título — izquierda */}
                 <div className="flex flex-col justify-center flex-1 min-w-0">
-                  <h3 className="text-sm lg:text-base font-bold text-slate-700 flex items-center gap-2 tracking-tight">
-                    <div className="p-1 lg:p-1.5 bg-slate-100 rounded-lg text-slate-600 flex-shrink-0">
-                      <span className="text-sm lg:text-base">🚗</span>
+                  <h3 className="text-sm lg:text-base font-black text-slate-800 flex items-center gap-2 tracking-tight uppercase">
+                    <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl flex-shrink-0 shadow-sm">
+                      <span className="text-lg">🚗</span>
                     </div>
                     Vehículo
                   </h3>
-                  <p className="text-[10px] text-slate-400 mt-0.5 hidden lg:block">
-                    {fotoVehiculoBase64 ? '✅ Foto capturada — clic para cambiar' : 'Clic en el círculo para fotografía'}
+                  <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-tighter hidden lg:block">
+                    {fotoVehiculoBase64 ? 'Capturado' : 'Pendiente'}
                   </p>
                 </div>
 
                 {/* Foto vehículo — derecha */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <div
                     className="flex flex-col items-center cursor-pointer group flex-shrink-0"
                     onClick={() => {
@@ -871,64 +871,37 @@ export default function DashboardPage() {
                         if (currentVehFullUrl) setFotoZoomUrl(currentVehFullUrl);
                         else setIsVehiculoCameraOpen(true);
                     }}
-                    title={(fotoVehiculoBase64 || fotoVehiculoUrl) ? "Ver en grande" : "Tomar Foto"}
                   >
-                    <div className="relative w-20 lg:w-24 h-20 lg:h-24 transition-transform hover:scale-105">
-                      <div className={`absolute inset-0 rounded-full blur-md opacity-20 transition-all duration-500 ${(fotoVehiculoBase64 || fotoVehiculoUrl) ? 'bg-emerald-400' : 'bg-slate-300 group-hover:bg-blue-400'}`}></div>
-                      <div className={`relative w-full h-full border-[2px] rounded-full flex items-center justify-center overflow-hidden bg-slate-50 transition-all duration-300 ${(fotoVehiculoBase64 || fotoVehiculoUrl) ? 'border-emerald-400' : 'border-slate-200 group-hover:border-blue-400'}`}>
+                    <div className="relative w-20 h-20 lg:w-24 lg:h-24 transition-all duration-500 group-hover:scale-105">
+                      <div className={`absolute inset-0 rounded-3xl blur-2xl opacity-10 transition-all duration-500 ${(fotoVehiculoBase64 || fotoVehiculoUrl) ? 'bg-indigo-500' : 'bg-slate-400 group-hover:bg-indigo-400'}`}></div>
+                      <div className={`relative w-full h-full border-2 rounded-3xl flex items-center justify-center overflow-hidden bg-slate-50 transition-all duration-300 ${(fotoVehiculoBase64 || fotoVehiculoUrl) ? 'border-indigo-400 rotate-2' : 'border-slate-100 group-hover:border-indigo-200 group-hover:-rotate-1'}`}>
                         {fotoVehiculoBase64 ? (
                           <img src={fotoVehiculoBase64} alt="Vehículo" className="w-full h-full object-cover" />
                         ) : fotoVehiculoUrl ? (
                           <img src={fotoVehiculoUrl.startsWith('http') ? fotoVehiculoUrl : `${BACKEND_BASE_URL}${fotoVehiculoUrl}`} alt="Vehículo" className="w-full h-full object-cover" />
                         ) : (
-                          <svg className="w-10 lg:w-12 h-10 lg:h-12 text-slate-300 group-hover:text-blue-400 transition duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.218A2 2 0 0110.125 4h3.75a2 2 0 011.664.89l.812 1.218A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                          <svg className="w-10 lg:w-12 h-10 lg:h-12 text-slate-200 group-hover:text-indigo-300 transition duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.218A2 2 0 0110.125 4h3.75a2 2 0 011.664.89l.812 1.218A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         )}
                       </div>
-                      <div className="absolute -bottom-1 -right-1 bg-white border border-slate-200 p-1 rounded-full shadow group-hover:bg-blue-50 transition-colors">
-                        <span className="text-[10px]">{(fotoVehiculoBase64 || fotoVehiculoUrl) ? '🔍' : '📸'}</span>
-                      </div>
                     </div>
-                  </div>
-
-                  {/* Botones Acciones Vehículo */}
-                  <div className="flex flex-col gap-2">
-                    {fotoVehiculoBase64 && (
-                      <>
-                        <button
-                          onClick={() => setIsVehiculoCameraOpen(true)}
-                          className="p-2 bg-white border border-slate-200 rounded-xl shadow-sm hover:bg-slate-50 hover:text-blue-600 transition-all active:scale-90 group"
-                          title="Cambiar foto"
-                        >
-                           <svg className="w-5 h-5 text-slate-400 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.218A2 2 0 0110.125 4h3.75a2 2 0 011.664.89l.812 1.218A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                        </button>
-                        <button
-                          onClick={() => setFotoVehiculoBase64(null)}
-                          className="p-2 bg-white border border-slate-200 rounded-xl shadow-sm hover:bg-red-50 hover:text-red-600 transition-all active:scale-90 group"
-                          title="Eliminar foto"
-                        >
-                           <svg className="w-5 h-5 text-slate-400 group-hover:text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                        </button>
-                      </>
-                    )}
                   </div>
                 </div>
               </div>
               
               {isVehiculoBloqueado && (
-                <div className="bg-red-50 text-red-800 p-3 rounded-xl shadow-sm border border-red-200 animate-in slide-in-from-top duration-300 mb-2 flex-shrink-0 relative overflow-hidden">
+                <div className="bg-rose-50 text-rose-800 p-3 rounded-2xl shadow-sm border border-rose-100 animate-in slide-in-from-top duration-300 mb-1 flex-shrink-0 relative overflow-hidden">
                   <div className="flex items-center gap-3">
                     <div className="text-2xl animate-pulse">🛑</div>
                     <div>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-red-600 leading-tight">Acceso Denegado</p>
-                      <p className="text-xs font-bold leading-tight">"{motivoBloqueoVehiculo}"</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-rose-600 leading-tight">Acceso Denegado</p>
+                      <p className="text-[11px] font-bold leading-tight mt-0.5">"{motivoBloqueoVehiculo}"</p>
                     </div>
                   </div>
-                  <div className="absolute -right-4 -bottom-4 text-4xl opacity-[0.03] text-red-900 font-black rotate-[-10deg]">BLOCK</div>
                 </div>
               )}
 
               {/* Campos del vehículo */}
-              <div className="flex-1 overflow-y-auto custom-scrollbar min-h-0 flex flex-col gap-2">
+              <div className="flex-1 overflow-y-auto custom-scrollbar min-h-0 flex flex-col gap-2.5">
                 <div className="relative">
                   <input
                     ref={placaRef}
@@ -940,33 +913,23 @@ export default function DashboardPage() {
                       setCamposErrores(prev => prev.filter(err => err !== "placa"));
                     }}
                     onBlur={handleBuscarPlaca}
-                    onKeyDown={(e) => { 
-                      if (e.key === 'Enter') {
-                         if (marca.trim() || modelo.trim()) {
-                           handleRegistrarVehiculo(registroVehiculoActivo ? "salida" : "entrada");
-                         } else {
-                           handleBuscarPlaca();
-                         }
-                      }
-                    }}
-                    className={`w-full p-2 pr-10 border rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-black uppercase transition-all ${
-                      isVehiculoBloqueado ? 'border-red-300 bg-red-50 text-red-900 ring-4 ring-red-500/10' :
-                      camposErrores.includes("placa") ? 'border-red-500 bg-red-50 ring-2 ring-red-500/10' : 
-                      anotacionesVehiculoAlerta.length > 0 ? 'border-yellow-300 bg-yellow-50 text-yellow-900 ring-2 ring-yellow-400/20' : 'border-slate-200 bg-slate-50 text-slate-700'
-                    } placeholder:font-medium placeholder:normal-case placeholder:text-slate-400`}
+                    className={`input-standard !p-3 !text-sm !font-black !uppercase ${
+                      isVehiculoBloqueado ? '!border-rose-300 !bg-rose-50 !text-rose-900 !ring-rose-500/10' :
+                      camposErrores.includes("placa") ? '!border-rose-500 !bg-rose-50 !ring-rose-500/10' : 
+                      anotacionesVehiculoAlerta.length > 0 ? '!border-amber-300 !bg-amber-50 !text-amber-900 !ring-amber-400/20' : ''
+                    }`}
                   />
                   {(anotacionesVehiculoAlerta.length > 0 || isVehiculoBloqueado) && (
                     <button
                       onClick={() => setIsVehiculoTimelineOpen(true)}
-                      className={`absolute right-2 top-1.5 p-1 rounded-full shadow-lg transition-all ${isVehiculoBloqueado ? 'bg-red-600 animate-bounce' : 'bg-yellow-500 animate-pulse-red'}`}
-                      title={isVehiculoBloqueado ? "BLOQUEADO" : "¡ALERTA!"}
+                      className={`absolute right-3 top-2.5 p-1 rounded-lg shadow-lg transition-all ${isVehiculoBloqueado ? 'bg-rose-600 animate-bounce' : 'bg-amber-500 animate-pulse'}`}
                     >
                       <span className="text-[12px]">{isVehiculoBloqueado ? "🚫" : "⚠️"}</span>
                     </button>
                   )}
                 </div>
 
-                <div className="relative">
+                <div className="relative group/select">
                   <select
                     ref={tipoVehiculoRef}
                     value={tipoVehiculo}
@@ -974,11 +937,8 @@ export default function DashboardPage() {
                       setTipoVehiculo(e.target.value);
                       setCamposErrores(prev => prev.filter(err => err !== "tipoVehiculo"));
                     }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleRegistrarVehiculo(registroVehiculoActivo ? "salida" : "entrada");
-                    }}
-                    className={`w-full p-2 border rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium appearance-none cursor-pointer transition-all ${
-                      camposErrores.includes("tipoVehiculo") ? 'border-red-500 bg-red-50 text-red-900 ring-2 ring-red-500/10' : 'border-slate-200 bg-slate-50 text-slate-700'
+                    className={`input-standard appearance-none cursor-pointer ${
+                      camposErrores.includes("tipoVehiculo") ? '!border-rose-500 !bg-rose-50 !text-rose-900' : ''
                     }`}
                   >
                     <option value="">Tipo de Vehículo</option>
@@ -990,8 +950,8 @@ export default function DashboardPage() {
                     <option value="bicicleta">Bicicleta</option>
                     <option value="otro">Otro</option>
                   </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
-                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 6.757 7.586 5.343 9l4.95 4.95z" /></svg>
+                  <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-400 group-hover/select:text-indigo-500 transition-colors">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" /></svg>
                   </div>
                 </div>
 
@@ -1004,15 +964,10 @@ export default function DashboardPage() {
                     setMarca(e.target.value);
                     setCamposErrores(prev => prev.filter(err => err !== "marca"));
                   }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleRegistrarVehiculo(registroVehiculoActivo ? "salida" : "entrada");
-                  }}
-                  className={`w-full p-2 border rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium transition-all placeholder:text-slate-400 ${
-                    camposErrores.includes("marca") ? 'border-red-500 bg-red-50 text-red-900 ring-2 ring-red-500/10' : 'border-slate-200 bg-slate-50 text-slate-800'
-                  }`}
+                  className={`input-standard ${camposErrores.includes("marca") ? '!border-rose-500 !bg-rose-50' : ''}`}
                 />
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2.5">
                   <input
                     ref={modeloRef}
                     type="text"
@@ -1022,12 +977,7 @@ export default function DashboardPage() {
                       setModelo(e.target.value);
                       setCamposErrores(prev => prev.filter(err => err !== "modelo"));
                     }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleRegistrarVehiculo(registroVehiculoActivo ? "salida" : "entrada");
-                    }}
-                    className={`w-full p-2 border rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium transition-all placeholder:text-slate-400 ${
-                      camposErrores.includes("modelo") ? 'border-red-500 bg-red-50 text-red-900 ring-2 ring-red-500/10' : 'border-slate-200 bg-slate-50 text-slate-800'
-                    }`}
+                    className={`input-standard ${camposErrores.includes("modelo") ? '!border-rose-500 !bg-rose-50' : ''}`}
                   />
                   <input
                     ref={colorRef}
@@ -1038,69 +988,61 @@ export default function DashboardPage() {
                       setColor(e.target.value);
                       setCamposErrores(prev => prev.filter(err => err !== "color"));
                     }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleRegistrarVehiculo(registroVehiculoActivo ? "salida" : "entrada");
-                    }}
-                    className={`w-full p-2 border rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium transition-all placeholder:text-slate-400 ${
-                      camposErrores.includes("color") ? 'border-red-500 bg-red-50 text-red-900 ring-2 ring-red-500/10' : 'border-slate-200 bg-slate-50 text-slate-800'
-                    }`}
+                    className={`input-standard ${camposErrores.includes("color") ? '!border-rose-500 !bg-rose-50' : ''}`}
                   />
                 </div>
 
                 {/* Botones de Entrada/Salida para Vehículo */}
-                <div className="grid grid-cols-2 gap-2 mt-2">
+                <div className="grid grid-cols-2 gap-3 mt-2">
                   <button
                     onClick={() => handleRegistrarVehiculo("entrada")}
                     disabled={!!registroVehiculoActivo || isVehiculoBloqueado || isVehiculoNuevo}
-                    className={`flex-1 py-1.5 rounded-xl font-bold text-[10px] transition-all active:scale-[0.98] border shadow-sm ${
-                      (registroVehiculoActivo || isVehiculoBloqueado || isVehiculoNuevo)
-                      ? 'bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed' 
-                      : 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100'
+                    className={`btn-success !py-3 !text-[9px] ${
+                      (registroVehiculoActivo || isVehiculoBloqueado || isVehiculoNuevo) && '!bg-slate-100 !text-slate-300 !border-slate-100 !shadow-none'
                     }`}
                   >
-                    {isVehiculoBloqueado ? "🚫 BLOQUEO" : !!isVehiculoNuevo ? "⚠️ NUEVO (REQ.DUEÑO)" : "📥 ENTRADA VEH"}
+                    {isVehiculoBloqueado ? "🚫 BLOQUEO" : !!isVehiculoNuevo ? "⚠️ NUEVO" : "📥 ENTRADA"}
                   </button>
                   <button
                     onClick={() => handleRegistrarVehiculo("salida")}
                     disabled={!registroVehiculoActivo}
-                    className={`flex-1 py-1.5 rounded-xl font-bold text-[10px] transition-all active:scale-[0.98] border shadow-sm ${
-                      !registroVehiculoActivo 
-                      ? 'bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed' 
-                      : 'bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100'
+                    className={`btn-danger !py-3 !text-[9px] ${
+                      !registroVehiculoActivo && '!bg-slate-100 !text-slate-300 !border-slate-100 !shadow-none'
                     }`}
                   >
-                    📤 SALIDA VEH
+                    📤 SALIDA
                   </button>
                 </div>
 
                 <button
                   onClick={() => router.push('/registros-vehiculos')}
-                  className="w-full mt-2 bg-slate-100 text-slate-600 py-2 rounded-xl font-bold hover:bg-slate-200 transition-all active:scale-[0.98] flex items-center justify-center gap-2 border border-slate-200 text-[10px] uppercase tracking-wider"
+                  className="btn-secondary !w-full !mt-1 !py-3 !text-[9px] !tracking-[0.2em]"
                 >
-                  <span className="text-base">📜</span>
-                  Ver Historial de Vehículos
+                  <span className="text-lg">📜</span>
+                  Historial de Vehículos
                 </button>
               </div>
             </div>
 
             {/* ── Bloque Reloj / Fecha ── */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col items-center justify-center gap-1 text-center">
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.02)] p-5 flex flex-col items-center justify-center gap-1.5 text-center relative overflow-hidden group">
+              <div className="absolute inset-0 bg-indigo-50/30 -translate-y-full group-hover:translate-y-0 transition-transform duration-700"></div>
               {mounted ? (
                 <>
-                  <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-widest leading-tight">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] leading-tight relative z-10">
                     {fechaHora.toLocaleDateString("es-CO", { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' })}
                   </p>
-                  <div className="flex items-baseline gap-0.5 mt-1">
-                    <p className="text-4xl font-mono font-black text-transparent bg-clip-text bg-gradient-to-br from-blue-700 to-indigo-900 tracking-tight leading-none">
+                  <div className="flex items-baseline gap-1 mt-1 relative z-10">
+                    <p className="text-5xl font-black text-indigo-600 tracking-tighter leading-none drop-shadow-sm">
                       {fechaHora.toLocaleTimeString("es-CO", { hour: '2-digit', minute: '2-digit', hour12: false })}
                     </p>
-                    <span className="text-xl font-mono font-bold text-blue-500 animate-pulse">:{fechaHora.getSeconds().toString().padStart(2, '0')}</span>
+                    <span className="text-2xl font-black text-indigo-300 animate-pulse">:{fechaHora.getSeconds().toString().padStart(2, '0')}</span>
                   </div>
                 </>
               ) : (
                 <div className="animate-pulse flex flex-col items-center gap-2">
-                  <div className="h-2.5 w-28 bg-slate-200 rounded"></div>
-                  <div className="h-9 w-36 bg-slate-200 rounded"></div>
+                  <div className="h-2.5 w-28 bg-slate-100 rounded-full"></div>
+                  <div className="h-10 w-40 bg-slate-100 rounded-full"></div>
                 </div>
               )}
             </div>
@@ -1110,26 +1052,27 @@ export default function DashboardPage() {
           {/* ══════════════════════════════════════════
               SECCIÓN IZQUIERDA: Formulario Persona + Acciones
           ══════════════════════════════════════════ */}
-          <div className="flex-1 flex flex-col bg-white rounded-2xl border border-slate-200 shadow-sm p-4 lg:p-5 lg:overflow-hidden min-h-0">
+          <div className="flex-1 flex flex-col bg-white rounded-[2.5rem] border border-slate-200 shadow-[0_8px_40px_rgb(0,0,0,0.04)] p-5 lg:p-7 lg:overflow-hidden min-h-0 relative">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50 rounded-full -mr-32 -mt-32 blur-3xl opacity-40"></div>
+            
             {/* Cabecera: Título izq + Foto derecha */}
-            <div className="flex items-center gap-3 mb-2 flex-shrink-0">
+            <div className="flex items-center gap-4 mb-4 flex-shrink-0 relative z-10">
 
               {/* Título — izquierda */}
               <div className="flex flex-col justify-center flex-1 min-w-0">
-                <h2 className="text-sm lg:text-base font-bold text-slate-800 flex items-center gap-2 tracking-tight">
-                  <div className="p-1 lg:p-1.5 bg-blue-100 rounded-lg text-blue-600 flex-shrink-0">
-                    <svg className="w-3.5 h-3.5 lg:w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                <h2 className="text-base lg:text-lg font-black text-slate-900 flex items-center gap-3 tracking-tight uppercase">
+                  <div className="p-2.5 bg-indigo-600 rounded-2xl text-white flex-shrink-0 shadow-lg shadow-indigo-200 rotate-3">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                   </div>
                   Registro de Persona
                 </h2>
-                <p className="text-[10px] text-slate-400 mt-0.5 hidden lg:block">
-                  {fotoBase64 ? '✅ Foto capturada — clic para cambiar' : 'Clic en el avatar para tomar fotografía'}
+                <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-[0.3em] hidden lg:block">
+                  {fotoBase64 ? 'Fotografía capturada con éxito' : 'Diligencie la información básica'}
                 </p>
               </div>
 
-              {/* Foto persona — derecha (ajustada para ahorrar espacio vertical) */}
               {/* Foto persona — derecha */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-4">
                 <div
                   className="flex flex-col items-center cursor-pointer group flex-shrink-0"
                   onClick={() => {
@@ -1137,21 +1080,17 @@ export default function DashboardPage() {
                       if (currentFullUrl) setFotoZoomUrl(currentFullUrl);
                       else setIsCameraOpen(true);
                   }}
-                  title={(fotoBase64 || fotoUrl) ? "Ver en grande" : "Tomar Foto"}
                 >
-                  <div className="relative w-20 lg:w-24 h-20 lg:h-24 transition-transform hover:scale-105">
-                    <div className={`absolute inset-0 rounded-full blur-md opacity-20 transition-all duration-500 ${(fotoBase64 || fotoUrl) ? 'bg-emerald-400' : 'bg-blue-300 group-hover:bg-blue-500'}`}></div>
-                    <div className={`relative w-full h-full border-[2px] rounded-full flex items-center justify-center overflow-hidden bg-slate-50 transition-all duration-300 ${(fotoBase64 || fotoUrl) ? 'border-emerald-400' : 'border-slate-200 group-hover:border-blue-400'}`}>
+                  <div className="relative w-24 h-24 lg:w-28 lg:h-28 transition-all duration-500 group-hover:scale-105">
+                    <div className={`absolute inset-0 rounded-[2.5rem] blur-2xl opacity-10 transition-all duration-500 ${(fotoBase64 || fotoUrl) ? 'bg-emerald-500' : 'bg-indigo-400 group-hover:bg-indigo-600'}`}></div>
+                    <div className={`relative w-full h-full border-2 rounded-[2.5rem] flex items-center justify-center overflow-hidden bg-slate-50 transition-all duration-300 ${(fotoBase64 || fotoUrl) ? 'border-emerald-400 rotate-3 shadow-xl' : 'border-slate-100 group-hover:border-indigo-300'}`}>
                       {fotoBase64 ? (
                         <img src={fotoBase64} alt="Foto" className="w-full h-full object-cover" />
                       ) : fotoUrl ? (
                         <img src={fotoUrl.startsWith('http') ? fotoUrl : `${BACKEND_BASE_URL}${fotoUrl}`} alt="Foto" className="w-full h-full object-cover" />
                       ) : (
-                        <svg className="w-10 lg:w-12 h-10 lg:h-12 text-slate-300 group-hover:text-blue-400 transition duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.218A2 2 0 0110.125 4h3.75a2 2 0 011.664.89l.812 1.218A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        <svg className="w-12 lg:w-14 h-12 lg:h-14 text-slate-200 group-hover:text-indigo-300 transition duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                       )}
-                    </div>
-                    <div className="absolute -bottom-1 -right-1 bg-white border border-slate-200 p-1 rounded-full shadow group-hover:bg-blue-50 transition-colors">
-                      <span className="text-[10px]">{(fotoBase64 || fotoUrl) ? '🔍' : '📸'}</span>
                     </div>
                   </div>
                 </div>
@@ -1162,17 +1101,17 @@ export default function DashboardPage() {
                     <>
                       <button
                         onClick={() => setIsCameraOpen(true)}
-                        className="p-2 bg-white border border-slate-200 rounded-xl shadow-sm hover:bg-slate-50 hover:text-blue-600 transition-all active:scale-90 group"
+                        className="p-2.5 bg-white border border-slate-100 rounded-2xl shadow-sm hover:bg-indigo-50 hover:text-indigo-600 transition-all active:scale-90"
                         title="Cambiar foto"
                       >
-                         <svg className="w-5 h-5 text-slate-400 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.218A2 2 0 0110.125 4h3.75a2 2 0 011.664.89l.812 1.218A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.218A2 2 0 0110.125 4h3.75a2 2 0 011.664.89l.812 1.218A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                       </button>
                       <button
                         onClick={() => { setFotoBase64(null); setFotoUrl(null); }}
-                        className="p-2 bg-white border border-slate-200 rounded-xl shadow-sm hover:bg-red-50 hover:text-red-600 transition-all active:scale-90 group"
+                        className="p-2.5 bg-white border border-slate-100 rounded-2xl shadow-sm hover:bg-rose-50 hover:text-rose-600 transition-all active:scale-90"
                         title="Eliminar foto"
                       >
-                         <svg className="w-5 h-5 text-slate-400 group-hover:text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                       </button>
                     </>
                   )}
@@ -1183,25 +1122,25 @@ export default function DashboardPage() {
 
             {/* Alerta bloqueo */}
             {isBloqueado && (
-              <div className="bg-red-50 text-red-800 p-3 rounded-xl shadow-sm border border-red-200 animate-in slide-in-from-top duration-300 mb-3 flex-shrink-0 relative overflow-hidden">
-                <div className="flex items-center gap-3">
-                  <div className="text-2xl animate-pulse">🛑</div>
+              <div className="bg-rose-50 text-rose-800 p-4 rounded-3xl shadow-sm border border-rose-100 animate-in slide-in-from-top duration-300 mb-4 flex-shrink-0 relative overflow-hidden">
+                <div className="flex items-center gap-4 relative z-10">
+                  <div className="text-3xl animate-pulse">🛑</div>
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-red-600">Acceso Denegado</p>
-                    <p className="text-sm font-bold">"{motivoBloqueo}"</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-rose-600">Alerta de Seguridad</p>
+                    <p className="text-sm font-black mt-1">Persona Bloqueada: "{motivoBloqueo}"</p>
                   </div>
                 </div>
-                <div className="absolute -right-4 -bottom-4 text-6xl opacity-[0.03] text-red-900 font-black rotate-[-10deg]">BLOCK</div>
+                <div className="absolute -right-4 -bottom-4 text-7xl opacity-[0.03] text-rose-900 font-black rotate-[-10deg]">BLOCK</div>
               </div>
             )}
 
             {/* Campos optimizados en grid de 3 columnas para PC */}
-            <div className="flex-1 overflow-y-auto lg:overflow-visible custom-scrollbar min-h-0 pr-1">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 pb-2">
+            <div className="flex-1 overflow-y-auto lg:overflow-visible custom-scrollbar min-h-0 pr-1 relative z-10">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 pb-2">
 
                 {/* Identificación */}
                 <div className="relative sm:col-span-2 lg:col-span-1">
-                  <span className="absolute left-2 top-2.5 text-[10px] text-slate-500 font-bold uppercase z-10">Identificación</span>
+                  <span className="absolute left-3.5 top-2.5 text-[9px] text-indigo-500 font-black uppercase tracking-widest z-10">Documento</span>
                   <input
                     ref={identificacionRef}
                     type="text"
@@ -1211,66 +1150,55 @@ export default function DashboardPage() {
                       setCamposErrores(prev => prev.filter(err => err !== "identificacion"));
                     }}
                     onBlur={handleBuscar}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        if (nombres.trim()) {
-                          if (!isBloqueado && !isVehiculoBloqueado) handleRegistrar(registroActivo ? "salida" : "entrada");
-                        } else {
-                          handleBuscar();
-                        }
-                      }
-                    }}
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    className={`w-full p-2 pt-6 pl-9 pr-12 border rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-sm text-sm font-black transition-all ${
-                      isBloqueado ? 'border-red-300 bg-red-50 text-red-900 ring-4 ring-red-500/10' :
-                      camposErrores.includes("identificacion") ? 'border-red-500 bg-red-50 ring-4 ring-red-500/10' :
-                      anotacionesAlerta.length > 0 ? 'border-yellow-300 bg-yellow-50 text-yellow-900 ring-2 ring-yellow-400/20' : 'border-slate-200 bg-slate-50 focus:bg-white text-slate-800'
+                    className={`input-standard !pt-7 !font-black !text-base ${
+                      isBloqueado ? '!border-rose-300 !bg-rose-50 !text-rose-900 !ring-rose-500/10' :
+                      camposErrores.includes("identificacion") ? '!border-rose-500 !bg-rose-50 !ring-rose-500/10' :
+                      anotacionesAlerta.length > 0 ? '!border-amber-300 !bg-amber-50 !text-amber-900 !ring-amber-400/20' : ''
                     }`}
                   />
-                  <svg className="absolute left-2.5 top-6 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 21h7a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 2 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
                   {(anotacionesAlerta.length > 0 || isBloqueado) && (
                     <button
                       onClick={() => setIsTimelineOpen(true)}
-                      className={`absolute right-2 top-7 p-1.5 rounded-full shadow-lg transition-all ${isBloqueado ? 'bg-red-600 animate-bounce' : 'bg-yellow-500 animate-pulse-red'}`}
-                      title={isBloqueado ? "BLOQUEADO" : "¡ALERTA!"}
+                      className={`absolute right-3 top-3.5 p-1.5 rounded-xl shadow-lg transition-all ${isBloqueado ? 'bg-rose-600 animate-bounce' : 'bg-amber-500 animate-pulse'}`}
                     >
-                      <span className="text-[13px]">{isBloqueado ? "🚫" : "⚠️"}</span>
+                      <span className="text-[14px]">{isBloqueado ? "🚫" : "⚠️"}</span>
                     </button>
                   )}
                 </div>
 
-                <input 
-                  ref={nombresRef}
-                  type="text" 
-                  placeholder="Nombres" 
-                  value={nombres} 
-                  onChange={(e) => {
-                    setNombres(e.target.value);
-                    setCamposErrores(prev => prev.filter(err => err !== "nombres"));
-                  }}
-                  className={`w-full p-2 border rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium transition-all placeholder:text-slate-400 ${
-                    camposErrores.includes("nombres") ? 'border-red-500 bg-red-50 ring-2 ring-red-500/10 text-red-900' : 'border-slate-200 bg-slate-50 text-slate-800'
-                  }`} />
+                <div className="flex flex-col gap-1">
+                  <span className="text-[9px] text-slate-400 font-black uppercase tracking-widest px-2">Nombres</span>
+                  <input 
+                    ref={nombresRef}
+                    type="text" 
+                    placeholder="Escriba aquí" 
+                    value={nombres} 
+                    onChange={(e) => {
+                      setNombres(e.target.value);
+                      setCamposErrores(prev => prev.filter(err => err !== "nombres"));
+                    }}
+                    className={`input-standard ${camposErrores.includes("nombres") ? '!border-rose-500 !bg-rose-50' : ''}`} />
+                </div>
 
-                <input 
-                  ref={apellidosRef}
-                  type="text" 
-                  placeholder="Apellidos" 
-                  value={apellidos} 
-                  onChange={(e) => {
-                    setApellidos(e.target.value);
-                    setCamposErrores(prev => prev.filter(err => err !== "apellidos"));
-                  }}
-                  className={`w-full p-2 border rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium transition-all placeholder:text-slate-400 ${
-                    camposErrores.includes("apellidos") ? 'border-red-500 bg-red-50 ring-2 ring-red-500/10 text-red-900' : 'border-slate-200 bg-slate-50 text-slate-800'
-                  }`} />
+                <div className="flex flex-col gap-1">
+                  <span className="text-[9px] text-slate-400 font-black uppercase tracking-widest px-2">Apellidos</span>
+                  <input 
+                    ref={apellidosRef}
+                    type="text" 
+                    placeholder="Escriba aquí" 
+                    value={apellidos} 
+                    onChange={(e) => {
+                      setApellidos(e.target.value);
+                      setCamposErrores(prev => prev.filter(err => err !== "apellidos"));
+                    }}
+                    className={`input-standard ${camposErrores.includes("apellidos") ? '!border-rose-500 !bg-rose-50' : ''}`} />
+                </div>
 
                 <input type="text" placeholder="Teléfono" value={telefono} onChange={(e) => setTelefono(e.target.value.replace(/[^0-9]/g, ""))}
-                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium text-slate-800 transition-all placeholder:text-slate-400" />
+                  className="input-standard" />
 
                 <input type="text" placeholder="Cargo u Oficio (Opcional)" value={cargo} onChange={(e) => setCargo(e.target.value)}
-                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium text-slate-800 transition-all placeholder:text-slate-400" />
+                  className="input-standard" />
 
                 <input 
                   ref={destinoRef}
@@ -1281,41 +1209,34 @@ export default function DashboardPage() {
                     setDestino(e.target.value);
                     setCamposErrores(prev => prev.filter(err => err !== "destino"));
                   }}
-                  className={`w-full p-2 border rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium transition-all placeholder:text-slate-400 ${
-                    camposErrores.includes("destino") ? 'border-red-500 bg-red-50 ring-2 ring-red-500/10 text-red-900' : 'border-slate-200 bg-slate-50 text-slate-800'
-                  }`} />
+                  className={`input-standard ${camposErrores.includes("destino") ? '!border-rose-500 !bg-rose-50' : ''}`} />
 
-                <div className="relative">
+                <div className="relative group/select">
                   <select value={tipo} onChange={(e) => setTipo(e.target.value)} disabled={loadingTipos || tipos.length === 0}
-                    className="appearance-none w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium text-slate-800 disabled:opacity-50 transition-all cursor-pointer">
+                    className="input-standard appearance-none cursor-pointer">
                     {tipos.length > 0 ? tipos.map(t => <option key={t.id} value={t.nombre.toLowerCase()}>{t.nombre}</option>) : <option value="">{loadingTipos ? "Cargando..." : "Sin tipos"}</option>}
                   </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
-                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 6.757 7.586 5.343 9l4.95 4.95z" /></svg>
+                  <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-400 group-hover/select:text-indigo-500 transition-colors">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" /></svg>
                   </div>
                 </div>
 
-                <div className="sm:col-span-2 lg:col-span-3 relative">
+                <div className="sm:col-span-2 lg:col-span-2 relative">
                   <textarea 
                     ref={motivoRef}
-                    placeholder="Motivo de ingreso" 
+                    placeholder="Motivo de ingreso..." 
                     value={motivo} 
                     onChange={(e) => {
                       setMotivo(e.target.value);
                       setCamposErrores(prev => prev.filter(err => err !== "motivo"));
                     }}
                     maxLength={250}
-                    onInput={(e) => {
-                      const target = e.target as HTMLTextAreaElement;
-                      target.style.height = 'auto';
-                      target.style.height = `${target.scrollHeight}px`;
-                    }}
-                    className={`w-full p-2 border rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white shadow-sm text-sm font-medium transition-all placeholder:text-slate-400 resize-none overflow-hidden min-h-[42px] ${
-                      camposErrores.includes("motivo") ? 'border-red-500 bg-red-50 ring-2 ring-red-500/10 text-red-900' : 'border-slate-200 bg-slate-50 text-slate-800'
+                    className={`input-standard resize-none min-h-[48px] ${
+                      camposErrores.includes("motivo") ? '!border-rose-500 !bg-rose-50' : ''
                     }`}
                     rows={1} 
                   />
-                  <div className="absolute right-2 bottom-1 text-[8px] font-bold text-slate-300 pointer-events-none uppercase">
+                  <div className="absolute right-3 bottom-2 text-[8px] font-black text-slate-300 pointer-events-none uppercase">
                     {motivo.length}/250
                   </div>
                 </div>
@@ -1323,37 +1244,43 @@ export default function DashboardPage() {
             </div>
 
             {/* Botones de acción (fijos abajo) */}
-            <div className="flex-shrink-0 pt-3 border-t border-slate-100 flex flex-col gap-2">
-              <div className="grid grid-cols-2 gap-2">
+            <div className="flex-shrink-0 pt-5 mt-2 border-t border-slate-100 flex flex-col gap-3 relative z-10">
+              <div className="grid grid-cols-2 gap-4">
                 <button
                   onClick={() => handleRegistrar("entrada")}
                   disabled={isBloqueado || isVehiculoBloqueado || !!registroActivo}
-                  className={`w-full text-white py-2.5 px-3 rounded-xl font-bold shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-sm border ${
-                    (isBloqueado || isVehiculoBloqueado) ? 'bg-red-50 border-red-200 text-red-500 cursor-not-allowed'
-                    : registroActivo ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
-                    : 'bg-emerald-600 hover:bg-emerald-500 border-emerald-500 shadow-[0_0_15px_rgb(16,185,129,0.2)]'
+                  className={`btn-success !py-4 !text-xs ${
+                    (isBloqueado || isVehiculoBloqueado || !!registroActivo) && '!bg-slate-100 !text-slate-300 !border-slate-100 !shadow-none'
                   }`}
                 >
-                  {isBloqueado ? "🚫 PROHIBIDO" : "✅ ENTRADA"}
+                  {isBloqueado ? "🚫 BLOQUEADO" : "✅ REGISTRAR ENTRADA"}
                 </button>
                 <button
                   onClick={() => handleRegistrar("salida")}
                   disabled={!registroActivo}
-                  className={`w-full py-2.5 text-sm font-bold rounded-xl shadow-md transition-all active:scale-[0.98] flex items-center justify-center border ${
-                    registroActivo ? 'bg-rose-600 hover:bg-rose-500 text-white border-rose-500 shadow-[0_0_15px_rgb(225,29,72,0.2)]'
-                    : 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
+                  className={`btn-danger !py-4 !text-xs ${
+                    !registroActivo && '!bg-slate-100 !text-slate-300 !border-slate-100 !shadow-none'
                   }`}
                 >
-                  🚪 SALIDA
+                  🚪 REGISTRAR SALIDA
                 </button>
               </div>
-              <button
-                onClick={handleActualizarDatos}
-                className="w-full bg-blue-50 text-blue-600 py-2 rounded-xl font-bold hover:bg-blue-100 transition-all active:scale-[0.98] flex items-center justify-center gap-2 border border-blue-200 text-xs uppercase tracking-wider shadow-sm"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                Actualizar Datos
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleActualizarDatos}
+                  className="btn-primary flex-1 !py-3 !bg-indigo-50 !text-indigo-600 !shadow-none !border-indigo-100 hover:!bg-indigo-600 hover:!text-white !text-[9px] !tracking-[0.2em]"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                  Sincronizar Información
+                </button>
+                <button
+                  onClick={limpiarFormulario}
+                  className="btn-secondary !px-5 !py-3 !text-[9px] !tracking-[0.2em]"
+                  title="Limpiar Formulario"
+                >
+                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                </button>
+              </div>
             </div>
 
           </div>{/* fin sección izquierda */}

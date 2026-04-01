@@ -173,20 +173,20 @@ export default function RegistrosPage() {
         <div className="max-w-[1700px] mx-auto w-full h-full flex flex-col min-h-0">
           
           {/* 📋 Header Section */}
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-4 shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-600 rounded-xl text-white shadow-md shadow-blue-100">
-                <span className="text-xl">📜</span>
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6 shrink-0">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-indigo-600 rounded-2xl text-white shadow-xl shadow-indigo-100 rotate-3">
+                <span className="text-2xl">📜</span>
               </div>
               <div>
-                <h1 className="text-lg lg:text-xl font-black text-slate-800 uppercase tracking-tight">Historial De ingreso De Personas</h1> 
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-1">Registro general de personas y vehículos</p>
+                <h1 className="text-xl lg:text-2xl font-black text-slate-900 uppercase tracking-tight">Historial de Personas</h1> 
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] leading-none mt-1.5">Registro general de entradas y salidas</p>
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <button
                 onClick={() => router.push('/registros-vehiculos')}
-                className="bg-white hover:bg-slate-50 text-slate-600 px-5 py-2.5 rounded-xl font-black border border-slate-200 shadow-sm transition-all active:scale-95 flex items-center justify-center gap-2 text-xs uppercase"
+                className="btn-secondary"
               >
                 🚗 Ver Vehículos
               </button>
@@ -194,7 +194,7 @@ export default function RegistrosPage() {
                 <button
                   onClick={handleExportExcel}
                   disabled={exporting}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-black shadow-lg shadow-emerald-100 transition-all active:scale-95 flex items-center justify-center gap-2 text-xs uppercase disabled:opacity-50"
+                  className="btn-success px-8"
                 >
                   {exporting ? (
                     <>
@@ -213,67 +213,60 @@ export default function RegistrosPage() {
           </div>
 
           {/* 🕵️‍♂️ Filtros Section */}
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 mb-4 flex-shrink-0">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 items-end">
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider px-1">Nombre</label>
+          <div className="bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-100 p-6 mb-6 flex-shrink-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.2em] px-1">Nombre</label>
                 <input
                   type="text"
                   placeholder="Ej: Juan Pérez"
                   value={nombre}
                   onChange={(e) => setNombre(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all"
+                  className="input-standard"
                 />
               </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider px-1">Documento</label>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.2em] px-1">Documento</label>
                 <input
                   type="text"
                   placeholder="Ej: 12345678"
                   value={documento}
                   onChange={(e) => setDocumento(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all"
+                  className="input-standard"
                 />
               </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider px-1">Desde</label>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.2em] px-1">Desde</label>
                 <input
                   type="date"
                   value={desde}
                   onChange={(e) => setDesde(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all"
+                  className="input-standard"
                 />
               </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider px-1">Hasta</label>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.2em] px-1">Hasta</label>
                 <input
                   type="date"
                   value={hasta}
                   onChange={(e) => setHasta(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all"
+                  className="input-standard"
                 />
               </div>
-
               <div className="lg:col-span-2 flex gap-2">
                 <button
-                  onClick={() => {
-                    setNombre("");
-                    setDocumento("");
-                    setDesde("");
-                    setHasta("");
-                    setPage(1);
-                    fetchRegistros(1, { nombre: "", documento: "", desde: "", hasta: "" });
-                  }}
-                  className="px-4 py-3 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition-all font-black text-[11px] uppercase flex items-center justify-center gap-2 border border-slate-200"
+                  onClick={handleBuscar}
+                  className="btn-primary flex-1 py-3"
                 >
-                  🧹 Limpiar
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                  Buscar
                 </button>
                 <button
-                  onClick={handleBuscar}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-black shadow-lg shadow-blue-100 transition-all active:scale-95 flex items-center justify-center gap-2 text-xs uppercase"
+                  onClick={() => { setNombre(""); setDocumento(""); setDesde(""); setHasta(""); fetchRegistros(1, { nombre: "", documento: "", desde: "", hasta: "" }); }}
+                  className="btn-secondary px-4 py-3"
+                  title="Limpiar filtros"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                  Filtrar Resultados
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                 </button>
               </div>
             </div>

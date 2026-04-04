@@ -28,36 +28,34 @@ interface RegistroActivo {
   id: string;
 }
 
-// 📸 FUNCIÓN REFORZADA: Convierte una URL de imagen a Base64 usando XMLHttpRequest
+// 📸 FUNCIÓN REFORZADA: Convierte una URL de imagen a Base64 usando Fetch API
 const urlToBase64 = async (url: string): Promise<string> => {
   const fullUrl = url.startsWith('/') ? `${BACKEND_BASE_URL}${url}` : url;
 
-  return new Promise((resolve) => {
-    const xhr = new XMLHttpRequest();
+  try {
+    const response = await fetch(fullUrl, {
+      mode: 'cors',
+      cache: 'no-cache'
+    });
 
-    xhr.onload = function () {
-      if (xhr.status === 200 && xhr.response) {
-        const reader = new FileReader();
-        reader.onloadend = function () {
-          resolve(reader.result as string);
-        }
-        reader.readAsDataURL(xhr.response);
-      } else {
-        console.error(`❌ Fallo en XHR. Status: ${xhr.status}. URL: ${fullUrl}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const blob = await response.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = () => {
+        console.error("❌ Error al leer el blob de la imagen.");
         resolve("");
-      }
-    };
-
-    xhr.onerror = function () {
-      console.error("❌ XHR Error de red al descargar la foto. Posible problema de CORS o ruta.");
-      resolve("");
-    };
-
-    xhr.open('GET', fullUrl);
-    xhr.withCredentials = false;
-    xhr.responseType = 'blob';
-    xhr.send();
-  });
+      };
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.error(`❌ Error al descargar la foto desde: ${fullUrl}`, error);
+    return "";
+  }
 };
 
 export default function DashboardPage() {

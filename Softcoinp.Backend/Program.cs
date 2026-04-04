@@ -150,18 +150,10 @@ if (Directory.Exists(webRootPath))
         RequestPath = "/static", 
         OnPrepareResponse = ctx =>
         {
-            var requestOrigin = ctx.Context.Request.Headers["Origin"].ToString();
-            if (allowedOrigins.Contains(requestOrigin))
-            {
-                ctx.Context.Response.Headers.Append("Access-Control-Allow-Origin", requestOrigin);
-            }
-            else if (allowedOrigins.Length > 0 && string.IsNullOrEmpty(requestOrigin))
-            {
-                // Fallback for direct loads if necessary, though CORS usually only applies to XHR/Fetch
-                // For strictness, if no origin header, we might not want to send the CORS header at all
-            }
-            
-            ctx.Context.Response.Headers.Append("Access-Control-Allow-Methods", "GET");
+            // Permitir CORS para archivos estáticos (necesario para descargar fotos en el frontend)
+            ctx.Context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
+            ctx.Context.Response.Headers.Append("Access-Control-Allow-Methods", "GET, OPTIONS");
+            ctx.Context.Response.Headers.Append("Access-Control-Allow-Headers", "*");
             ctx.Context.Response.Headers.Remove("Content-Disposition");
         }
     }); 

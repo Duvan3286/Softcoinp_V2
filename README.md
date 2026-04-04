@@ -1,83 +1,94 @@
-# 🛡️ SOFTCOINP - Sistema de Gestión y Auditoría de Seguridad (Elite v2.1.8)
+# 🛡️ SOFTCOINP - Enterprise Access Control & Identity Management
 
-**SOFTCOINP** es una plataforma integral de seguridad diseñada para la gestión de ingresos, control de personal activo, supervisión vehicular y auditoría detallada de operaciones administrativas. Esta versión **Elite** introduce una interfaz de usuario premium, personalización dinámica de marca y herramientas avanzadas de mantenimiento de datos.
+**SOFTCOINP** es una solución integral de seguridad de grado empresarial diseñada para la gestión crítica de accesos, supervisión de personal activo, control vehicular y auditoría forense de operaciones. Desarrollado con tecnologías de vanguardia, ofrece una experiencia de usuario fluida con soporte nativo para temas dinámicos y personalización total de marca.
 
 ---
 
-## 🚀 Arquitectura del Proyecto
+## 🏗️ Arquitectura y Stack Tecnológico
 
-El sistema está construido siguiendo una arquitectura moderna de alto rendimiento:
+El sistema se basa en una arquitectura desacoplada de alto rendimiento (SPA + Web API):
 
 ### 🎨 Frontend (`/frontend-softcoinp`)
-- **Framework:** [Next.js 14+](https://nextjs.org/) (App Router & Turbopack)
-- **Lenguaje:** TypeScript (Tipado estricto para mayor robustez)
-- **Estilos:** Tailwind CSS (Diseño "Glassmorphism" con animaciones fluidas)
-- **UI/UX:** Componentes reactivos, Sidebar tipo "Drawer" inteligente y diseño 100% responsivo.
-- **Estado Global:** React Context API & Hooks avanzados.
-- **Cliente API:** Axios con interceptores para gestión automática de sesiones (JWT).
+- **Core:** [Next.js 15+](https://nextjs.org/) con App Router y Turbopack.
+- **Lenguaje:** TypeScript (Tipado estricto y seguridad en tiempo de compilación).
+- **Estilos:** Tailwind CSS con arquitectura de variables semánticas para **Soporte de Modo Oscuro/Claro (Auto-Theme)**.
+- **Gráficos:** Recharts para visualización analítica de datos en tiempo real.
+- **Estado Global:** Context API & Hooks avanzados para gestión de sesiones y UI.
+- **Gestión de Fechas:** Day.js con soporte de zonas horarias locales.
 
 ### ⚙️ Backend (`/Softcoinp.Backend`)
-- **Framework:** [ASP.NET Core 8.0 Web API](https://dotnet.microsoft.com/)
-- **Base de Datos:** PostgreSQL con Entity Framework Core.
-- **Seguridad:** Autenticación y Autorización basada en Roles (RBAC) con **JSON Web Tokens (JWT)**.
-- **Patrones:** Repository/Service, DTOs y Middlewares personalizados de auditoría.
-- **API Documentation:** Swagger/OpenAPI integrada para pruebas rápidas.
+- **Core:** [ASP.NET Core 8.0 Web API](https://dotnet.microsoft.com/).
+- **Persistencia:** PostgreSQL con Entity Framework Core (Code-First).
+- **Seguridad:** Autenticación por Tokens **JWT** y sistema avanzado de **Permisos basados en Vistas (RBAC)**.
+- **Arquitectura:** Patrón Repository/Service con transferencia de datos mediante DTOs.
+- **Middleware:** Procesamiento centralizado de errores y auditoría automática de transacciones.
 
 ---
 
-## ✨ Funcionalidades Destacadas (v2.1.8-elite)
+## 🚀 Módulos y Capacidades Clave
 
-- **🏢 Personalización "White-Label":** Capacidad de cambiar dinámicamente el nombre de la institución (Identidad) y la versión del sistema desde el panel administrativo, reflejándose en tiempo real en Header, Sidebar, Login y Footers.
-- **📊 Dashboard Administrativo:** Panel interactivo con métricas en tiempo real, búsqueda global rápida y visualización dual avanzada (Personas/Vehículos).
-- **📋 Auditoría Integral (Bitácora):** Rastreo persistente de cada acción realizada (creaciones, ediciones, inicios de sesión, exportaciones), con nombres amigables en español y tallas de tiempo exactas.
-- **🛠️ Mantenimiento Crítico:** Interfaz intuitiva para realizar backups en JSON, restauración completa del sistema y limpieza profunda de datos operativos con un solo clic.
-- **🏷️ Gestión de Personal y Tipos:** Administrador de categorías de personal (Empleado, Visitante, Contratista, etc.) con estados (Activo/Inactivo).
-- **📝 Registros y Novedades:** Formulario de ingreso inteligente con validaciones visuales, soporte para captura de fotos y sistema de alertas para personas con antecedentes de seguridad.
+### 📊 Dashboard Analítico & Control
+- Panel interactivo con métricas en tiempo real sobre flujos de entrada y salida.
+- Búsqueda global inteligente de personas y vehículos.
+- Registro de ingresos con soporte para **captura fotográfica en vivo** y detección de estados de bloqueo.
+
+### 🌓 Interfaz Adaptativa (Dark Mode)
+- Implementación integral de modo oscuro en todas las vistas (Dashboard, Reportes, Registros, Configuraciones).
+- Sincronización automática con la preferencia del sistema o selección manual en el encabezado.
+
+### 📦 Gestión de Correspondencia
+- Sistema completo de recepción y entrega de paquetes y sobres.
+- Seguimiento de estados (En Espera / Entregado) con firmas de recepción y bitácora de entrega.
+
+### 🛡️ Seguridad y Permisos
+- Configuración granular de acceso a nivel de vista para cada usuario.
+- Control total sobre acciones administrativas (Exportación, Edición, Eliminación).
+- Sistema de **Bloqueo Preventivo** para personas y vehículos con alertas visuales inmediatas.
+
+### 📋 Mantenimiento y Auditoría Forense
+- **Bitácora de Actividad:** Registro persistente de cada cambio, login o acción crítica realizada en el sistema.
+- **Herramientas de Respaldo:** Exportación e importación de bases de datos completas en formato JSON.
+- **Acciones Críticas:** Limpieza de datos operativos y restauración de configuración de fábrica (Deep Clean).
 
 ---
 
-## 🛠️ Instalación y Configuración
+## 🛠️ Despliegue y Configuración
 
-### 📋 Requisitos Previos
-- [Node.js](https://nodejs.org/) (v18 o superior)
+### Requisitos del Entorno
+- [Node.js](https://nodejs.org/) (v18.x o superior)
 - [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
-- [PostgreSQL](https://www.postgresql.org/) (Instalado y en ejecución)
+- [PostgreSQL](https://www.postgresql.org/) (Instancia activa)
 
-### ⚙️ Configuración del Backend
-1. Navega a la carpeta `Softcoinp.Backend/`.
-2. Actualiza la cadena de conexión en `appsettings.json` o `appsettings.Development.json`.
-3. Ejecuta las migraciones para preparar la base de datos:
-   ```bash
-   dotnet ef database update
-   ```
-4. Inicia el servidor API:
-   ```bash
-   dotnet run
-   ```
+### Configuración del Servidor (API)
+1.  Acceder a la carpeta `Softcoinp.Backend/`.
+2.  Configurar el string de conexión `DefaultConnection` en `appsettings.json`.
+3.  Aplicar esquema de base de datos:
+    ```bash
+    dotnet ef database update
+    ```
+4.  Iniciar servicio:
+    ```bash
+    dotnet run
+    ```
 
-### 🎨 Configuración del Frontend
-1. Navega a la carpeta `frontend-softcoinp/`.
-2. Instala las dependencias:
-   ```bash
-   npm install
-   ```
-3. Inicia el entorno de desarrollo:
-   ```bash
-   npm run dev
-   ```
-4. Abre [http://localhost:3000](http://localhost:3000) para acceder al sistema.
-
----
-
-## 🧹 Mantenimiento de Base de Datos
-
-El sistema está diseñado para facilitar el mantenimiento preventivo y correctivo desde la interfaz de **Mantenimiento Crítico** dentro de Configuraciones.
-
-### Acciones Disponibles:
-- **🗃️ Deep Clean & Seed:** Borra todos los datos (Personal, Auditoría, Registros) y restaura el usuario maestro (`admin@local` / `Admin123`) y configuraciones base. 
-- **💾 Exportar Backup:** Genera un archivo JSON descargable con el estado actual de toda la base de datos.
-- **🔄 Restaurar Sistema:** Permite cargar un archivo JSON de respaldo para sobrescribir y recuperar el sistema al estado anterior.
-- **🗑️ Limpieza Operativa:** Elimina los movimientos históricos (entradas/salidas) pero mantiene al personal y las cuentas de usuario intactas.
+### Configuración de la Interfaz (Frontend)
+1.  Acceder a la carpeta `frontend-softcoinp/`.
+2.  Instalar dependencias:
+    ```bash
+    npm install
+    ```
+3.  Ejecutar entorno de desarrollo:
+    ```bash
+    npm run dev
+    ```
+4.  Acceso predeterminado: [http://localhost:3000](http://localhost:3000)
 
 ---
-© 2026 SOFTCOINP - Sistema de Control y Auditoría Elite v2.1.8
+
+## 🏷️ Identidad y Personalización (White-Label)
+Softcoinp permite la personalización total de la identidad desde el módulo de Mantenimiento:
+- **Nombre de Institución:** Actualización dinámica de la marca en login, header y reportes.
+- **Versionamiento:** Control visual de la versión del software desplegado.
+
+---
+© 2026 **Softcoinp Technologies** | *Ingeniería en Control de Acceso e Identidad Digital.*

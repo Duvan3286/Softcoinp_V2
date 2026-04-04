@@ -3,557 +3,554 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { correspondenciaService, CorrespondenciaDto } from "@/services/correspondenciaService";
+import { recibosPublicosService, ReciboPublicoDto, EntregaReciboDto } from "@/services/recibosPublicosService";
 import CustomModal, { ModalType } from "@/components/CustomModal";
 import { getCurrentUser, UserPayload } from "@/utils/auth";
 import dayjs from "dayjs";
-import customParseFormat from "dayjs/plugin/customParseFormat";
-import localizedFormat from "dayjs/plugin/localizedFormat";
 import "dayjs/locale/es";
 
-dayjs.extend(customParseFormat);
-dayjs.extend(localizedFormat);
 dayjs.locale("es");
 
 export default function CorrespondenciaPage() {
   const router = useRouter();
   const [usuario, setUsuario] = useState<UserPayload | null>(null);
-  
-  // Lista de correspondencia
-  const [lista, setLista] = useState<CorrespondenciaDto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<"paquetes" | "recibos" | "nuevo_paquete" | "nuevo_recibo">("paquetes");
 
-  // Filtros
-  const [filtroEstado, setFiltroEstado] = useState("");
+  // --- ESTADOS PAQUETES ---
+  const [listaPaquetes, setListaPaquetes] = useState<CorrespondenciaDto[]>([]);
+  const [filtroEstadoPaquete, setFiltroEstadoPaquete] = useState("");
   const [filtroRemitente, setFiltroRemitente] = useState("");
-  const [filtroDestinatario, setFiltroDestinatario] = useState("");
-
-  // Modal genérico
-  const [modal, setModal] = useState<{
-    isOpen: boolean;
-    title: string;
-    message: string;
-    type: ModalType;
-    onConfirm?: () => void;
-  }>({
-    isOpen: false,
-    title: "",
-    message: "",
-    type: "info",
-  });
-
-  // Modal para Entregar
-  const [entregarModal, setEntregarModal] = useState<{ isOpen: boolean; id: string | null }>({ isOpen: false, id: null });
-  const [recibidoPor, setRecibidoPor] = useState("");
-  const [notaEntrega, setNotaEntrega] = useState("");
-
-  // Tabs: "Lista" | "Nuevo"
-  const [activeTab, setActiveTab] = useState<"lista" | "nuevo">("lista");
-
-  // Formulario Nuevo
   const [formRemitente, setFormRemitente] = useState("");
   const [formDestinatario, setFormDestinatario] = useState("");
   const [formTipoDoc, setFormTipoDoc] = useState("");
   const [formGuia, setFormGuia] = useState("");
   const [formDesc, setFormDesc] = useState("");
 
+  // --- ESTADOS RECIBOS ---
+  const [listaRecibos, setListaRecibos] = useState<ReciboPublicoDto[]>([]);
+  const [mostrarArchivados, setMostrarArchivados] = useState(false);
+  const [formServicio, setFormServicio] = useState("");
+  const [formMes, setFormMes] = useState("");
+  const [formCantidad, setFormCantidad] = useState("");
+  
+  // Modales Recibos
+  const [entregaReciboModal, setEntregaReciboModal] = useState<{ isOpen: boolean; id: string | null; servicio: string }>({ isOpen: false, id: null, servicio: "" });
+  const [verEntregasModal, setVerEntregasModal] = useState<{ isOpen: boolean; id: string | null; servicio: string }>({ isOpen: false, id: null, servicio: "" });
+  const [entregasDetalle, setEntregasDetalle] = useState<EntregaReciboDto[]>([]);
+  const [residenteNombre, setResidenteNombre] = useState("");
+  const [apartamento, setApartamento] = useState("");
+
+  // --- MODALES GENERALES ---
+  const [modal, setModal] = useState<{ isOpen: boolean; title: string; message: string; type: ModalType; onConfirm?: () => void }>({
+    isOpen: false, title: "", message: "", type: "info",
+  });
+  const [entregarPaqueteModal, setEntregarPaqueteModal] = useState<{ isOpen: boolean; id: string | null }>({ isOpen: false, id: null });
+  const [recibidoPor, setRecibidoPor] = useState("");
+  const [notaEntrega, setNotaEntrega] = useState("");
+
   useEffect(() => {
     const userPayload = getCurrentUser();
-    if (userPayload) {
-      setUsuario(userPayload);
-    } else {
-      router.push("/login");
-    }
-  }, [router]);
+    if (userPayload) setUsuario(userPayload);
+    else router.push("/login");
+    loadAllData();
+  }, [mostrarArchivados]);
 
-  const loadData = async () => {
+  const loadAllData = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const data = await correspondenciaService.getAll(filtroEstado, filtroRemitente, filtroDestinatario);
-      setLista(data);
+      const [p, r] = await Promise.all([
+        correspondenciaService.getAll(filtroEstadoPaquete, filtroRemitente, ""),
+        mostrarArchivados ? recibosPublicosService.getHistorial() : recibosPublicosService.getActivos()
+      ]);
+      setListaPaquetes(p);
+      setListaRecibos(r);
     } catch (error) {
-      console.error("Error al cargar correspondencia:", error);
+      console.error("Error al cargar datos:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    loadData();
-  }, [filtroEstado]); // Recargar al cambiar filtro rápido
+  const showModal = (msg: string, type: ModalType, title?: string, onConfirm?: () => void) => {
+    setModal({ isOpen: true, message: msg, type, title: title || "Aviso", onConfirm });
+  };
 
-  const handleBuscar = () => loadData();
-
-  const handleCreate = async () => {
+  // --- LÓGICA PAQUETES ---
+  const handleCreatePaquete = async () => {
     if (!formRemitente.trim() || !formDestinatario.trim()) {
       showModal("Remitente y Destinatario son obligatorios.", "warning");
       return;
     }
-
     try {
       setLoading(true);
-      await correspondenciaService.create({
-        remitente: formRemitente,
-        destinatario: formDestinatario,
-        tipoDocumento: formTipoDoc,
-        numeroGuia: formGuia,
-        descripcion: formDesc
-      });
-      showModal("Correspondencia registrada correctamente.", "success");
-      
-      // Limpiar formulario y volver a lista
-      setFormRemitente("");
-      setFormDestinatario("");
-      setFormTipoDoc("");
-      setFormGuia("");
-      setFormDesc("");
-      setActiveTab("lista");
-      loadData();
-    } catch (error: any) {
-      showModal(error.response?.data?.message || "Error al registrar correspondencia.", "error");
-    } finally {
-      setLoading(false);
-    }
+      await correspondenciaService.create({ remitente: formRemitente, destinatario: formDestinatario, tipoDocumento: formTipoDoc, numeroGuia: formGuia, descripcion: formDesc });
+      showModal("Paquete registrado correctamente.", "success");
+      setFormRemitente(""); setFormDestinatario(""); setFormTipoDoc(""); setFormGuia(""); setFormDesc("");
+      setActiveTab("paquetes");
+      loadAllData();
+    } catch (err: any) { showModal("Error al registrar paquete.", "error"); } finally { setLoading(false); }
   };
 
-  const handleOpenEntregar = (id: string) => {
-    setEntregarModal({ isOpen: true, id });
-    setRecibidoPor("");
-    setNotaEntrega("");
-  };
-
-  const handleConfirmEntregar = async () => {
-    if (!entregarModal.id) return;
-    if (!recibidoPor.trim()) {
+  const handleConfirmEntregarPaquete = async () => {
+    if (!entregarPaqueteModal.id || !recibidoPor.trim()) {
       showModal("Debe indicar quién recibe.", "warning");
       return;
     }
-
     try {
       setLoading(true);
-      await correspondenciaService.entregar(entregarModal.id, {
-        recibidoPor,
-        notaEntrega
-      });
-      showModal("Correspondencia entregada.", "success");
-      setEntregarModal({ isOpen: false, id: null });
-      loadData();
-    } catch (error: any) {
-      showModal(error.response?.data?.message || "Error al entregar correspondencia.", "error");
+      await correspondenciaService.entregar(entregarPaqueteModal.id, { recibidoPor, notaEntrega });
+      showModal("Paquete entregado con éxito.", "success");
+      setEntregarPaqueteModal({ isOpen: false, id: null });
+      loadAllData();
+    } catch (err: any) { showModal("Error al entregar.", "error"); } finally { setLoading(false); }
+  };
+
+  // --- LÓGICA RECIBOS ---
+  const handleCreateLoteRecibos = async () => {
+    const cant = parseInt(formCantidad);
+    if (!formServicio || !formMes || isNaN(cant) || cant <= 0) {
+      showModal("Diligencie todos los campos correctamente.", "warning");
+      return;
+    }
+    try {
+      setLoading(true);
+      await recibosPublicosService.create({ servicio: formServicio, mes: formMes, totalRecibidos: cant });
+      showModal("Lote de recibos creado exitosamente.", "success");
+      setFormServicio(""); setFormMes(""); setFormCantidad("");
+      setActiveTab("recibos");
+      loadAllData();
+    } catch (err: any) { showModal("Error al crear lote.", "error"); } finally { setLoading(false); }
+  };
+
+  const handleConfirmEntregaRecibo = async () => {
+    if (!entregaReciboModal.id || !residenteNombre.trim() || !apartamento.trim()) {
+      showModal("Nombre y Apartamento son obligatorios.", "warning");
+      return;
+    }
+    try {
+      setLoading(true);
+      await recibosPublicosService.entregar(entregaReciboModal.id, { residenteNombre, apartamento });
+      showModal("Entrega de recibo registrada. Inventario actualizado.", "success");
+      setEntregaReciboModal({ isOpen: false, id: null, servicio: "" });
+      setResidenteNombre(""); setApartamento("");
+      loadAllData();
+    } catch (err: any) { showModal("Error al registrar entrega.", "error"); } finally { setLoading(false); }
+  };
+
+  const handleVerEntregas = async (id: string, servicio: string) => {
+    setLoading(true);
+    try {
+      const data = await recibosPublicosService.getEntregas(id);
+      setEntregasDetalle(data);
+      setVerEntregasModal({ isOpen: true, id, servicio });
+    } catch (err) {
+      showModal("Error al cargar detalle de entregas.", "error");
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleDelete = (id: string) => {
-    showModal("¿Está seguro de eliminar este registro?", "confirm", async () => {
-      try {
-        setLoading(true);
-        await correspondenciaService.eliminar(id);
-        showModal("Registro eliminado.", "success");
-        loadData();
-      } catch (error: any) {
-        showModal(error.response?.data?.message || "Error al eliminar.", "error");
-      } finally {
-        setLoading(false);
-      }
-    });
-  };
-
-  const showModal = (msg: string, type: ModalType, onConfirmAction?: () => void) => {
-    setModal({
-      isOpen: true,
-      title: type === "error" ? "Error" : type === "success" ? "Éxito" : type === "confirm" ? "Confirmar" : "Atención",
-      message: msg,
-      type,
-      onConfirm: onConfirmAction
-    });
   };
 
   return (
     <div className="lg:h-full w-full bg-background p-2 md:p-4 lg:overflow-hidden flex flex-col items-center transition-colors duration-300">
-      <div className="w-full max-w-[1400px] h-full flex flex-col min-h-0 gap-3">
+      <div className="w-full max-w-[1400px] h-full flex flex-col min-h-0 gap-4">
+        
         <CustomModal {...modal} onClose={() => setModal({ ...modal, isOpen: false })} />
-      
-      {/* Modal Entregar - Estilo Unificado */}
-      {entregarModal.isOpen && (
-        <div className="fixed inset-0 z-[160] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity animate-in fade-in" onClick={() => setEntregarModal({ isOpen: false, id: null })}></div>
-          <div className="bg-card rounded-2xl shadow-2xl w-full max-w-sm relative z-10 overflow-hidden flex flex-col max-h-[85vh] transform transition-all animate-in zoom-in slide-in-from-bottom border border-border">
-            
-            {/* Cabecera Estilo UserModal */}
-            <div className="bg-card px-5 py-3 border-b border-border flex justify-between items-center bg-gradient-to-r from-indigo-50/50 dark:from-indigo-900/20 to-transparent">
-              <div className="flex items-center gap-2">
-                <div className="w-1.5 h-4 bg-indigo-600 rounded-full"></div>
-                <h2 className="text-xs font-black uppercase tracking-widest text-foreground">
-                    Entregar Correspondencia
-                </h2>
-              </div>
-              <button 
-                onClick={() => setEntregarModal({ isOpen: false, id: null })}
-                className="text-slate-400 dark:text-slate-500 hover:text-rose-600 transition-colors p-1"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
 
-            <div className="p-5 overflow-y-auto custom-scrollbar">
-              <div className="space-y-4">
+        {/* --- MODAL ENTREGAR PAQUETE --- */}
+        {entregarPaqueteModal.isOpen && (
+          <div className="fixed inset-0 z-[160] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setEntregarPaqueteModal({ isOpen: false, id: null })}></div>
+            <div className="bg-card rounded-2xl shadow-2xl w-full max-w-sm relative z-10 overflow-hidden flex flex-col max-h-[85vh] border border-border animate-in zoom-in-95">
+              <div className="bg-card px-5 py-3 border-b border-border flex justify-between items-center bg-gradient-to-r from-indigo-50/50 dark:from-indigo-900/20 to-transparent">
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-4 bg-indigo-600 rounded-full"></div>
+                  <h2 className="text-xs font-black uppercase tracking-widest text-foreground">Entregar Paquete</h2>
+                </div>
+                <button onClick={() => setEntregarPaqueteModal({ isOpen: false, id: null })} className="text-slate-400 hover:text-rose-600 p-1">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+              <div className="p-5 space-y-4">
                 <div>
-                  <label className="block text-[9px] font-black text-slate-400 dark:text-slate-500 mb-1 uppercase tracking-widest">Recibido por (Nombre) *</label>
-                  <input
-                    type="text"
-                    value={recibidoPor}
-                    onChange={(e) => setRecibidoPor(e.target.value)}
-                    className="w-full px-3 py-2 bg-input border border-border rounded-lg focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900/30 focus:border-indigo-500 outline-none transition-all placeholder-slate-300 dark:placeholder-slate-600 font-bold text-foreground uppercase text-[10px]"
-                    placeholder="Ej. Juan Pérez"
-                  />
+                  <label className="block text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase mb-1 tracking-widest">Nombre de quien recibe *</label>
+                  <input type="text" value={recibidoPor} onChange={e => setRecibidoPor(e.target.value)} className="input-standard !text-[10px]" placeholder="Ej. Pedro Picapiedra" />
                 </div>
                 <div>
-                  <label className="block text-[9px] font-black text-slate-400 dark:text-slate-500 mb-1 uppercase tracking-widest">Nota u observación (Opcional)</label>
-                  <textarea
-                    value={notaEntrega}
-                    onChange={(e) => setNotaEntrega(e.target.value)}
-                    className="w-full px-3 py-2 bg-input border border-border rounded-lg focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900/30 focus:border-indigo-500 outline-none transition-all placeholder-slate-300 dark:placeholder-slate-600 font-medium text-foreground text-[10px] resize-none h-20"
-                    placeholder="Firma, c.c., caja 2, etc."
-                  />
+                  <label className="block text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase mb-1 tracking-widest">Observaciones</label>
+                  <textarea value={notaEntrega} onChange={e => setNotaEntrega(e.target.value)} className="input-standard !text-[10px] h-20 resize-none" placeholder="Firma, identificación, etc." />
                 </div>
               </div>
-            </div>
-
-            <div className="p-4 px-5 flex gap-2 mt-auto border-t border-border bg-background transition-colors">
-              <button 
-                onClick={() => setEntregarModal({ isOpen: false, id: null })}
-                className="px-4 py-2 bg-card border border-border text-slate-400 dark:text-slate-500 rounded-lg font-black text-[9px] uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-              >
-                Cancelar
-              </button>
-              <button 
-                onClick={handleConfirmEntregar}
-                className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg font-black text-[9px] uppercase tracking-widest shadow-md shadow-indigo-100 dark:shadow-none hover:bg-indigo-700 transition-all active:scale-[0.98] disabled:opacity-50"
-                disabled={loading}
-              >
-                {loading ? "Procesando..." : "Confirmar Entrega"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* HEADER COMPACTO */}
-      <div className="flex items-center justify-between shrink-0 bg-card p-3 rounded-2xl border border-border shadow-sm transition-colors">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-100 dark:shadow-none transition-transform hover:scale-110">
-            <span className="text-xl text-white">📦</span>
-          </div>
-          <div>
-            <h1 className="text-lg font-black text-foreground tracking-tight leading-none uppercase">
-              Correspondencia
-            </h1>
-            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase mt-1 tracking-widest">Recepción y Entrega</p>
-          </div>
-        </div>
-
-        {/* TABS INTEGRADOS EN HEADER */}
-        <div className="flex gap-1 bg-background p-1 rounded-xl transition-colors">
-          <button
-            onClick={() => setActiveTab("lista")}
-            className={`px-4 py-1.5 rounded-lg font-black transition-all text-[10px] uppercase tracking-widest flex items-center gap-2 ${
-              activeTab === "lista" 
-                ? "bg-card text-indigo-600 dark:text-indigo-400 shadow-sm border border-border" 
-                : "text-slate-400 dark:text-slate-500 hover:text-indigo-500 dark:hover:text-indigo-400"
-            }`}
-          >
-            📋 Listado
-          </button>
-          <button
-            onClick={() => setActiveTab("nuevo")}
-            className={`px-4 py-1.5 rounded-lg font-black transition-all text-[10px] uppercase tracking-widest flex items-center gap-2 ${
-              activeTab === "nuevo" 
-                ? "bg-card text-indigo-600 dark:text-indigo-400 shadow-sm border border-border" 
-                : "text-slate-400 dark:text-slate-500 hover:text-indigo-500 dark:hover:text-indigo-400"
-            }`}
-          >
-            ➕ Nuevo
-          </button>
-        </div>
-      </div>
-
-        {activeTab === "nuevo" && (
-          <div className="bg-card p-5 md:p-8 rounded-3xl shadow-sm border border-border flex-grow flex flex-col min-h-0 transition-colors animate-in fade-in slide-in-from-top-4 duration-500">
-            <div className="flex items-center gap-4 mb-8">
-                <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-2xl flex items-center justify-center text-2xl shadow-inner transition-all group-hover:scale-110">📥</div>
-                <div>
-                    <h2 className="text-base font-black text-foreground uppercase tracking-tight">Nueva Recepción</h2>
-                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">Registro de ingreso de paquetes al sistema</p>
-                </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-6 overflow-y-auto pr-2 custom-scrollbar">
-              <div className="md:col-span-2">
-                <label className="block text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase mb-1.5 ml-1 tracking-widest">Remitente (Empresa/Persona) *</label>
-                <div className="relative group">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-600 group-focus-within:text-indigo-500 transition-colors">📦</span>
-                  <input
-                    type="text"
-                    value={formRemitente}
-                    onChange={(e) => setFormRemitente(e.target.value)}
-                    className="w-full pl-9 pr-4 py-3 bg-input border border-border rounded-xl focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 outline-none transition-all font-bold text-foreground text-xs uppercase"
-                    placeholder="Ej. Servientrega, MercadoLibre, etc."
-                  />
-                </div>
+              <div className="p-4 px-5 flex gap-2 border-t border-border bg-background">
+                <button onClick={() => setEntregarPaqueteModal({ isOpen: false, id: null })} className="px-4 py-2 bg-card border border-border text-slate-400 rounded-lg font-black text-[9px] uppercase tracking-widest">Cancelar</button>
+                <button onClick={handleConfirmEntregarPaquete} className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg font-black text-[9px] uppercase tracking-widest shadow-md shadow-indigo-100">Confirmar Entrega</button>
               </div>
-              
-              <div>
-                <label className="block text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase mb-1.5 ml-1 tracking-widest">Destinatario (Residente/Apto) *</label>
-                <div className="relative group">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-600 group-focus-within:text-indigo-500 transition-colors">🏢</span>
-                  <input
-                    type="text"
-                    value={formDestinatario}
-                    onChange={(e) => setFormDestinatario(e.target.value)}
-                    className="w-full pl-9 pr-4 py-3 bg-input border border-border rounded-xl focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 outline-none transition-all font-bold text-foreground text-xs uppercase"
-                    placeholder="Ej. Juan Pérez - Apto 302"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase mb-1.5 ml-1 tracking-widest">Tipo de Paquete</label>
-                <div className="relative group">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-600 group-focus-within:text-indigo-500 transition-colors">📄</span>
-                  <select
-                    value={formTipoDoc}
-                    onChange={(e) => setFormTipoDoc(e.target.value)}
-                    className="w-full pl-9 pr-4 py-3 bg-input border border-border rounded-xl focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 outline-none transition-all font-black text-slate-600 dark:text-slate-400 text-xs appearance-none cursor-pointer uppercase tracking-tight"
-                  >
-                    <option value="">Seleccione...</option>
-                    <option value="Sobre/Carta">Sobre / Carta</option>
-                    <option value="Paquete Pequeño">Paquete Pequeño</option>
-                    <option value="Caja Grande">Caja Grande</option>
-                    <option value="Domicilio/Comida">Domicilio / Comida</option>
-                    <option value="Otro">Otro</option>
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-400 group-focus-within:text-indigo-500 transition-colors">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" /></svg>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase mb-1.5 ml-1 tracking-widest">Número de Guía / Rastreo</label>
-                <div className="relative group">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-600 group-focus-within:text-indigo-500 transition-colors">#️⃣</span>
-                  <input
-                    type="text"
-                    value={formGuia}
-                    onChange={(e) => setFormGuia(e.target.value)}
-                    className="w-full pl-9 pr-4 py-3 bg-input border border-border rounded-xl focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 outline-none transition-all font-bold text-foreground text-xs font-mono uppercase"
-                    placeholder="Opcional"
-                  />
-                </div>
-              </div>
-
-              <div className="md:col-span-3">
-                <label className="block text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase mb-1.5 ml-1 tracking-widest">Descripción o Novedades</label>
-                <textarea
-                  value={formDesc}
-                  onChange={(e) => setFormDesc(e.target.value)}
-                  className="w-full p-4 bg-input border border-border rounded-2xl focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 outline-none transition-all font-medium text-foreground text-xs hover:border-indigo-200 dark:hover:border-indigo-900 resize-none h-24 shadow-inner"
-                  placeholder="Caja en mal estado, pago en efectivo pendiente, etc."
-                />
-              </div>
-            </div>
-
-            <div className="mt-auto pt-8 border-t border-border flex justify-end shrink-0">
-              <button
-                onClick={handleCreate}
-                disabled={loading}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-3 rounded-xl shadow-xl shadow-indigo-100 dark:shadow-none transition-all flex items-center gap-3 text-xs font-black active:scale-95 disabled:opacity-50 tracking-[0.1em]"
-              >
-                {loading ? "PROCESANDO..." : "💾 GUARDAR RECEPCIÓN"}
-              </button>
             </div>
           </div>
         )}
 
-        {activeTab === "lista" && (
-          <div className="flex flex-col flex-grow min-h-0 space-y-3 animate-in fade-in duration-500">
-            {/* FILTROS COMPACTOS */}
-            <div className="bg-card p-3 md:p-4 rounded-2xl shadow-sm border border-border shrink-0 flex flex-wrap gap-4 items-end transition-colors">
-              <div className="flex-1 min-w-[180px]">
-                <label className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase ml-1 tracking-widest">Estado</label>
-                <div className="relative group/select">
-                  <select
-                    value={filtroEstado}
-                    onChange={(e) => setFiltroEstado(e.target.value)}
-                    className="w-full p-2 bg-input border border-border rounded-xl focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 text-xs font-black text-slate-600 dark:text-slate-400 transition-all cursor-pointer appearance-none uppercase"
-                  >
-                    <option value="">Todos los Estados</option>
-                    <option value="en_espera">🟡 En Espera</option>
-                    <option value="entregado">🟢 Entregado</option>
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-400 group-hover/select:text-indigo-500 transition-colors">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" /></svg>
-                  </div>
+        {/* --- MODAL ENTREGAR RECIBO --- */}
+        {entregaReciboModal.isOpen && (
+          <div className="fixed inset-0 z-[160] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setEntregaReciboModal({ isOpen: false, id: null, servicio: "" })}></div>
+            <div className="bg-card rounded-2xl shadow-2xl w-full max-w-sm relative z-10 overflow-hidden flex flex-col max-h-[85vh] border border-border animate-in zoom-in-95">
+              <div className="bg-card px-5 py-3 border-b border-border flex justify-between items-center bg-gradient-to-r from-emerald-50/50 dark:from-emerald-900/20 to-transparent">
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-4 bg-emerald-600 rounded-full"></div>
+                  <h2 className="text-xs font-black uppercase tracking-widest text-foreground">Entregar: {entregaReciboModal.servicio}</h2>
+                </div>
+                <button onClick={() => setEntregaReciboModal({ isOpen: false, id: null, servicio: "" })} className="text-slate-400 hover:text-rose-600 p-1">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+              <div className="p-5 space-y-4">
+                <div>
+                  <label className="block text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase mb-1 tracking-widest">Nombre del Residente *</label>
+                  <input type="text" value={residenteNombre} onChange={e => setResidenteNombre(e.target.value)} className="input-standard !text-[10px]" placeholder="Nombre Completo" />
+                </div>
+                <div>
+                  <label className="block text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase mb-1 tracking-widest">Apartamento / Torre *</label>
+                  <input type="text" value={apartamento} onChange={e => setApartamento(e.target.value)} className="input-standard !text-[10px]" placeholder="Ej: Torre 1 - Apt 402" />
                 </div>
               </div>
-              <div className="flex-[1.5] min-w-[220px]">
-                <label className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase ml-1 tracking-widest">Buscar Remitente</label>
-                <div className="relative group">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-600 group-focus-within:text-indigo-500 text-xs transition-colors">🚚</span>
-                  <input
-                    type="text"
-                    value={filtroRemitente}
-                    onChange={(e) => setFiltroRemitente(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && handleBuscar()}
-                    placeholder="Empresa o persona..."
-                    className="w-full pl-8 pr-4 py-2 bg-input border border-border rounded-xl focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 text-xs font-bold text-foreground transition-all uppercase"
-                  />
-                </div>
+              <div className="p-4 px-5 flex gap-2 border-t border-border bg-background">
+                <button onClick={() => setEntregaReciboModal({ isOpen: false, id: null, servicio: "" })} className="px-4 py-2 bg-card border border-border text-slate-400 rounded-lg font-black text-[9px] uppercase tracking-widest">Cancelar</button>
+                <button onClick={handleConfirmEntregaRecibo} className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg font-black text-[9px] uppercase tracking-widest shadow-md shadow-emerald-100">Registrar Entrega</button>
               </div>
-              <div className="flex-[1.5] min-w-[220px]">
-                <label className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase ml-1 tracking-widest">Buscar Destinatario</label>
-                <div className="relative group">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-600 group-focus-within:text-indigo-500 text-xs transition-colors">👤</span>
-                  <input
-                    type="text"
-                    value={filtroDestinatario}
-                    onChange={(e) => setFiltroDestinatario(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && handleBuscar()}
-                    placeholder="Residente/Apto..."
-                    className="w-full pl-8 pr-4 py-2 bg-input border border-border rounded-xl focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 text-xs font-bold text-foreground transition-all uppercase"
-                  />
-                </div>
-              </div>
-              <button 
-                onClick={handleBuscar}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-2.5 rounded-xl font-black shadow-lg shadow-indigo-100 dark:shadow-none transition-all active:scale-95 text-[10px] uppercase flex-shrink-0 tracking-[0.1em]"
-              >
-                🔍 BUSCAR
-              </button>
             </div>
+          </div>
+        )}
 
-            {/* TABLA DE RESULTADOS */}
-            <div className="flex-1 overflow-hidden flex flex-col bg-card rounded-2xl border border-border shadow-sm min-h-0 transition-colors">
-              <div className="overflow-y-auto flex-grow custom-scrollbar">
-                <table className="min-w-full divide-y divide-border relative">
-                  <thead className="bg-background sticky top-0 z-10 border-b border-border transition-colors">
+        {/* --- MODAL VER ENTREGAS (HISTORIAL LOTE) --- */}
+        {verEntregasModal.isOpen && (
+          <div className="fixed inset-0 z-[160] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setVerEntregasModal({ isOpen: false, id: null, servicio: "" })}></div>
+            <div className="bg-card rounded-3xl shadow-2xl w-full max-w-2xl relative z-10 overflow-hidden flex flex-col max-h-[85vh] border border-border animate-in zoom-in-95">
+              <div className="bg-card px-6 py-4 border-b border-border flex justify-between items-center bg-gradient-to-r from-indigo-50/50 dark:from-indigo-900/20 to-transparent">
+                <div className="flex items-center gap-3">
+                  <div className="w-1.5 h-5 bg-indigo-600 rounded-full"></div>
+                  <h2 className="text-sm font-black uppercase tracking-widest text-foreground">Relación de Entregas: {verEntregasModal.servicio}</h2>
+                </div>
+                <button onClick={() => setVerEntregasModal({ isOpen: false, id: null, servicio: "" })} className="text-slate-400 hover:text-rose-600 p-1 transition-all hover:rotate-90">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+              <div className="p-0 overflow-y-auto custom-scrollbar flex-1 bg-background transition-colors">
+                <table className="w-full text-left">
+                  <thead className="bg-card sticky top-0 border-b border-border transition-colors">
                     <tr>
-                      <th className="px-4 py-4 text-left text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Estado y Fecha</th>
-                      <th className="px-4 py-4 text-left text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Destino / Remitente</th>
-                      <th className="px-4 py-4 text-left text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Detalle Paquete</th>
-                      <th className="px-4 py-4 text-left text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Datos Entrega</th>
-                      <th className="px-4 py-4 text-center text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Acciones</th>
+                      <th className="px-6 py-3 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Residente / Apto</th>
+                      <th className="px-6 py-3 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Fecha y Hora</th>
+                      <th className="px-6 py-3 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Entregado por</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border transition-colors">
-                      {loading && lista.length === 0 ? (
-                        <tr><td colSpan={5} className="text-center p-12 text-slate-400 dark:text-slate-600 font-black uppercase tracking-widest text-[10px] animate-pulse italic">Cargando correspondencia...</td></tr>
-                      ) : lista.length === 0 ? (
-                        <tr><td colSpan={5} className="text-center p-12 text-slate-400 dark:text-slate-700 font-bold h-[250px]">
-                          <div className="flex flex-col items-center gap-4 opacity-30 grayscale">
-                            <span className="text-6xl">📦</span>
-                            <span className="text-xs uppercase tracking-widest font-black">No se hallaron registros en la base de datos</span>
-                          </div>
-                        </td></tr>
-                      ) : (
-                        lista.map((item) => (
-                          <tr key={item.id} className="hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 transition-colors group">
-                            
-                            <td className="px-4 py-4">
-                              <div className="flex flex-col gap-2">
-                                {item.estado === "en_espera" ? (
-                                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 rounded-lg text-[9px] font-black w-fit border border-amber-100 dark:border-amber-800 shadow-sm uppercase tracking-widest">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                                    En Espera
-                                  </span>
-                                ) : (
-                                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-lg text-[9px] font-black w-fit border border-emerald-100 dark:border-emerald-800 shadow-sm uppercase tracking-widest">
-                                    <span className="text-[10px]">✅</span>
-                                    Entregado
-                                  </span>
-                                )}
-                                <div className="flex flex-col">
-                                  <span className="text-[11px] text-foreground font-black tracking-tight" title={item.fechaRecepcionLocal}>
-                                    📅 {dayjs(item.fechaRecepcionLocal).format("DD MMM, HH:mm")}
-                                  </span>
-                                  <span className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-tight">Vigilancia: {item.registradoPorNombre || "S.M"}</span>
-                                </div>
-                              </div>
-                            </td>
-
-                            <td className="px-4 py-4">
-                              <div className="font-black text-foreground flex items-center gap-2 text-[13px] uppercase tracking-tight">
-                                <span className="text-sm">🏢</span> {item.destinatario}
-                              </div>
-                              <div className="text-[10px] text-indigo-600 dark:text-indigo-400 font-black mt-1.5 flex items-center gap-2 italic uppercase tracking-tighter">
-                                🚚 {item.remitente}
-                              </div>
-                            </td>
-
-                            <td className="px-4 py-4">
-                              <div className="text-[10px] font-black text-slate-500 dark:text-slate-400 bg-background px-2.5 py-1 rounded-lg w-fit border border-border uppercase tracking-widest shadow-inner transition-colors">
-                                {item.tipoDocumento || "Paquete Estándar"}
-                              </div>
-                              {item.numeroGuia && (
-                                <div className="text-[10px] text-indigo-700 dark:text-indigo-300 font-mono mt-1.5 font-black bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded-lg w-fit border border-indigo-100 dark:border-indigo-800 shadow-sm">
-                                  # {item.numeroGuia}
-                                </div>
-                              )}
-                              {item.descripcion && (
-                                <div className="text-[10px] text-slate-400 dark:text-slate-500 mt-1.5 font-bold italic line-clamp-1 max-w-[180px] normal-case" title={item.descripcion}>
-                                  "{item.descripcion}"
-                                </div>
-                              )}
-                            </td>
-
-                            <td className="px-4 py-4">
-                              {item.estado === "entregado" ? (
-                                <div className="flex flex-col gap-1.5 border-l-2 border-emerald-500 dark:border-emerald-600 pl-3">
-                                  <span className="text-[11px] font-black text-emerald-700 dark:text-emerald-400 tracking-tight uppercase">👤 {item.recibidoPor}</span>
-                                  <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold" title={item.fechaEntregaLocal}>
-                                    🕒 {dayjs(item.fechaEntregaLocal).format("DD MMM, HH:mm")}
-                                  </span>
-                                  {item.notaEntrega && <span className="text-[9px] text-slate-500 dark:text-slate-400 italic bg-background px-2 py-1 rounded border border-border mt-1 transition-colors">"{item.notaEntrega}"</span>}
-                                  <span className="text-[9px] text-indigo-500 dark:text-indigo-400 font-black mt-1 uppercase tracking-tighter">Entregó: {item.entregadoPorNombre || "S.M"}</span>
-                                </div>
-                              ) : (
-                                <span className="text-[10px] text-slate-300 dark:text-slate-700 font-black uppercase italic tracking-widest">Pendiente de Salida...</span>
-                              )}
-                            </td>
-
-                            <td className="px-4 py-4 text-center">
-                              <div className="flex items-center justify-center gap-2">
-                                {item.estado === "en_espera" && (
-                                  <button 
-                                    onClick={() => handleOpenEntregar(item.id)}
-                                    className="bg-indigo-600 hover:bg-indigo-700 text-white text-[9px] font-black px-5 py-2.5 rounded-xl shadow-lg shadow-indigo-100 dark:shadow-none transition-all active:scale-95 flex items-center gap-2 group-hover:scale-105 tracking-widest uppercase"
-                                  >
-                                    <span className="text-xs">📤</span> Entregar
-                                  </button>
-                                )}
-                                
-                                {(usuario?.role === 'admin' || usuario?.role === 'superadmin') && (
-                                  <button 
-                                    onClick={() => handleDelete(item.id)}
-                                    className="p-2.5 text-slate-300 dark:text-slate-700 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition-all active:scale-90"
-                                    title="Eliminar registro"
-                                  >
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                  </button>
-                                )}
-                              </div>
-                            </td>
-
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
+                    {entregasDetalle.length === 0 ? (
+                      <tr><td colSpan={3} className="text-center p-10 text-slate-400 dark:text-slate-600 font-bold uppercase tracking-widest text-[10px]">No se han registrado entregas en este lote</td></tr>
+                    ) : (
+                      entregasDetalle.map(e => (
+                        <tr key={e.id} className="hover:bg-indigo-50/20 dark:hover:bg-indigo-900/10 transition-colors">
+                          <td className="px-6 py-4">
+                            <p className="text-[11px] font-black text-foreground uppercase tracking-tight">{e.residenteNombre}</p>
+                            <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">{e.apartamento}</p>
+                          </td>
+                          <td className="px-6 py-4">
+                            <p className="text-[11px] font-black text-foreground">{dayjs(e.fechaEntregaUtc).format("DD MMM YYYY")}</p>
+                            <p className="text-[10px] font-bold text-slate-400">{dayjs(e.fechaEntregaUtc).format("HH:mm:ss")}</p>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="text-[9px] font-black text-indigo-600 dark:text-indigo-400 uppercase bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800 px-2 py-1 rounded shadow-sm">
+                              {e.registradoPor}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+              <div className="p-4 px-6 border-t border-border bg-card flex justify-end">
+                <button onClick={() => setVerEntregasModal({ isOpen: false, id: null, servicio: "" })} className="px-6 py-2 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest">Entendido</button>
               </div>
             </div>
           </div>
         )}
+
+        {/* HEADER & TABS PRINCIPALES */}
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-4 bg-card p-4 rounded-3xl border border-border shadow-sm transition-colors shrink-0">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-indigo-600 rounded-2xl shadow-xl shadow-indigo-100 dark:shadow-none transition-transform hover:rotate-3">
+              <span className="text-2xl text-white">📦</span>
+            </div>
+            <div>
+              <h1 className="text-xl font-black text-foreground tracking-tight leading-none uppercase">Gestión de Correspondencia</h1>
+              <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase mt-1.5 tracking-[0.2em]">Sincronizado con Vigilancia</p>
+            </div>
+          </div>
+
+          <nav className="flex gap-1.5 bg-background p-1.5 rounded-2xl border border-border transition-colors">
+            <button onClick={() => setActiveTab("paquetes")} className={`px-5 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${activeTab === "paquetes" ? "bg-card text-indigo-600 dark:text-indigo-400 shadow-sm border border-border" : "text-slate-400 hover:text-indigo-500"}`}>📦 Paquetes</button>
+            <button onClick={() => setActiveTab("recibos")} className={`px-5 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${activeTab === "recibos" ? "bg-card text-indigo-600 dark:text-indigo-400 shadow-sm border border-border" : "text-slate-400 hover:text-indigo-500"}`}>📄 Recibos Públicos</button>
+            <div className="w-px bg-border h-6 my-auto mx-1"></div>
+            <button onClick={() => setActiveTab(activeTab.includes("recibo") ? "nuevo_recibo" : "nuevo_paquete")} className="px-5 py-2 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-indigo-100 dark:shadow-none hover:bg-indigo-700 active:scale-95 transition-all">
+              {activeTab.includes("recibo") ? "+ Nuevo Lote" : "+ Registrar Paquete"}
+            </button>
+          </nav>
+        </div>
+
+        {/* --- CONTENIDO DINÁMICO --- */}
+        <main className="flex-1 flex flex-col min-h-0">
+          
+          {/* TAB: PAQUETES (LISTADO) */}
+          {activeTab === "paquetes" && (
+            <div className="flex flex-col h-full gap-4 animate-in fade-in duration-500">
+               <div className="bg-card p-4 rounded-3xl border border-border flex flex-wrap gap-4 items-end shadow-sm">
+                  <div className="flex-1 min-w-[200px]">
+                    <label className="text-[9px] font-black text-slate-400 uppercase ml-1 tracking-widest">Estado de Paquete</label>
+                    <select value={filtroEstadoPaquete} onChange={e => setFiltroEstadoPaquete(e.target.value)} className="input-standard !p-2 !text-xs !font-black uppercase mt-1 cursor-pointer">
+                      <option value="">Todos los Estados</option>
+                      <option value="en_espera">🟡 En Espera</option>
+                      <option value="entregado">🟢 Entregado</option>
+                    </select>
+                  </div>
+                  <div className="flex-[2] min-w-[250px]">
+                    <label className="text-[9px] font-black text-slate-400 uppercase ml-1 tracking-widest">Buscar Remitente</label>
+                    <input type="text" value={filtroRemitente} onChange={e => setFiltroRemitente(e.target.value)} placeholder="Ej: Amazon, DHL..." className="input-standard !p-2 !text-xs mt-1 uppercase" />
+                  </div>
+                  <button onClick={loadAllData} className="bg-indigo-600 text-white px-8 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-indigo-100 active:scale-95 transition-all">Buscar</button>
+               </div>
+
+               <div className="flex-1 bg-card rounded-[2.5rem] border border-border shadow-sm overflow-hidden flex flex-col transition-colors">
+                  <div className="overflow-y-auto flex-1 custom-scrollbar">
+                    <table className="w-full text-left border-collapse">
+                      <thead className="bg-background sticky top-0 z-10 border-b border-border transition-colors">
+                        <tr>
+                          <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Estado / Fecha</th>
+                          <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Residente / Destino</th>
+                          <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Paquete</th>
+                          <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border transition-colors">
+                        {listaPaquetes.map(p => (
+                          <tr key={p.id} className="hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 transition-colors group">
+                            <td className="px-6 py-4">
+                               <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[9px] font-black border uppercase tracking-tighter ${p.estado === 'entregado' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 border-emerald-100 dark:border-emerald-800' : 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 border-amber-100 dark:border-amber-800'}`}>
+                                 {p.estado === 'entregado' ? '✓ Entregado' : '🕒 En Espera'}
+                               </span>
+                               <p className="text-[11px] font-black mt-2 text-foreground">{dayjs(p.fechaRecepcionLocal).format("DD/MM HH:mm")}</p>
+                            </td>
+                            <td className="px-6 py-4">
+                               <p className="text-[13px] font-black text-foreground uppercase tracking-tight leading-none">{p.destinatario}</p>
+                               <p className="text-[10px] font-bold text-indigo-500 mt-1 uppercase italic tracking-tighter">Remitente: {p.remitente}</p>
+                            </td>
+                            <td className="px-6 py-4">
+                               <span className="px-2 py-1 bg-background border border-border rounded text-[9px] font-black text-slate-500 uppercase">{p.tipoDocumento || 'Paquete'}</span>
+                               {p.numeroGuia && <p className="text-[10px] font-mono text-indigo-400 mt-1"># {p.numeroGuia}</p>}
+                            </td>
+                            <td className="px-6 py-4 text-center">
+                               {p.estado === 'en_espera' ? (
+                                 <button onClick={() => setEntregarPaqueteModal({ isOpen: true, id: p.id })} className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100 dark:shadow-none">Entregar</button>
+                               ) : (
+                                 <div className="flex flex-col items-center">
+                                   <span className="text-[10px] text-emerald-600 font-black">ENTREGADO A:</span>
+                                   <span className="text-[9px] text-slate-400 uppercase font-bold">{p.recibidoPor}</span>
+                                 </div>
+                               )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+               </div>
+            </div>
+          )}
+
+          {/* TAB: RECIBOS PÚBLICOS (LISTADO) */}
+          {activeTab === "recibos" && (
+            <div className="flex flex-col h-full gap-4 animate-in fade-in duration-500">
+               {/* FILTRO HISTORIAL RECIBOS */}
+               <div className="flex items-center justify-between bg-card p-3 rounded-2xl border border-border shadow-sm transition-colors">
+                  <div className="flex items-center gap-2 px-2">
+                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                     <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                        {mostrarArchivados ? "Mostrando Lotes Archivados" : "Mostrando Lotes Activos (En Sitio)"}
+                     </p>
+                  </div>
+                  <button 
+                    onClick={() => setMostrarArchivados(!mostrarArchivados)}
+                    className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all border ${mostrarArchivados ? "bg-indigo-600 text-white border-indigo-600" : "bg-background text-indigo-600 border-indigo-100 dark:border-indigo-900/50 hover:bg-indigo-50 dark:hover:bg-indigo-900/30"}`}
+                  >
+                    {mostrarArchivados ? "Ver Activos" : "Ver Archivados"}
+                  </button>
+               </div>
+
+               <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-auto custom-scrollbar pr-1 flex-1">
+                  {listaRecibos.length === 0 ? (
+                    <div className="col-span-full py-20 text-center bg-card rounded-3xl border border-dashed border-border transition-colors">
+                       <span className="text-5xl opacity-20 grayscale">📂</span>
+                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-4">No se hallaron registros en esta categoría</p>
+                    </div>
+                  ) : (
+                    listaRecibos.map(r => (
+                      <div key={r.id} className="bg-card rounded-3xl border-2 border-border p-6 flex flex-col gap-5 hover:border-indigo-400 transition-all duration-300 shadow-sm relative overflow-hidden group">
+                         {/* Progreso Visual Fondo */}
+                         <div className={`absolute bottom-0 left-0 h-1 transition-all duration-1000 ${r.activo ? 'bg-indigo-600' : 'bg-emerald-500'}`} style={{ width: `${(r.totalEntregados / r.totalRecibidos) * 100}%` }}></div>
+                         
+                         <div className="flex justify-between items-start">
+                            <div className={`p-3 rounded-2xl text-xl shadow-inner group-hover:scale-110 transition-transform ${r.activo ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' : 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'}`}>
+                                {r.activo ? "📄" : "✅"}
+                            </div>
+                            <div className="text-right">
+                               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{r.activo ? 'Lote Activo' : 'Completado'}</p>
+                               <p className="text-sm font-black text-foreground uppercase tracking-tight">{r.mes} {r.anio}</p>
+                            </div>
+                         </div>
+
+                         <div>
+                            <h3 className="text-lg font-black text-foreground uppercase tracking-tighter leading-none">{r.servicio}</h3>
+                            <div className="flex items-center gap-2 mt-2">
+                               <div className="flex-1 bg-background h-2 rounded-full overflow-hidden border border-border">
+                                  <div className={`h-full bg-gradient-to-r ${r.activo ? 'from-indigo-500 to-indigo-600' : 'from-emerald-500 to-emerald-600'}`} style={{ width: `${(r.totalEntregados / r.totalRecibidos) * 100}%` }}></div>
+                               </div>
+                               <span className={`text-[10px] font-black ${r.activo ? 'text-indigo-600 dark:text-indigo-400' : 'text-emerald-600 dark:text-emerald-400'}`}>{Math.round((r.totalEntregados / r.totalRecibidos) * 100)}%</span>
+                            </div>
+                         </div>
+
+                         <div className="grid grid-cols-2 gap-2 bg-background p-3 rounded-2xl border border-border">
+                            <div className="text-center">
+                               <p className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">Pendientes</p>
+                               <p className="text-xl font-black text-foreground">{r.pendientes}</p>
+                            </div>
+                            <div className="text-center border-l border-border">
+                               <p className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">Entregados</p>
+                               <p className={`text-xl font-black ${r.activo ? 'text-indigo-600 dark:text-indigo-400' : 'text-emerald-600 dark:text-emerald-400'}`}>{r.totalEntregados}</p>
+                            </div>
+                         </div>
+
+                         <div className="flex gap-2">
+                            {r.activo && (
+                                <button 
+                                    onClick={() => setEntregaReciboModal({ isOpen: true, id: r.id, servicio: r.servicio })}
+                                    className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-100 dark:shadow-none transition-all active:scale-95"
+                                >
+                                    Entregar
+                                </button>
+                            )}
+                            <button 
+                                onClick={() => handleVerEntregas(r.id, r.servicio)}
+                                className={`py-3 px-4 bg-card border border-border rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all hover:bg-slate-50 dark:hover:bg-slate-800 ${!r.activo && 'w-full'}`}
+                                title="Ver detalles de entregas"
+                            >
+                                {r.activo ? "🔍" : "🔍 Ver Verificación"}
+                            </button>
+                         </div>
+                      </div>
+                    ))
+                  )}
+               </div>
+            </div>
+          )}
+
+          {/* TAB: NUEVO PAQUETE */}
+          {activeTab === "nuevo_paquete" && (
+            <div className="bg-card p-6 md:p-10 rounded-[2.5rem] border border-border shadow-sm flex flex-col flex-grow min-h-0 animate-in slide-in-from-right duration-500 transition-colors">
+               <div className="max-w-3xl mx-auto w-full space-y-8">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center text-2xl shadow-xl shadow-indigo-100 text-white">📦</div>
+                    <div>
+                      <h2 className="text-xl font-black text-foreground uppercase tracking-tight">Recepción de Paquetería</h2>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1">Registra el ingreso de mensajería y domicilios</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Empresa / Remitente *</label>
+                      <input type="text" value={formRemitente} onChange={e => setFormRemitente(e.target.value)} className="input-standard !py-3 uppercase" placeholder="Ej: Servientrega, Pizza Hut..." />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Residente / Destino *</label>
+                      <input type="text" value={formDestinatario} onChange={e => setFormDestinatario(e.target.value)} className="input-standard !py-3 uppercase" placeholder="Ej: Apto 502, Administración..." />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Tipo de Envío</label>
+                      <select value={formTipoDoc} onChange={e => setFormTipoDoc(e.target.value)} className="input-standard !py-3 uppercase cursor-pointer">
+                        <option value="">Seleccione tipo...</option>
+                        <option value="Sobre">Sobre / Documento</option>
+                        <option value="Paquete">Paquete / Caja</option>
+                        <option value="Domicilio">Domicilio / Alimentos</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Nro de Guía (Si aplica)</label>
+                      <input type="text" value={formGuia} onChange={e => setFormGuia(e.target.value)} className="input-standard !py-3 uppercase font-mono" placeholder="Opcional" />
+                    </div>
+                    <div className="md:col-span-2 space-y-2">
+                      <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Detalles Adicionales</label>
+                      <textarea value={formDesc} onChange={e => setFormDesc(e.target.value)} className="input-standard !py-3 h-20 resize-none" placeholder="Caja abierta, pago pendiente, etc." />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 justify-end pt-4">
+                    <button onClick={() => setActiveTab("paquetes")} className="px-8 py-3 bg-background border border-border text-slate-400 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-colors">Cancelar</button>
+                    <button onClick={handleCreatePaquete} className="px-10 py-3 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-95">Guardar Registro</button>
+                  </div>
+               </div>
+            </div>
+          )}
+
+          {/* TAB: NUEVO LOTE DE RECIBOS */}
+          {activeTab === "nuevo_recibo" && (
+            <div className="bg-card p-6 md:p-10 rounded-[2.5rem] border border-border shadow-sm flex flex-col flex-grow min-h-0 animate-in slide-in-from-right duration-500 transition-colors">
+               <div className="max-w-3xl mx-auto w-full space-y-8">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 bg-emerald-600 rounded-2xl flex items-center justify-center text-2xl shadow-xl shadow-emerald-100 text-white">📄</div>
+                    <div>
+                      <h2 className="text-xl font-black text-foreground uppercase tracking-tight">Carga Masiva de Recibos</h2>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1">Registra la llegada de facturas de servicios públicos</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Tipo de Servicio *</label>
+                      <select value={formServicio} onChange={e => setFormServicio(e.target.value)} className="input-standard !py-3 uppercase cursor-pointer">
+                        <option value="">Seleccione servicio...</option>
+                        <option value="Agua / Acueducto">💧 Agua / Acueducto</option>
+                        <option value="Energía / Luz">⚡ Energía / Luz</option>
+                        <option value="Gas Natural">🔥 Gas Natural</option>
+                        <option value="Internet / TV">🌐 Internet / TV</option>
+                        <option value="Administración">🏢 Administración</option>
+                        <option value="Otro">📦 Otro</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Mes de Facturación *</label>
+                      <select value={formMes} onChange={e => setFormMes(e.target.value)} className="input-standard !py-3 uppercase cursor-pointer">
+                        <option value="">Seleccione mes...</option>
+                        {["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"].map(m => (
+                          <option key={m} value={m}>{m}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Cantidad Total Recibida *</label>
+                      <input type="number" value={formCantidad} onChange={e => setFormCantidad(e.target.value)} className="input-standard !py-3 font-black text-lg" placeholder="Ej: 300" />
+                      <p className="text-[9px] text-slate-400 italic px-1 uppercase tracking-tighter mt-1">El sistema creará un inventario de {formCantidad || '0'} facturas para entregar individualmente.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 justify-end pt-4">
+                    <button onClick={() => setActiveTab("recibos")} className="px-8 py-3 bg-background border border-border text-slate-400 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-colors">Cancelar</button>
+                    <button onClick={handleCreateLoteRecibos} className="px-10 py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-emerald-100 hover:bg-emerald-700 transition-all active:scale-95">Crear Inventario</button>
+                  </div>
+               </div>
+            </div>
+          )}
+
+        </main>
       </div>
     </div>
   );

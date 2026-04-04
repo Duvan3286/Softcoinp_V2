@@ -53,8 +53,11 @@ namespace Softcoinp.Backend.Controllers
             new ViewInfo { Key = "sitio-personas", Name = "Personas en Sitio", Icon = "👤", Category = "En Sitio" },
             new ViewInfo { Key = "sitio-vehiculos", Name = "Vehículos en Sitio", Icon = "🚘", Category = "En Sitio" },
 
+            // Gestión (New Group)
+            new ViewInfo { Key = "correspondencia", Name = "Paquetería y Sobres", Icon = "📦", Category = "Gestión" },
+            new ViewInfo { Key = "recibos-publicos", Name = "Entrega de Recibos", Icon = "📄", Category = "Gestión" },
+
             // Otros
-            new ViewInfo { Key = "correspondencia", Name = "Correspondencia", Icon = "📦", Category = "Otros" },
             new ViewInfo { Key = "configuraciones", Name = "Configuraciones", Icon = "🔑", Category = "Otros" }
         };
 

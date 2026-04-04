@@ -9,6 +9,7 @@ namespace Softcoinp.Backend.Dtos
         public int IngresosRango { get; set; }
         public int NovedadesPersonas { get; set; }
         public int NovedadesVehiculos { get; set; }
+        public int RecibosPendientes { get; set; }
         
         public List<ChartItemDto> ProporcionNovedades { get; set; } = new List<ChartItemDto>();
         public List<ChartItemDto> RegistrosPorDestino { get; set; } = new List<ChartItemDto>();

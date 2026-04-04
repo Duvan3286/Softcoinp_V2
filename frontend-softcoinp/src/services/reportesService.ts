@@ -11,6 +11,7 @@ export interface DashboardStatsDto {
   ingresosRango: number;
   novedadesPersonas: number;
   novedadesVehiculos: number;
+  recibosPendientes: number;
   proporcionNovedades: ChartItemDto[];
   registrosPorDestino: ChartItemDto[];
   registrosPorTipo: ChartItemDto[];

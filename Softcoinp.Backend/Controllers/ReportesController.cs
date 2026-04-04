@@ -51,6 +51,10 @@ namespace Softcoinp.Backend.Controllers
             var totalPersonas = await _db.Personal.CountAsync();
             var totalVehiculos = await _db.Vehiculos.CountAsync();
             
+            var recibosPendientes = await _db.RecibosPublicos
+                .Where(r => r.Activo)
+                .SumAsync(r => r.TotalRecibidos - r.TotalEntregados);
+            
             var registrosRango = await _db.Registros
                 .Where(r => r.HoraIngresoUtc >= fechaInicio && r.HoraIngresoUtc <= fechaFin)
                 .ToListAsync();
@@ -91,6 +95,7 @@ namespace Softcoinp.Backend.Controllers
                 IngresosRango = ingresosRango,
                 NovedadesPersonas = novedadesPersonas,
                 NovedadesVehiculos = novedadesVehiculos,
+                RecibosPendientes = recibosPendientes,
                 ProporcionNovedades = proporcionNovedades,
                 RegistrosPorDestino = registrosPorDestino,
                 RegistrosPorTipo = registrosPorTipo

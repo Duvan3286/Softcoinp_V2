@@ -132,7 +132,7 @@ export default function Sidebar() {
               <div className="mt-2 text-[10px] uppercase font-black text-slate-300 dark:text-slate-600 px-4 mb-1">Super Admin</div>
            )}
            {user?.role === "superadmin" && (
-              <NavItem icon="🛠️" text="Mantenimiento" path="/configuraciones/general?mantenimiento=true" currentPath={pathname} isExpanded={isExpanded} router={router} highlightRed />
+              <NavItem icon="🛠️" text="Mantenimiento" path="/configuraciones/mantenimiento" currentPath={pathname} isExpanded={isExpanded} router={router} highlightRed />
            )}
         </nav>
 

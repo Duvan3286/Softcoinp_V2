@@ -14,6 +14,7 @@ export default function MantenimientoHubPage() {
   const [systemVersion, setSystemVersion] = useState("");
   const [clientName, setClientName] = useState("");
   
+  const [saving, setSaving] = useState(false);
   const [modal, setModal] = useState({ 
     isOpen: false, 
     title: "", 
@@ -32,6 +33,42 @@ export default function MantenimientoHubPage() {
     settingsService.getSystemVersion().then(setSystemVersion);
     settingsService.getClientName().then(setClientName);
   }, [router]);
+
+  const handleUpdateClientName = async () => {
+    if (!clientName.trim()) {
+      showModal("El nombre del cliente no puede estar vacío.", "warning");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await settingsService.update({ key: "ClientName", value: clientName.toUpperCase() });
+      showModal("✅ Identidad del sistema actualizada con éxito. Recalibrando interfaz...", "success", "Cambio Guardado");
+      setTimeout(() => window.location.reload(), 2000);
+    } catch (err: any) {
+      showModal("❌ Error al actualizar el nombre del cliente.", "error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleUpdateSystemVersion = async () => {
+    if (!systemVersion.trim()) {
+      showModal("La versión no puede estar vacía.", "warning");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await settingsService.update({ key: "SystemVersion", value: systemVersion });
+      showModal("✅ Versión del sistema actualizada con éxito.", "success", "Versión Actualizada");
+      setTimeout(() => window.location.reload(), 2000);
+    } catch (err: any) {
+      showModal("❌ Error al actualizar la versión.", "error");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const showModal = (message: string, type: ModalType, title?: string, onConfirm?: () => void) => {
     setModal({ isOpen: true, message, type, title: title || "Aviso", onConfirm });
@@ -152,6 +189,67 @@ export default function MantenimientoHubPage() {
           </div>
           <div className="text-indigo-400 font-bold group-hover:translate-x-2 transition-transform">→</div>
         </div>
+
+        <div className="h-px bg-border my-2 opacity-50 transition-colors"></div>
+
+        {/* 🏢 IDENTIDAD Y VERSIÓN (Migrado aquí) */}
+        <section className="bg-card border border-border rounded-3xl p-6 lg:p-8 shadow-sm animate-in fade-in slide-in-from-top duration-500 transition-colors">
+            <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-2xl flex items-center justify-center text-2xl shadow-inner transition-all group-hover:scale-110">🏷️</div>
+                <div>
+                    <h2 className="text-sm font-black text-foreground uppercase tracking-tight">Identidad Visual</h2>
+                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">Control de marca y versionamiento</p>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Campo: Nombre del Cliente */}
+                <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Nombre de la Institución</label>
+                    <div className="flex gap-2">
+                        <div className="relative group flex-1">
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-600 group-focus-within:text-indigo-500 transition-colors">🏛️</span>
+                            <input 
+                                type="text"
+                                value={clientName}
+                                onChange={(e) => setClientName(e.target.value.toUpperCase())}
+                                className="w-full pl-10 pr-4 py-3 bg-input border border-border rounded-xl text-xs font-black text-foreground focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 outline-none transition-all uppercase shadow-inner"
+                            />
+                        </div>
+                        <button
+                            onClick={handleUpdateClientName}
+                            disabled={saving}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3 rounded-xl font-black text-[9px] uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 shadow-lg shadow-indigo-100 dark:shadow-none"
+                        >
+                            {saving ? "..." : "OK"}
+                        </button>
+                    </div>
+                </div>
+
+                {/* Campo: Versión del Sistema */}
+                <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Versión del Software</label>
+                    <div className="flex gap-2">
+                        <div className="relative group flex-1">
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-600 group-focus-within:text-indigo-500 transition-colors">🔢</span>
+                            <input 
+                                type="text"
+                                value={systemVersion}
+                                onChange={(e) => setSystemVersion(e.target.value)}
+                                className="w-full pl-10 pr-4 py-3 bg-input border border-border rounded-xl text-xs font-black text-foreground focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 outline-none transition-all shadow-inner"
+                            />
+                        </div>
+                        <button
+                            onClick={handleUpdateSystemVersion}
+                            disabled={saving}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3 rounded-xl font-black text-[9px] uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 shadow-lg shadow-indigo-100 dark:shadow-none"
+                        >
+                            {saving ? "..." : "OK"}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
 
         <div className="h-px bg-border my-2 opacity-50 transition-colors"></div>
 

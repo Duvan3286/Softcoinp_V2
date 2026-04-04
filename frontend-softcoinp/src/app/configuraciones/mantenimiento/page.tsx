@@ -1,0 +1,233 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { getCurrentUser, UserPayload } from "@/utils/auth";
+import api from "@/services/api";
+import CustomModal, { ModalType } from "@/components/CustomModal";
+import { settingsService } from "@/services/settingsService";
+
+export default function MantenimientoHubPage() {
+  const router = useRouter();
+  const [usuario, setUsuario] = useState<UserPayload | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [systemVersion, setSystemVersion] = useState("");
+  const [clientName, setClientName] = useState("");
+  
+  const [modal, setModal] = useState({ 
+    isOpen: false, 
+    title: "", 
+    message: "", 
+    type: "info" as ModalType,
+    onConfirm: undefined as (() => void) | undefined 
+  });
+
+  useEffect(() => {
+    const user = getCurrentUser();
+    if (user?.role !== "superadmin") {
+      router.push("/configuraciones");
+      return;
+    }
+    setUsuario(user);
+    settingsService.getSystemVersion().then(setSystemVersion);
+    settingsService.getClientName().then(setClientName);
+  }, [router]);
+
+  const showModal = (message: string, type: ModalType, title?: string, onConfirm?: () => void) => {
+    setModal({ isOpen: true, message, type, title: title || "Aviso", onConfirm });
+  };
+
+  const handleDeepClean = async () => {
+    showModal(
+        "⚠️ ATENCIÓN: Esto borrará TODOS los datos (Personal, Registros, Auditoría) y restaurará los usuarios de fábrica. Esta acción es irreversible.",
+        "confirm",
+        "Reseteo Crítico",
+        async () => {
+            setLoading(true);
+            try {
+              await api.post("/Maintenance/deep-clean-and-seed");
+              showModal("✅ Sistema reseteado con éxito. Por favor, vuelve a iniciar sesión.", "success", "Reseteo Completo");
+              setTimeout(() => {
+                localStorage.removeItem("token");
+                window.location.href = "/login";
+              }, 3000);
+            } catch (err: any) {
+              showModal("❌ Error al realizar el mantenimiento: " + (err.response?.data?.error || err.message), "error");
+            } finally {
+              setLoading(false);
+            }
+        }
+    );
+  };
+
+  const handleExportBackup = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get("/Maintenance/export-backup", { responseType: "blob" });
+      const url = window.URL.createObjectURL(new Blob([response.data as BlobPart]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `softcoinp_backup_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      showModal("✅ Backup generado y descargado exitosamente.", "success", "Exportación Completada");
+    } catch (err: any) {
+      showModal("❌ Error al descargar el backup: " + (err.message), "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleImportBackup = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    showModal(
+        `⚠️ ATENCIÓN: Estás a punto de sobrescribir toda la base de datos con el archivo "${file.name}". Esta acción borrará el estado actual y no se puede deshacer.`,
+        "confirm",
+        "Restaurar Sistema",
+        async () => {
+            setLoading(true);
+            const formData = new FormData();
+            formData.append("file", file);
+            try {
+                const res = await api.post<{message: string}>("/Maintenance/import-backup", formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                showModal("✅ " + (res.data.message || "Sistema restaurado con éxito. Cerrando sesión..."), "success", "Restauración Completada");
+                setTimeout(() => {
+                    localStorage.removeItem("token");
+                    window.location.href = "/login";
+                }, 4000);
+            } catch (err: any) {
+                showModal("❌ Error crítico en restauración: " + (err.response?.data?.error || err.message), "error");
+            } finally {
+                setLoading(false);
+                event.target.value = '';
+            }
+        }
+    );
+  };
+
+  return (
+    <div className="h-full bg-background p-4 lg:p-12 flex flex-col items-center justify-start overflow-hidden gap-8 transition-colors duration-300">
+      <div className="w-full max-w-4xl flex flex-col items-start shrink-0">
+        <div className="flex items-center justify-between w-full mb-2">
+            <div className="flex items-center gap-4">
+                <div className="p-3 bg-rose-600 rounded-2xl text-white shadow-xl shadow-rose-100 dark:shadow-none transition-all hover:rotate-3 hover:scale-110">
+                  <span className="text-2xl">🛠️</span>
+                </div>
+                <div>
+                    <h1 className="text-xl lg:text-3xl font-black text-foreground uppercase tracking-tight leading-none">Mantenimiento</h1>
+                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.4em] mt-2">Acciones Críticas y Auditoría</p>
+                </div>
+            </div>
+            <button 
+                onClick={() => router.push("/configuraciones")}
+                className="bg-card text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 py-2 px-4 rounded-xl font-black border border-border shadow-sm transition-all active:scale-95 flex items-center gap-2 text-[10px] uppercase tracking-widest"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                Volver
+            </button>
+        </div>
+        <div className="w-full h-px bg-border mt-6 opacity-50 transition-colors"></div>
+      </div>
+
+      <div className="w-full max-w-4xl flex flex-col gap-6 overflow-y-auto pr-2 pb-10 custom-scrollbar">
+        
+        {/* 📋 OPCIÓN: AUDITORÍA (Movida aquí) */}
+        <div 
+          onClick={() => router.push("/configuraciones/mantenimiento/auditoria")}
+          className="w-full bg-card rounded-3xl p-6 border border-border shadow-sm flex items-center gap-6 transition-all hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 hover:border-indigo-100 dark:hover:border-indigo-900 cursor-pointer group"
+        >
+          <div className="w-14 h-14 shrink-0 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-2xl flex items-center justify-center text-2xl shadow-sm transition-all group-hover:scale-110">
+            📋
+          </div>
+          <div className="flex-1">
+              <h2 className="text-base font-black text-foreground uppercase tracking-tight group-hover:text-indigo-600 transition-colors">Registro de Auditoría</h2>
+              <p className="text-xs font-bold text-slate-400 dark:text-slate-500 mt-1 uppercase tracking-tighter opacity-70">
+                Visualiza la bitácora completa de actividad y cambios en el sistema.
+              </p>
+          </div>
+          <div className="text-indigo-400 font-bold group-hover:translate-x-2 transition-transform">→</div>
+        </div>
+
+        <div className="h-px bg-border my-2 opacity-50 transition-colors"></div>
+
+        {/* ACCIONES DE BORRADO */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div 
+              onClick={handleDeepClean}
+              className="bg-card rounded-3xl p-6 border border-border shadow-sm flex flex-col gap-4 transition-all hover:border-rose-200 dark:hover:border-rose-900 group cursor-pointer"
+            >
+              <div className="w-12 h-12 bg-rose-50 dark:bg-rose-900/20 text-rose-600 rounded-2xl flex items-center justify-center text-2xl transition-transform group-hover:scale-110">🧹</div>
+              <div>
+                <h3 className="text-sm font-black text-foreground uppercase tracking-tight mb-1 group-hover:text-rose-600 transition-colors">Deep Clean & Seed</h3>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Borrado total de datos y restauración de fábrica.</p>
+              </div>
+            </div>
+
+            <div 
+              onClick={() => {
+                  showModal(
+                      "¿Seguro que deseas borrar solo datos operativos (personal y registros)?",
+                      "confirm",
+                      "Limpieza Operativa",
+                      () => { api.post("/Maintenance/clear-operational-data").then(() => showModal("Datos borrados.", "success")); }
+                  );
+              }}
+              className="bg-card rounded-3xl p-6 border border-border shadow-sm flex flex-col gap-4 transition-all hover:border-orange-200 dark:hover:border-orange-900 group cursor-pointer"
+            >
+              <div className="w-12 h-12 bg-orange-50 dark:bg-orange-900/20 text-orange-500 rounded-2xl flex items-center justify-center text-2xl transition-transform group-hover:scale-110">🗑️</div>
+              <div>
+                <h3 className="text-sm font-black text-foreground uppercase tracking-tight mb-1 group-hover:text-orange-600 transition-colors">Borrar Datos Operativos</h3>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Elimina personal y registros sin afectar usuarios.</p>
+              </div>
+            </div>
+        </div>
+
+        {/* BACKUPS */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div 
+              onClick={handleExportBackup}
+              className="bg-card rounded-3xl p-6 border border-border shadow-sm flex items-center gap-4 transition-all hover:bg-indigo-50/20 dark:hover:bg-indigo-900/10 cursor-pointer group"
+            >
+              <div className="w-10 h-10 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 rounded-xl flex items-center justify-center text-xl transition-transform group-hover:scale-110">💾</div>
+              <div className="flex-1">
+                <h3 className="text-xs font-black text-foreground uppercase tracking-tight group-hover:text-indigo-600 transition-colors">Exportar Backup</h3>
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Descargar base de datos JSON</p>
+              </div>
+            </div>
+
+            <div className="relative group">
+              <input type="file" accept=".json" onChange={handleImportBackup} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+              <div className="bg-card rounded-3xl p-6 border border-border shadow-sm flex items-center gap-4 transition-all group-hover:bg-emerald-50/20 dark:group-hover:bg-emerald-900/10">
+                <div className="w-10 h-10 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 rounded-xl flex items-center justify-center text-xl transition-transform group-hover:scale-110">🔄</div>
+                <div className="flex-1">
+                  <h3 className="text-xs font-black text-foreground uppercase tracking-tight group-hover:text-emerald-600 transition-colors">Restaurar Sistema</h3>
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Cargar archivo de respaldo</p>
+                </div>
+              </div>
+            </div>
+        </div>
+
+      </div>
+
+      <div className="w-full flex justify-center mt-auto pb-4 shrink-0">
+         <p className="text-[9px] text-slate-300 dark:text-slate-600 font-black tracking-[0.3em] uppercase">
+            Softcoinp {systemVersion || "..."} • Módulo de Mantenimiento
+         </p>
+      </div>
+
+      <CustomModal 
+        isOpen={modal.isOpen} 
+        onClose={() => setModal({...modal, isOpen: false})} 
+        onConfirm={modal.onConfirm}
+        title={modal.title} 
+        message={modal.message} 
+        type={modal.type} 
+      />
+    </div>
+  );
+}

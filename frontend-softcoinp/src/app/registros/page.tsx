@@ -65,12 +65,12 @@ const formatDateTime = (isoString?: string) => {
 const getTypeColorClasses = (tipo: string) => {
   const lowerCaseTipo = tipo.toLowerCase();
   const colorMap: { [key: string]: string } = {
-    'empleado': 'bg-emerald-50 text-emerald-700 border-emerald-100',
-    'visitante': 'bg-blue-50 text-blue-700 border-blue-100',
-    'contratista': 'bg-amber-50 text-amber-700 border-amber-100',
-    'proveedor': 'bg-rose-50 text-rose-700 border-rose-100',
+    'empleado': 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800',
+    'visitante': 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 border-indigo-100 dark:border-indigo-800',
+    'contratista': 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-100 dark:border-amber-800',
+    'proveedor': 'bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400 border-rose-100 dark:border-rose-800',
   };
-  return colorMap[lowerCaseTipo] || 'bg-slate-100 text-slate-700 border-slate-200';
+  return colorMap[lowerCaseTipo] || 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-400 border-slate-200 dark:border-slate-700';
 };
 
 export default function RegistrosPage() {
@@ -169,18 +169,18 @@ export default function RegistrosPage() {
 
   return (
     <>
-      <div className="flex-1 h-auto lg:h-full flex flex-col min-h-0 bg-slate-50 p-2 lg:p-4 lg:overflow-hidden relative">
+      <div className="flex-1 h-auto lg:h-full flex flex-col min-h-0 bg-background p-2 lg:p-4 lg:overflow-hidden relative transition-colors duration-300">
         <div className="max-w-[1700px] mx-auto w-full h-full flex flex-col min-h-0">
           
           {/* 📋 Header Section */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6 shrink-0">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-indigo-600 rounded-2xl text-white shadow-xl shadow-indigo-100 rotate-3">
+              <div className="p-3 bg-indigo-600 rounded-2xl text-white shadow-xl shadow-indigo-100 dark:shadow-none rotate-3">
                 <span className="text-2xl">📜</span>
               </div>
               <div>
-                <h1 className="text-xl lg:text-2xl font-black text-slate-900 uppercase tracking-tight">Historial de Personas</h1> 
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] leading-none mt-1.5">Registro general de entradas y salidas</p>
+                <h1 className="text-xl lg:text-2xl font-black text-foreground uppercase tracking-tight">Historial de Personas</h1> 
+                <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] leading-none mt-1.5">Registro general de entradas y salidas</p>
               </div>
             </div>
             <div className="flex gap-3">
@@ -213,7 +213,7 @@ export default function RegistrosPage() {
           </div>
 
           {/* 🕵️‍♂️ Filtros Section */}
-          <div className="bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-100 p-6 mb-6 flex-shrink-0">
+          <div className="bg-card rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-border p-6 mb-6 flex-shrink-0 transition-colors">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.2em] px-1">Nombre</label>
@@ -273,34 +273,34 @@ export default function RegistrosPage() {
           </div>
 
           {/* 📊 Tabla Section */}
-          <div className="flex-1 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col min-h-0 overflow-hidden">
+          <div className="flex-1 bg-card rounded-2xl shadow-sm border border-border flex flex-col min-h-0 overflow-hidden transition-colors">
             {loading ? (
               <div className="flex-1 flex flex-col items-center justify-center gap-3">
-                <div className="w-10 h-10 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin"></div>
+                <div className="w-10 h-10 border-4 border-indigo-100 dark:border-indigo-900 border-t-indigo-600 rounded-full animate-spin"></div>
                 <p className="text-xs font-black text-slate-400 uppercase tracking-widest animate-pulse">Consultando Registros...</p>
               </div>
             ) : (
               <>
                 <div className="flex-1 overflow-auto custom-scrollbar">
-                  <table className="min-w-full divide-y divide-slate-100 border-separate border-spacing-0">
-                    <thead className="bg-slate-50 sticky top-0 z-10 shadow-sm">
+                  <table className="min-w-full divide-y divide-border border-separate border-spacing-0">
+                    <thead className="bg-background sticky top-0 z-10 shadow-sm">
                       <tr>
-                        <th className="px-5 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-100">Persona</th>
-                        <th className="px-5 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-100">Documento</th>
-                        <th className="px-5 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-100">Tipo</th>
-                        <th className="px-5 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-100">Destino</th>
-                        <th className="px-5 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-100">Motivo de Ingreso</th>
-                        <th className="px-5 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-100">Ingreso</th>
-                        <th className="px-5 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-100">Salida</th>
+                        <th className="px-5 py-4 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest border-b border-border">Persona</th>
+                        <th className="px-5 py-4 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest border-b border-border">Documento</th>
+                        <th className="px-5 py-4 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest border-b border-border">Tipo</th>
+                        <th className="px-5 py-4 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest border-b border-border">Destino</th>
+                        <th className="px-5 py-4 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest border-b border-border">Motivo de Ingreso</th>
+                        <th className="px-5 py-4 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest border-b border-border">Ingreso</th>
+                        <th className="px-5 py-4 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest border-b border-border">Salida</th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-slate-50">
+                    <tbody className="bg-card divide-y divide-border transition-colors">
                       {registros.length === 0 ? (
                         <tr>
                           <td colSpan={7} className="px-6 py-20 text-center">
                             <div className="flex flex-col items-center gap-4 opacity-30 grayscale">
-                              <span className="text-6xl">📜</span>
-                              <p className="text-sm font-black uppercase tracking-widest">No se encontraron registros</p>
+                              <span className="text-6xl text-foreground">📜</span>
+                              <p className="text-sm font-black uppercase tracking-widest text-foreground">No se encontraron registros</p>
                             </div>
                           </td>
                         </tr>
@@ -312,10 +312,10 @@ export default function RegistrosPage() {
                           const tagClasses = getTypeColorClasses(r.personal?.tipo || 'desconocido');
 
                           return (
-                            <tr key={r.id} className="hover:bg-slate-50/80 transition-all group">
+                            <tr key={r.id} className="hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 transition-all group">
                               <td className="px-5 py-4 whitespace-nowrap">
                                 <div className="flex items-center gap-3">
-                                  <div className="w-9 h-9 rounded-full overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center shadow-sm group-hover:border-blue-300 transition-all">
+                                  <div className="w-9 h-9 rounded-full overflow-hidden border border-border bg-input flex items-center justify-center shadow-sm group-hover:border-indigo-300 transition-all">
                                     {r.fotoUrl ? (
                                       <img 
                                         src={r.fotoUrl.startsWith('http') ? r.fotoUrl : `${BACKEND_BASE_URL}${r.fotoUrl}`} 
@@ -323,18 +323,18 @@ export default function RegistrosPage() {
                                         alt="Perfil" 
                                       />
                                     ) : (
-                                      <div className="text-[10px] font-black text-slate-400 uppercase">
+                                      <div className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase">
                                         {r.personal?.nombre?.[0]}{r.personal?.apellido?.[0]}
                                       </div>
                                     )}
                                   </div>
                                   <div className="flex flex-col">
-                                    <span className="text-[13px] font-black text-slate-700 leading-tight">{r.personal?.nombre} {r.personal?.apellido}</span>
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Identidad Verificada</span>
+                                    <span className="text-[13px] font-black text-foreground leading-tight">{r.personal?.nombre} {r.personal?.apellido}</span>
+                                    <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-tighter font-medium">Identidad Verificada</span>
                                   </div>
                                 </div>
                               </td>
-                              <td className="px-5 py-4 whitespace-nowrap text-[12px] font-black text-slate-500 tracking-tighter">{r.personal?.documento}</td>
+                              <td className="px-5 py-4 whitespace-nowrap text-[12px] font-black text-slate-500 dark:text-slate-400 tracking-tighter">{r.personal?.documento}</td>
 
                               <td className="px-5 py-4 whitespace-nowrap">
                                 <span className={`px-2.5 py-1 text-[10px] font-black uppercase tracking-wider rounded-lg border shadow-sm ${tagClasses}`}>
@@ -342,28 +342,28 @@ export default function RegistrosPage() {
                                 </span>
                               </td>
 
-                              <td className="px-5 py-4 whitespace-nowrap text-[12px] font-bold text-slate-600 tracking-tight">{r.destino}</td>
+                              <td className="px-5 py-4 whitespace-nowrap text-[12px] font-bold text-slate-600 dark:text-slate-400 tracking-tight">{r.destino}</td>
                               
                               <td className="px-5 py-4 max-w-[200px]">
-                                <p className="text-[11px] text-slate-500 line-clamp-2 italic leading-tight" title={r.motivo}>
-                                  {r.motivo || <span className="text-slate-300">Sin motivo registrado</span>}
+                                <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 italic leading-tight font-medium" title={r.motivo}>
+                                  {r.motivo || <span className="text-slate-300 dark:text-slate-700">Sin motivo registrado</span>}
                                 </p>
                               </td>
 
                               <td className="px-5 py-4 whitespace-nowrap">
                                 <div className="flex flex-col">
-                                  <span className="text-[12px] font-black text-slate-700 leading-none">{ingreso.fecha}</span>
-                                  <span className="text-[10px] font-bold text-blue-500 mt-0.5 tracking-widest">{ingreso.hora}</span>
+                                  <span className="text-[12px] font-black text-foreground leading-none">{ingreso.fecha}</span>
+                                  <span className="text-[10px] font-bold text-indigo-500 dark:text-indigo-400 mt-0.5 tracking-widest">{ingreso.hora}</span>
                                 </div>
                               </td>
 
                               <td className="px-5 py-4 whitespace-nowrap">
                                 {isSalidaPending ? (
-                                  <span className="text-amber-500 text-[10px] font-black uppercase tracking-widest px-2 py-1 bg-amber-50 rounded-lg border border-amber-100 animate-pulse">PENDIENTE</span>
+                                  <span className="text-amber-500 dark:text-amber-400 text-[10px] font-black uppercase tracking-widest px-2 py-1 bg-amber-50 dark:bg-amber-900/30 rounded-lg border border-amber-100 dark:border-amber-800 animate-pulse">PENDIENTE</span>
                                 ) : (
                                   <div className="flex flex-col">
-                                    <span className="text-[12px] font-black text-slate-700 leading-none">{salida.fecha}</span>
-                                    <span className="text-[10px] font-bold text-emerald-500 mt-0.5 tracking-widest">{salida.hora}</span>
+                                    <span className="text-[12px] font-black text-foreground leading-none">{salida.fecha}</span>
+                                    <span className="text-[10px] font-bold text-emerald-500 dark:text-emerald-400 mt-0.5 tracking-widest">{salida.hora}</span>
                                   </div>
                                 )}
                               </td>
@@ -376,35 +376,35 @@ export default function RegistrosPage() {
                 </div>
 
                 {/* 🖱️ Paginación Section */}
-                <div className="bg-slate-50 border-t border-slate-200 px-5 py-3 flex items-center justify-between flex-shrink-0">
+                <div className="bg-background border-t border-border px-5 py-3 flex items-center justify-between flex-shrink-0 transition-colors">
                   <div className="flex items-center gap-3">
                     <button
                       disabled={page <= 1}
                       onClick={() => setPage((p) => p - 1)}
-                      className="p-2 bg-white text-slate-600 border border-slate-200 rounded-xl hover:bg-blue-50 hover:text-blue-600 disabled:opacity-30 disabled:hover:bg-white disabled:hover:text-slate-600 transition-all shadow-sm active:scale-95"
+                      className="p-2 bg-card text-slate-600 dark:text-slate-400 border border-border rounded-xl hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 disabled:opacity-30 disabled:hover:bg-card disabled:hover:text-slate-600 transition-all shadow-sm active:scale-95"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 19l-7-7 7-7" /></svg>
                     </button>
                     
-                    <div className="flex items-center bg-white px-4 py-1.5 rounded-xl border border-slate-200 shadow-sm">
-                      <span className="text-xs font-black text-slate-400 uppercase tracking-widest mr-2">Página</span>
-                      <span className="text-sm font-black text-blue-600">{page}</span>
-                      <span className="text-xs font-black text-slate-400 uppercase tracking-widest mx-2">de</span>
-                      <span className="text-sm font-black text-slate-700">{totalPages || 1}</span>
+                    <div className="flex items-center bg-card px-4 py-1.5 rounded-xl border border-border shadow-sm">
+                      <span className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mr-2">Página</span>
+                      <span className="text-sm font-black text-indigo-600 dark:text-indigo-400">{page}</span>
+                      <span className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mx-2">de</span>
+                      <span className="text-sm font-black text-foreground">{totalPages || 1}</span>
                     </div>
 
                     <button
                       disabled={page >= totalPages || totalPages === 0}
                       onClick={() => setPage((p) => p + 1)}
-                      className="p-2 bg-white text-slate-600 border border-slate-200 rounded-xl hover:bg-blue-50 hover:text-blue-600 disabled:opacity-30 disabled:hover:bg-white disabled:hover:text-slate-600 transition-all shadow-sm active:scale-95"
+                      className="p-2 bg-card text-slate-600 dark:text-slate-400 border border-border rounded-xl hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 disabled:opacity-30 disabled:hover:bg-card disabled:hover:text-slate-600 transition-all shadow-sm active:scale-95"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7" /></svg>
                     </button>
                   </div>
 
                   <div className="hidden md:flex items-center gap-2">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Registros:</span>
-                    <span className="text-xs font-black text-slate-700 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm">{totalCount}</span>
+                    <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Total Registros:</span>
+                    <span className="text-xs font-black text-foreground bg-card px-3 py-1.5 rounded-xl border border-border shadow-sm">{totalCount}</span>
                   </div>
                 </div>
               </>

@@ -108,45 +108,45 @@ export default function UsuariosConfigPage() {
   };
 
   return (
-    <div className="h-full bg-slate-50 p-4 lg:p-12 flex flex-col items-center justify-start overflow-hidden gap-8 font-sans">
+    <div className="h-full bg-background p-4 lg:p-12 flex flex-col items-center justify-start overflow-hidden gap-8 font-sans transition-colors duration-300">
       <div className="w-full max-w-4xl flex flex-col items-start shrink-0">
         <div className="flex items-center justify-between w-full mb-2">
             <div className="flex items-center gap-4">
-                <div className="p-2.5 bg-emerald-600 rounded-xl text-white shadow-lg shadow-emerald-100 transition-transform hover:scale-110">
+                <div className="p-2.5 bg-emerald-600 rounded-xl text-white shadow-lg shadow-emerald-100 dark:shadow-none transition-transform hover:scale-110">
                     <span className="text-xl">👥</span>
                 </div>
                 <div>
-                    <h1 className="text-xl lg:text-2xl font-black text-slate-800 uppercase tracking-tight leading-none">Gestión de Usuarios</h1>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mt-1">Cuentas y niveles de acceso</p>
+                    <h1 className="text-xl lg:text-2xl font-black text-foreground uppercase tracking-tight leading-none">Gestión de Usuarios</h1>
+                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] mt-1">Cuentas y niveles de acceso</p>
                 </div>
             </div>
             <div className="flex items-center gap-3">
                 <button 
                   onClick={() => router.push("/configuraciones")}
-                  className="bg-white text-slate-500 hover:text-indigo-600 py-2 px-4 rounded-xl font-black border border-slate-200 shadow-sm transition-all active:scale-95 flex items-center gap-2 text-[10px] uppercase tracking-widest"
+                  className="bg-card text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 py-2 px-4 rounded-xl font-black border border-border shadow-sm transition-all active:scale-95 flex items-center gap-2 text-[10px] uppercase tracking-widest"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                   Volver
                 </button>
                 <button
                   onClick={() => handleOpenModal()}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-100 transition-all active:scale-95"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-100 dark:shadow-none transition-all active:scale-95"
                 >
                   + Nuevo Usuario
                 </button>
             </div>
         </div>
-        <div className="w-full h-px bg-slate-200 mt-4 opacity-50"></div>
+        <div className="w-full h-px bg-border mt-4 opacity-50"></div>
       </div>
 
       <main className="w-full max-w-4xl flex flex-col min-h-0 overflow-y-auto pr-1 pb-10 custom-scrollbar">
-        {error && <div className="bg-rose-50 border border-rose-100 text-rose-700 p-4 rounded-2xl mb-6 text-[11px] font-bold uppercase tracking-tight flex items-center gap-3 animate-in fade-in slide-in-from-top">
+        {error && <div className="bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/50 text-rose-700 dark:text-rose-400 p-4 rounded-2xl mb-6 text-[11px] font-bold uppercase tracking-tight flex items-center gap-3 animate-in fade-in slide-in-from-top">
           <span className="text-lg">❌</span> {error}
         </div>}
 
         {loading && (
-          <div className="flex flex-col items-center justify-center py-20 text-slate-300 gap-4">
-            <div className="w-10 h-10 border-4 border-slate-200 border-t-purple-600 rounded-full animate-spin"></div>
+          <div className="flex flex-col items-center justify-center py-20 text-slate-300 dark:text-slate-700 gap-4">
+            <div className="w-10 h-10 border-4 border-border border-t-purple-600 rounded-full animate-spin"></div>
             <p className="text-[10px] font-black uppercase tracking-[0.2em]">Cargando usuarios...</p>
           </div>
         )}
@@ -180,7 +180,7 @@ export default function UsuariosConfigPage() {
       </main>
 
       <div className="w-full max-w-4xl flex justify-center mt-auto pb-4 shrink-0 px-2 lg:px-0">
-         <p className="text-[9px] text-slate-300 font-black tracking-[0.3em] uppercase">
+         <p className="text-[9px] text-slate-300 dark:text-slate-600 font-black tracking-[0.3em] uppercase">
             Control de Acceso Softcoinp {systemVersion || "..."} • {clientName || "Panel de Administración Profesional"}
          </p>
       </div>

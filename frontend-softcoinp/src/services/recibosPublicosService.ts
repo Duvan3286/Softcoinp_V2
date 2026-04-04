@@ -44,8 +44,10 @@ export const recibosPublicosService = {
         const res = await api.post(`/RecibosPublicos/${id}/entregar`, dto);
         return res.data;
     },
-    getHistorial: async () => {
-        const res = await api.get<ReciboPublicoDto[]>("/RecibosPublicos/historial");
+    getHistorial: async (servicio?: string, mes?: string, anio?: number) => {
+        const res = await api.get<ReciboPublicoDto[]>("/RecibosPublicos/historial", {
+            params: { servicio, mes, anio }
+        });
         return res.data;
     },
     getEntregas: async (id: string) => {

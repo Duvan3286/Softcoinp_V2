@@ -34,6 +34,11 @@ export default function CorrespondenciaPage() {
   const [formMes, setFormMes] = useState("");
   const [formCantidad, setFormCantidad] = useState("");
   
+  // Filtros Historial Recibos
+  const [filtroHServicio, setFiltroHServicio] = useState("");
+  const [filtroHMes, setFiltroHMes] = useState("");
+  const [filtroHAnio, setFiltroHAnio] = useState("");
+  
   // Modales Recibos
   const [entregaReciboModal, setEntregaReciboModal] = useState<{ isOpen: boolean; id: string | null; servicio: string }>({ isOpen: false, id: null, servicio: "" });
   const [verEntregasModal, setVerEntregasModal] = useState<{ isOpen: boolean; id: string | null; servicio: string }>({ isOpen: false, id: null, servicio: "" });
@@ -61,7 +66,9 @@ export default function CorrespondenciaPage() {
     try {
       const [p, r] = await Promise.all([
         correspondenciaService.getAll(filtroEstadoPaquete, filtroRemitente, ""),
-        mostrarArchivados ? recibosPublicosService.getHistorial() : recibosPublicosService.getActivos()
+        mostrarArchivados 
+          ? recibosPublicosService.getHistorial(filtroHServicio, filtroHMes, filtroHAnio ? parseInt(filtroHAnio) : undefined) 
+          : recibosPublicosService.getActivos()
       ]);
       setListaPaquetes(p);
       setListaRecibos(r);
@@ -386,68 +393,166 @@ export default function CorrespondenciaPage() {
                   </button>
                </div>
 
-               <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-auto custom-scrollbar pr-1 flex-1">
-                  {listaRecibos.length === 0 ? (
-                    <div className="col-span-full py-20 text-center bg-card rounded-3xl border border-dashed border-border transition-colors">
-                       <span className="text-5xl opacity-20 grayscale">📂</span>
-                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-4">No se hallaron registros en esta categoría</p>
+               <div className="flex-1 overflow-hidden flex flex-col min-h-0">
+                  {mostrarArchivados ? (
+                    /* VISTA COMPACTA (TABLA) PARA ARCHIVADOS */
+                    <div className="flex flex-col h-full gap-4">
+                       {/* BARRA DE FILTROS HISTORIAL - SIEMPRE VISIBLE */}
+                       <div className="bg-card p-4 rounded-3xl border border-border flex flex-wrap gap-4 items-end shadow-sm">
+                          <div className="flex-1 min-w-[150px]">
+                             <label className="text-[9px] font-black text-slate-400 uppercase ml-1 tracking-widest">Servicio</label>
+                             <select value={filtroHServicio} onChange={e => setFiltroHServicio(e.target.value)} className="input-standard !p-2 !text-xs mt-1 uppercase cursor-pointer">
+                                <option value="">Todos los Servicios</option>
+                                <option value="Agua / Acueducto">💧 Agua / Acueducto</option>
+                                <option value="Energía / Luz">⚡ Energía / Luz</option>
+                                <option value="Gas Natural">🔥 Gas Natural</option>
+                                <option value="Internet / TV">🌐 Internet / TV</option>
+                                <option value="Administración">🏢 Administración</option>
+                                <option value="Otro">📦 Otro</option>
+                             </select>
+                          </div>
+                          <div className="flex-1 min-w-[150px]">
+                             <label className="text-[9px] font-black text-slate-400 uppercase ml-1 tracking-widest">Mes</label>
+                             <select value={filtroHMes} onChange={e => setFiltroHMes(e.target.value)} className="input-standard !p-2 !text-xs mt-1 uppercase cursor-pointer">
+                                <option value="">Todos</option>
+                                {["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"].map(m => (
+                                   <option key={m} value={m}>{m}</option>
+                                ))}
+                             </select>
+                          </div>
+                          <div className="w-32">
+                             <label className="text-[9px] font-black text-slate-400 uppercase ml-1 tracking-widest">Año</label>
+                             <input type="number" value={filtroHAnio} onChange={e => setFiltroHAnio(e.target.value)} placeholder="2026" className="input-standard !p-2 !text-xs mt-1 font-black" />
+                          </div>
+                          <button onClick={loadAllData} className="bg-indigo-600 text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-indigo-100 active:scale-95 transition-all">Filtrar</button>
+                       </div>
+
+                       <div className="bg-card rounded-[2.5rem] border border-border shadow-sm overflow-hidden flex flex-col transition-colors flex-1">
+                          {listaRecibos.length === 0 ? (
+                            <div className="py-20 text-center">
+                               <span className="text-5xl opacity-20 grayscale">📂</span>
+                               <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-4">No se hallaron registros con esos filtros</p>
+                               <button onClick={() => { setFiltroHServicio(""); setFiltroHMes(""); setFiltroHAnio(""); loadAllData(); }} className="mt-4 text-[10px] font-black text-indigo-600 uppercase underline decoration-2 underline-offset-4">Limpiar Filtros</button>
+                            </div>
+                          ) : (
+                            <div className="overflow-y-auto flex-1 custom-scrollbar">
+                               <table className="w-full text-left border-collapse">
+                                  <thead className="bg-background sticky top-0 z-10 border-b border-border transition-colors">
+                                      <tr>
+                                         <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Servicio</th>
+                                         <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Periodo</th>
+                                         <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Inventario</th>
+                                         <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Estado</th>
+                                         <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Acciones</th>
+                                      </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-border transition-colors">
+                                      {listaRecibos.map(r => (
+                                      <tr key={r.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
+                                          <td className="px-6 py-4">
+                                              <div className="flex items-center gap-3">
+                                                  <span className="text-xl">✅</span>
+                                                  <p className="text-[13px] font-black text-foreground uppercase tracking-tight">{r.servicio}</p>
+                                              </div>
+                                          </td>
+                                          <td className="px-6 py-4">
+                                              <p className="text-[11px] font-black text-foreground uppercase">{r.mes}</p>
+                                              <p className="text-[10px] font-bold text-slate-400">{r.anio}</p>
+                                          </td>
+                                          <td className="px-6 py-4 text-center">
+                                              <div className="inline-flex flex-col">
+                                                  <span className="text-[12px] font-black text-emerald-600">{r.totalEntregados} / {r.totalRecibidos}</span>
+                                                  <span className="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">Entregados</span>
+                                              </div>
+                                          </td>
+                                          <td className="px-6 py-4 text-center">
+                                              <span className="px-2 py-1 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 border border-emerald-100 dark:border-emerald-800 rounded-lg text-[9px] font-black uppercase tracking-widest">
+                                                  Completado
+                                              </span>
+                                          </td>
+                                          <td className="px-6 py-4 text-center">
+                                              <button 
+                                                  onClick={() => handleVerEntregas(r.id, r.servicio)}
+                                                  className="p-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 rounded-xl hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
+                                                  title="Ver detalle de entregas"
+                                              >
+                                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" /></svg>
+                                              </button>
+                                          </td>
+                                      </tr>
+                                      ))}
+                                  </tbody>
+                               </table>
+                            </div>
+                          )}
+                       </div>
                     </div>
                   ) : (
-                    listaRecibos.map(r => (
-                      <div key={r.id} className="bg-card rounded-3xl border-2 border-border p-6 flex flex-col gap-5 hover:border-indigo-400 transition-all duration-300 shadow-sm relative overflow-hidden group">
-                         {/* Progreso Visual Fondo */}
-                         <div className={`absolute bottom-0 left-0 h-1 transition-all duration-1000 ${r.activo ? 'bg-indigo-600' : 'bg-emerald-500'}`} style={{ width: `${(r.totalEntregados / r.totalRecibidos) * 100}%` }}></div>
-                         
-                         <div className="flex justify-between items-start">
-                            <div className={`p-3 rounded-2xl text-xl shadow-inner group-hover:scale-110 transition-transform ${r.activo ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' : 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'}`}>
-                                {r.activo ? "📄" : "✅"}
-                            </div>
-                            <div className="text-right">
-                               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{r.activo ? 'Lote Activo' : 'Completado'}</p>
-                               <p className="text-sm font-black text-foreground uppercase tracking-tight">{r.mes} {r.anio}</p>
-                            </div>
-                         </div>
-
-                         <div>
-                            <h3 className="text-lg font-black text-foreground uppercase tracking-tighter leading-none">{r.servicio}</h3>
-                            <div className="flex items-center gap-2 mt-2">
-                               <div className="flex-1 bg-background h-2 rounded-full overflow-hidden border border-border">
-                                  <div className={`h-full bg-gradient-to-r ${r.activo ? 'from-indigo-500 to-indigo-600' : 'from-emerald-500 to-emerald-600'}`} style={{ width: `${(r.totalEntregados / r.totalRecibidos) * 100}%` }}></div>
-                               </div>
-                               <span className={`text-[10px] font-black ${r.activo ? 'text-indigo-600 dark:text-indigo-400' : 'text-emerald-600 dark:text-emerald-400'}`}>{Math.round((r.totalEntregados / r.totalRecibidos) * 100)}%</span>
-                            </div>
-                         </div>
-
-                         <div className="grid grid-cols-2 gap-2 bg-background p-3 rounded-2xl border border-border">
-                            <div className="text-center">
-                               <p className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">Pendientes</p>
-                               <p className="text-xl font-black text-foreground">{r.pendientes}</p>
-                            </div>
-                            <div className="text-center border-l border-border">
-                               <p className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">Entregados</p>
-                               <p className={`text-xl font-black ${r.activo ? 'text-indigo-600 dark:text-indigo-400' : 'text-emerald-600 dark:text-emerald-400'}`}>{r.totalEntregados}</p>
-                            </div>
-                         </div>
-
-                         <div className="flex gap-2">
-                            {r.activo && (
-                                <button 
-                                    onClick={() => setEntregaReciboModal({ isOpen: true, id: r.id, servicio: r.servicio })}
-                                    className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-100 dark:shadow-none transition-all active:scale-95"
-                                >
-                                    Entregar
-                                </button>
-                            )}
-                            <button 
-                                onClick={() => handleVerEntregas(r.id, r.servicio)}
-                                className={`py-3 px-4 bg-card border border-border rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all hover:bg-slate-50 dark:hover:bg-slate-800 ${!r.activo && 'w-full'}`}
-                                title="Ver detalles de entregas"
-                            >
-                                {r.activo ? "🔍" : "🔍 Ver Verificación"}
-                            </button>
-                         </div>
+                    /* VISTA DE TARJETAS (CARDS) PARA LOTES ACTIVOS */
+                    listaRecibos.length === 0 ? (
+                      <div className="py-20 text-center bg-card rounded-3xl border border-dashed border-border transition-colors">
+                         <span className="text-5xl opacity-20 grayscale">📂</span>
+                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-4">No hay lotes de recibos activos actualmente</p>
                       </div>
-                    ))
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-auto custom-scrollbar pr-1 flex-1">
+                        {listaRecibos.map(r => (
+                          <div key={r.id} className="bg-card rounded-3xl border-2 border-border p-6 flex flex-col gap-5 hover:border-indigo-400 transition-all duration-300 shadow-sm relative overflow-hidden group">
+                            {/* Progreso Visual Fondo */}
+                            <div className={`absolute bottom-0 left-0 h-1 transition-all duration-1000 ${r.activo ? 'bg-indigo-600' : 'bg-emerald-500'}`} style={{ width: `${(r.totalEntregados / r.totalRecibidos) * 100}%` }}></div>
+                            
+                            <div className="flex justify-between items-start">
+                                <div className={`p-3 rounded-2xl text-xl shadow-inner group-hover:scale-110 transition-transform ${r.activo ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' : 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'}`}>
+                                    {r.activo ? "📄" : "✅"}
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{r.activo ? 'Lote Activo' : 'Completado'}</p>
+                                  <p className="text-sm font-black text-foreground uppercase tracking-tight">{r.mes} {r.anio}</p>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3 className="text-lg font-black text-foreground uppercase tracking-tighter leading-none">{r.servicio}</h3>
+                                <div className="flex items-center gap-2 mt-2">
+                                  <div className="flex-1 bg-background h-2 rounded-full overflow-hidden border border-border">
+                                      <div className={`h-full bg-gradient-to-r ${r.activo ? 'from-indigo-500 to-indigo-600' : 'from-emerald-500 to-emerald-600'}`} style={{ width: `${(r.totalEntregados / r.totalRecibidos) * 100}%` }}></div>
+                                  </div>
+                                  <span className={`text-[10px] font-black ${r.activo ? 'text-indigo-600 dark:text-indigo-400' : 'text-emerald-600 dark:text-emerald-400'}`}>{Math.round((r.totalEntregados / r.totalRecibidos) * 100)}%</span>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2 bg-background p-3 rounded-2xl border border-border">
+                                <div className="text-center">
+                                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">Pendientes</p>
+                                  <p className="text-xl font-black text-foreground">{r.pendientes}</p>
+                                </div>
+                                <div className="text-center border-l border-border">
+                                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">Entregados</p>
+                                  <p className={`text-xl font-black ${r.activo ? 'text-indigo-600 dark:text-indigo-400' : 'text-emerald-600 dark:text-emerald-400'}`}>{r.totalEntregados}</p>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-2">
+                                {r.activo && (
+                                    <button 
+                                        onClick={() => setEntregaReciboModal({ isOpen: true, id: r.id, servicio: r.servicio })}
+                                        className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-100 dark:shadow-none transition-all active:scale-95"
+                                    >
+                                        Entregar
+                                    </button>
+                                )}
+                                <button 
+                                    onClick={() => handleVerEntregas(r.id, r.servicio)}
+                                    className={`py-3 px-4 bg-card border border-border rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all hover:bg-slate-50 dark:hover:bg-slate-800 ${!r.activo && 'w-full'}`}
+                                    title="Ver detalles de entregas"
+                                >
+                                    {r.activo ? "🔍" : "🔍 Ver Verificación"}
+                                </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )
                   )}
                </div>
             </div>

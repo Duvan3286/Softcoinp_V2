@@ -111,12 +111,22 @@ namespace Softcoinp.Backend.Controllers
         }
 
         [HttpGet("historial")]
-        public async Task<ActionResult<IEnumerable<ReciboPublicoDto>>> GetHistorial()
+        public async Task<ActionResult<IEnumerable<ReciboPublicoDto>>> GetHistorial(string? servicio = null, string? mes = null, int? anio = null)
         {
-            var recibos = await _context.RecibosPublicos
-                .Where(r => !r.Activo)
+            var query = _context.RecibosPublicos.Where(r => !r.Activo);
+
+            if (!string.IsNullOrEmpty(servicio))
+                query = query.Where(r => r.Servicio.Contains(servicio));
+
+            if (!string.IsNullOrEmpty(mes))
+                query = query.Where(r => r.Mes == mes);
+
+            if (anio.HasValue)
+                query = query.Where(r => r.Anio == anio.Value);
+
+            var recibos = await query
                 .OrderByDescending(r => r.FechaCreacionUtc)
-                .Take(20)
+                .Take(50)
                 .Select(r => new ReciboPublicoDto
                 {
                     Id = r.Id,

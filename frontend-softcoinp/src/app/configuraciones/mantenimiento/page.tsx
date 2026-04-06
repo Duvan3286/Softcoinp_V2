@@ -97,20 +97,39 @@ export default function MantenimientoHubPage() {
     );
   };
 
-  const handleExportBackup = async () => {
+  const handleExportConfig = async () => {
     setLoading(true);
     try {
-      const response = await api.get("/Maintenance/export-backup", { responseType: "blob" });
+      const response = await api.get("/Maintenance/export-config", { responseType: "blob" });
       const url = window.URL.createObjectURL(new Blob([response.data as BlobPart]));
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `softcoinp_backup_${new Date().toISOString().slice(0,10)}.json`);
+      link.setAttribute("download", `softcoinp_config_${new Date().toISOString().slice(0,10)}.json`);
       document.body.appendChild(link);
       link.click();
       link.remove();
-      showModal("✅ Backup generado y descargado exitosamente.", "success", "Exportación Completada");
+      showModal("✅ Configuración del sistema exportada con éxito.", "success", "Exportación Completada");
     } catch (err: any) {
-      showModal("❌ Error al descargar el backup: " + (err.message), "error");
+      showModal("❌ Error al exportar configuración: " + (err.message), "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleExportFullBackup = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get("/Maintenance/export-full-backup", { responseType: "blob" });
+      const url = window.URL.createObjectURL(new Blob([response.data as BlobPart]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `softcoinp_full_backup_${new Date().toISOString().slice(0,10)}.zip`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      showModal("✅ Respaldo completo generado (JSON + SQL) y descargado exitosamente.", "success", "Respaldo Completado");
+    } catch (err: any) {
+      showModal("❌ Error al generar el respaldo completo: " + (err.message), "error");
     } finally {
       setLoading(false);
     }
@@ -285,26 +304,40 @@ export default function MantenimientoHubPage() {
             </div>
         </div>
 
-        {/* BACKUPS */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* BACKUPS (ACTUALIZADO) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Botón: Exportar Configuración */}
             <div 
-              onClick={handleExportBackup}
-              className="bg-card rounded-3xl p-6 border border-border shadow-sm flex items-center gap-4 transition-all hover:bg-indigo-50/20 dark:hover:bg-indigo-900/10 cursor-pointer group"
+              onClick={handleExportConfig}
+              className="bg-card rounded-3xl p-5 border border-border shadow-sm flex flex-col items-center gap-3 transition-all hover:bg-indigo-50/20 dark:hover:bg-indigo-900/10 cursor-pointer group text-center"
             >
-              <div className="w-10 h-10 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 rounded-xl flex items-center justify-center text-xl transition-transform group-hover:scale-110">💾</div>
+              <div className="w-10 h-10 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 rounded-xl flex items-center justify-center text-xl transition-transform group-hover:scale-110">⚙️</div>
               <div className="flex-1">
-                <h3 className="text-xs font-black text-foreground uppercase tracking-tight group-hover:text-indigo-600 transition-colors">Exportar Backup</h3>
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Descargar base de datos JSON</p>
+                <h3 className="text-[10px] font-black text-foreground uppercase tracking-tight group-hover:text-indigo-600 transition-colors">Configuración</h3>
+                <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">JSON (Solo ajustes)</p>
               </div>
             </div>
 
+            {/* Botón: Backup Completo */}
+            <div 
+              onClick={handleExportFullBackup}
+              className="bg-card rounded-3xl p-5 border border-border shadow-sm flex flex-col items-center gap-3 transition-all hover:bg-rose-50/20 dark:hover:bg-rose-900/10 cursor-pointer group text-center border-rose-100/50 dark:border-rose-900/30"
+            >
+              <div className="w-10 h-10 bg-rose-50 dark:bg-rose-900/30 text-rose-600 rounded-xl flex items-center justify-center text-xl transition-transform group-hover:scale-110">📦</div>
+              <div className="flex-1">
+                <h3 className="text-[10px] font-black text-foreground uppercase tracking-tight group-hover:text-rose-600 transition-colors">Backup Completo</h3>
+                <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">ZIP (JSON + SQL)</p>
+              </div>
+            </div>
+
+            {/* Botón: Restaurar */}
             <div className="relative group">
               <input type="file" accept=".json" onChange={handleImportBackup} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
-              <div className="bg-card rounded-3xl p-6 border border-border shadow-sm flex items-center gap-4 transition-all group-hover:bg-emerald-50/20 dark:group-hover:bg-emerald-900/10">
+              <div className="bg-card rounded-3xl p-5 border border-border shadow-sm flex flex-col items-center gap-3 transition-all group-hover:bg-emerald-50/20 dark:group-hover:bg-emerald-900/10 h-full text-center">
                 <div className="w-10 h-10 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 rounded-xl flex items-center justify-center text-xl transition-transform group-hover:scale-110">🔄</div>
                 <div className="flex-1">
-                  <h3 className="text-xs font-black text-foreground uppercase tracking-tight group-hover:text-emerald-600 transition-colors">Restaurar Sistema</h3>
-                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Cargar archivo de respaldo</p>
+                  <h3 className="text-[10px] font-black text-foreground uppercase tracking-tight group-hover:text-emerald-600 transition-colors">Restaurar JSON</h3>
+                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">Cargar respaldo JSON</p>
                 </div>
               </div>
             </div>

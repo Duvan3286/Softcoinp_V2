@@ -270,7 +270,7 @@ export default function ReportesDashboardPage() {
                         dataKey="name" 
                         axisLine={false} 
                         tickLine={false}
-                        tick={{ fontSize: 9, fontWeights: 'bold', fill: isDark ? '#94a3b8' : '#64748b' }}
+                        tick={{ fontSize: 9, fontWeight: 'bold', fill: isDark ? '#94a3b8' : '#64748b' }}
                         width={70}
                       />
                       <Tooltip 

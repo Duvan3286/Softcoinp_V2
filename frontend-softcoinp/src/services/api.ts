@@ -9,7 +9,7 @@ export interface ApiResponse<T> {
 
 // ✅ Instancia de Axios configurada
 const api = axios.create({
-  baseURL: "http://localhost:5004/api", // Ajustar si tu backend usa otro puerto
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5100/api", 
 });
 
 // ✅ Interceptor para añadir el token JWT automáticamente

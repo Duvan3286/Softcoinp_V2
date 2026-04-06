@@ -1,4 +1,5 @@
 version: "3.9"
+
 services:
   db:
     image: postgres:15
@@ -12,6 +13,45 @@ services:
       - "5432:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
+    networks:
+      - softcoinp-network
+
+  backend:
+    build:
+      context: ./Softcoinp.Backend
+      dockerfile: Dockerfile
+    container_name: backend-softcoinp
+    restart: always
+    ports:
+      - "5100:8080" # Mapeo de puerto interno 8080 (default ASP.NET 8) al 5100 externo
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=db;Database=softcoinp;Username=postgres;Password=1234
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+      - db
+    networks:
+      - softcoinp-network
+
+  frontend:
+    build:
+      context: ./frontend-softcoinp
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=http://localhost:5100/api
+    container_name: frontend-softcoinp
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:5100/api
+    depends_on:
+      - backend
+    networks:
+      - softcoinp-network
+
+networks:
+  softcoinp-network:
+    driver: bridge
 
 volumes:
   db-data:

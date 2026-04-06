@@ -8,6 +8,9 @@ using Microsoft.AspNetCore.Authorization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
+using System.Diagnostics;
 
 namespace Softcoinp.Backend.Controllers
 {
@@ -17,10 +20,131 @@ namespace Softcoinp.Backend.Controllers
     public class MaintenanceController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IConfiguration _configuration;
 
-        public MaintenanceController(AppDbContext context)
+        public MaintenanceController(AppDbContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
+        }
+
+        /// <summary>
+        /// Exporta la configuración básica a JSON (Settings, Users, Permissions, Types).
+        /// </summary>
+        [HttpGet("export-config")]
+        public async Task<IActionResult> ExportConfig()
+        {
+            try
+            {
+                var config = new BackupDataDto
+                {
+                    ExportDate = DateTime.UtcNow,
+                    Version = "2.3.0 (Config)",
+                    SystemSettings = await _context.SystemSettings.AsNoTracking().ToListAsync(),
+                    TiposPersonal = await _context.TiposPersonal.AsNoTracking().ToListAsync(),
+                    Users = await _context.Users.AsNoTracking().ToListAsync(),
+                    UserPermissions = await _context.UserPermissions.AsNoTracking().ToListAsync()
+                };
+
+                var options = new JsonSerializerOptions { WriteIndented = true, ReferenceHandler = ReferenceHandler.IgnoreCycles };
+                var jsonBytes = JsonSerializer.SerializeToUtf8Bytes(config, options);
+
+                return File(jsonBytes, "application/json", $"softcoinp_config_{DateTime.Now:yyyyMMdd}.json");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Error al exportar configuración", detail = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Genera un ZIP con el JSON de toda la base de datos y un dump SQL completo de PostgreSQL (si está disponible).
+        /// </summary>
+        [HttpGet("export-full-backup")]
+        public async Task<IActionResult> ExportFullBackup()
+        {
+            var tempDir = Path.Combine(Path.GetTempPath(), $"softcoinp_bkp_{Guid.NewGuid()}");
+            Directory.CreateDirectory(tempDir);
+
+            try
+            {
+                // 1. Generar JSON de Respaldo Completo (Fallback robusto si falla pg_dump)
+                var fullData = new BackupDataDto
+                {
+                    ExportDate = DateTime.UtcNow,
+                    Version = "2.3.5 (Full+SQL)",
+                    SystemSettings = await _context.SystemSettings.AsNoTracking().ToListAsync(),
+                    TiposPersonal = await _context.TiposPersonal.AsNoTracking().ToListAsync(),
+                    Users = await _context.Users.AsNoTracking().ToListAsync(),
+                    UserPermissions = await _context.UserPermissions.AsNoTracking().ToListAsync(),
+                    Personal = await _context.Personal.AsNoTracking().ToListAsync(),
+                    Vehiculos = await _context.Vehiculos.AsNoTracking().ToListAsync(),
+                    Anotaciones = await _context.Anotaciones.AsNoTracking().ToListAsync(),
+                    Registros = await _context.Registros.AsNoTracking().ToListAsync(),
+                    RegistrosVehiculos = await _context.RegistrosVehiculos.AsNoTracking().ToListAsync(),
+                    Correspondencias = await _context.Correspondencias.AsNoTracking().ToListAsync(),
+                    AuditLogs = await _context.AuditLogs.AsNoTracking().ToListAsync(),
+                    RecibosPublicos = await _context.RecibosPublicos.AsNoTracking().ToListAsync(),
+                    EntregasRecibos = await _context.EntregasRecibos.AsNoTracking().ToListAsync()
+                };
+                var jsonOptions = new JsonSerializerOptions { WriteIndented = true, ReferenceHandler = ReferenceHandler.IgnoreCycles };
+                var fullJson = JsonSerializer.Serialize(fullData, jsonOptions);
+                await System.IO.File.WriteAllTextAsync(Path.Combine(tempDir, "configuracion.json"), fullJson);
+
+                // 2. Intentar generar SQL con pg_dump (Opcional)
+                try 
+                {
+                    var connString = _configuration.GetConnectionString("DefaultConnection") ?? "";
+                    var sqlPath = Path.Combine(tempDir, "datos.sql");
+                    var builder = new Npgsql.NpgsqlConnectionStringBuilder(connString);
+
+                    var processInfo = new ProcessStartInfo
+                    {
+                        FileName = "pg_dump",
+                        Arguments = $"-h {builder.Host} -U {builder.Username} -d {builder.Database} -f \"{sqlPath}\" --no-owner --no-privileges",
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+                    processInfo.EnvironmentVariables["PGPASSWORD"] = builder.Password;
+
+                    using (var process = Process.Start(processInfo))
+                    {
+                        if (process != null)
+                        {
+                            await process.WaitForExitAsync();
+                            if (process.ExitCode != 0) 
+                            {
+                                string stderr = await process.StandardError.ReadToEndAsync();
+                                Console.WriteLine($"Aviso: pg_dump falló pero se continuará con el JSON. Error: {stderr}");
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Aviso: pg_dump no disponible o falló: {ex.Message}. Se genera backup solo con JSON.");
+                    // No relanzamos la excepción para permitir que el ZIP se genere solo con el JSON
+                }
+
+                // 3. Crear ZIP
+                var zipPath = Path.Combine(Path.GetTempPath(), $"backup_full_{DateTime.Now:yyyyMMdd_HHmm}.zip");
+                if (System.IO.File.Exists(zipPath)) System.IO.File.Delete(zipPath);
+                
+                ZipFile.CreateFromDirectory(tempDir, zipPath);
+                var zipBytes = await System.IO.File.ReadAllBytesAsync(zipPath);
+                
+                // Limpieza post-proceso
+                System.IO.File.Delete(zipPath);
+                Directory.Delete(tempDir, true);
+
+                return File(zipBytes, "application/zip", $"softcoinp_full_backup_{DateTime.Now:yyyyMMdd}.zip");
+            }
+            catch (Exception ex)
+            {
+                if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
+                return StatusCode(500, new { error = "Error crítico al generar backup", detail = ex.Message });
+            }
         }
 
         /// <summary>
@@ -32,6 +156,8 @@ namespace Softcoinp.Backend.Controllers
             try
             {
                 // 1. Limpiar tablas transaccionales y de registro
+                await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"EntregasRecibos\"");
+                await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"RecibosPublicos\"");
                 await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"RegistrosVehiculos\"");
                 await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"Registros\"");
                 await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"Anotaciones\"");
@@ -41,8 +167,10 @@ namespace Softcoinp.Backend.Controllers
                 // 2. Limpiar tablas maestras (orden importa por FKs)
                 await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"Vehiculos\"");
                 await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"Personal\"");
+                await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"UserPermissions\"");
                 await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"Users\"");
                 await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"TiposPersonal\"");
+                await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"SystemSettings\"");
 
                 // 3. Insertar Seeds Básicos mediante SQL Directo (evita conflictos con EF Change Tracker)
                 // Usamos guiones dobles para escapar comillas en C# si es necesario, pero aquí usamos cadenas simples
@@ -78,6 +206,8 @@ namespace Softcoinp.Backend.Controllers
             try
             {
                 // Orden de eliminación para respetar llaves foráneas (Dependencias -> Maestras)
+                await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"EntregasRecibos\"");
+                await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"RecibosPublicos\"");
                 await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"RegistrosVehiculos\"");
                 await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"Registros\"");
                 await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"Anotaciones\"");
@@ -126,16 +256,20 @@ namespace Softcoinp.Backend.Controllers
                 var backup = new BackupDataDto
                 {
                     ExportDate = DateTime.UtcNow,
-                    Version = "2.1.5",
+                    Version = "2.2.0", // Actualizamos versión para reflejar el backup completo
+                    SystemSettings = await _context.SystemSettings.AsNoTracking().ToListAsync(),
                     TiposPersonal = await _context.TiposPersonal.AsNoTracking().ToListAsync(),
                     Users = await _context.Users.AsNoTracking().ToListAsync(),
+                    UserPermissions = await _context.UserPermissions.AsNoTracking().ToListAsync(),
                     Personal = await _context.Personal.AsNoTracking().ToListAsync(),
                     Vehiculos = await _context.Vehiculos.AsNoTracking().ToListAsync(),
                     Anotaciones = await _context.Anotaciones.AsNoTracking().ToListAsync(),
                     Registros = await _context.Registros.AsNoTracking().ToListAsync(),
                     RegistrosVehiculos = await _context.RegistrosVehiculos.AsNoTracking().ToListAsync(),
                     Correspondencias = await _context.Correspondencias.AsNoTracking().ToListAsync(),
-                    AuditLogs = await _context.AuditLogs.AsNoTracking().ToListAsync()
+                    AuditLogs = await _context.AuditLogs.AsNoTracking().ToListAsync(),
+                    RecibosPublicos = await _context.RecibosPublicos.AsNoTracking().ToListAsync(),
+                    EntregasRecibos = await _context.EntregasRecibos.AsNoTracking().ToListAsync()
                 };
 
                 var options = new JsonSerializerOptions 
@@ -173,7 +307,7 @@ namespace Softcoinp.Backend.Controllers
                 if (backup == null)
                     return BadRequest(new { error = "El formato JSON no es válido." });
 
-                Console.WriteLine($"Importando Backup: {backup.Personal?.Count ?? 0} Personal, {backup.Vehiculos?.Count ?? 0} Vehículos, {backup.RegistrosVehiculos?.Count ?? 0} Registros Veh.");
+                Console.WriteLine($"Importando Backup v{backup.Version}: {backup.Personal?.Count ?? 0} Personal, {backup.Vehiculos?.Count ?? 0} Vehículos, {backup.RegistrosVehiculos?.Count ?? 0} Registros Veh.");
 
                 // INICIA LA RESTAURACIÓN (Irreversible)
                 
@@ -184,7 +318,13 @@ namespace Softcoinp.Backend.Controllers
                 // Eliminar seeds que EF Core inserta automáticamente para evitar duplicados de Llave Primaria
                 await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"TiposPersonal\"");
 
-                // 2. Insertar Maestras base (No dependen de nada)
+                // 2. Insertar Configuraciones y Maestras base (No dependen de nada)
+                if (backup.SystemSettings?.Any() == true)
+                {
+                    await _context.SystemSettings.AddRangeAsync(backup.SystemSettings);
+                    await _context.SaveChangesAsync();
+                }
+
                 if (backup.TiposPersonal?.Any() == true)
                 {
                     await _context.TiposPersonal.AddRangeAsync(backup.TiposPersonal);
@@ -194,6 +334,13 @@ namespace Softcoinp.Backend.Controllers
                 if (backup.Users?.Any() == true)
                 {
                     await _context.Users.AddRangeAsync(backup.Users);
+                    await _context.SaveChangesAsync();
+                }
+
+                if (backup.UserPermissions?.Any() == true)
+                {
+                    foreach(var up in backup.UserPermissions) up.User = null;
+                    await _context.UserPermissions.AddRangeAsync(backup.UserPermissions);
                     await _context.SaveChangesAsync();
                 }
 
@@ -229,7 +376,6 @@ namespace Softcoinp.Backend.Controllers
                     {
                         reg.Personal = null;
                     }
-                    // Desactivar temporalmente identity columns / foreign keys para las inserciones directas
                     await _context.Registros.AddRangeAsync(backup.Registros);
                     await _context.SaveChangesAsync();
                 }
@@ -248,6 +394,11 @@ namespace Softcoinp.Backend.Controllers
                 if (backup.Anotaciones?.Any() == true)
                 {
                     Console.WriteLine($"Insertando {backup.Anotaciones.Count} Anotaciones...");
+                    foreach(var an in backup.Anotaciones)
+                    {
+                        an.Personal = null;
+                        an.Vehiculo = null;
+                    }
                     await _context.Anotaciones.AddRangeAsync(backup.Anotaciones);
                     await _context.SaveChangesAsync();
                 }
@@ -266,10 +417,27 @@ namespace Softcoinp.Backend.Controllers
                     await _context.SaveChangesAsync();
                 }
 
+                if (backup.RecibosPublicos?.Any() == true)
+                {
+                    Console.WriteLine($"Insertando {backup.RecibosPublicos.Count} Recibos Públicos...");
+                    foreach(var rp in backup.RecibosPublicos) rp.Entregas = new List<EntregaRecibo>();
+                    await _context.RecibosPublicos.AddRangeAsync(backup.RecibosPublicos);
+                    await _context.SaveChangesAsync();
+                }
+
+                if (backup.EntregasRecibos?.Any() == true)
+                {
+                    Console.WriteLine($"Insertando {backup.EntregasRecibos.Count} Entregas de Recibos...");
+                    foreach(var er in backup.EntregasRecibos) er.ReciboPublico = null;
+                    await _context.EntregasRecibos.AddRangeAsync(backup.EntregasRecibos);
+                    await _context.SaveChangesAsync();
+                }
+
                 return Ok(new { message = $"Sistema restaurado exitosamente al estado del {backup.ExportDate:dd/MM/yyyy HH:mm}. Cierra sesión para aplicar los cambios plenamente." });
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Error Import: {ex.Message}");
                 return StatusCode(500, new { error = "Error crítico durante la restauración. Posible corrupción de la base de datos.", detail = ex.Message });
             }
         }
@@ -280,8 +448,10 @@ namespace Softcoinp.Backend.Controllers
     {
         public DateTime ExportDate { get; set; }
         public string Version { get; set; } = string.Empty;
+        public List<SystemSetting> SystemSettings { get; set; } = new();
         public List<TipoPersonal> TiposPersonal { get; set; } = new();
         public List<User> Users { get; set; } = new();
+        public List<UserPermission> UserPermissions { get; set; } = new();
         public List<Personal> Personal { get; set; } = new();
         public List<Vehiculo> Vehiculos { get; set; } = new();
         public List<Anotacion> Anotaciones { get; set; } = new();
@@ -289,5 +459,7 @@ namespace Softcoinp.Backend.Controllers
         public List<RegistroVehiculo> RegistrosVehiculos { get; set; } = new();
         public List<Correspondencia> Correspondencias { get; set; } = new();
         public List<AuditLog> AuditLogs { get; set; } = new();
+        public List<ReciboPublico> RecibosPublicos { get; set; } = new();
+        public List<EntregaRecibo> EntregasRecibos { get; set; } = new();
     }
 }

@@ -290,7 +290,7 @@ namespace Softcoinp.Backend.Controllers
         }
 
         /// <summary>
-        /// Restaura la base de datos completa desde un archivo JSON.
+        /// Restaura la base de datos completa desde un archivo JSON o un paquete ZIP.
         /// </summary>
         [HttpPost("import-backup")]
         public async Task<IActionResult> ImportBackup([FromForm] Microsoft.AspNetCore.Http.IFormFile file)
@@ -300,25 +300,43 @@ namespace Softcoinp.Backend.Controllers
 
             try
             {
-                using var stream = file.OpenReadStream();
+                BackupDataDto? backup = null;
                 var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                var backup = await JsonSerializer.DeserializeAsync<BackupDataDto>(stream, options);
+
+                // 1. Detectar si es ZIP o JSON
+                if (file.FileName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                {
+                    using var stream = file.OpenReadStream();
+                    using var archive = new ZipArchive(stream);
+                    var entry = archive.GetEntry("configuracion.json");
+                    
+                    if (entry == null)
+                        return BadRequest(new { error = "El archivo ZIP no contiene 'configuracion.json'." });
+
+                    using var entryStream = entry.Open();
+                    backup = await JsonSerializer.DeserializeAsync<BackupDataDto>(entryStream, options);
+                }
+                else
+                {
+                    using var stream = file.OpenReadStream();
+                    backup = await JsonSerializer.DeserializeAsync<BackupDataDto>(stream, options);
+                }
 
                 if (backup == null)
-                    return BadRequest(new { error = "El formato JSON no es válido." });
+                    return BadRequest(new { error = "El formato del respaldo no es válido o está corrupto." });
 
-                Console.WriteLine($"Importando Backup v{backup.Version}: {backup.Personal?.Count ?? 0} Personal, {backup.Vehiculos?.Count ?? 0} Vehículos, {backup.RegistrosVehiculos?.Count ?? 0} Registros Veh.");
+                Console.WriteLine($"Importando Respaldo v{backup.Version}: {backup.Personal?.Count ?? 0} Personal, {backup.Vehiculos?.Count ?? 0} Vehículos.");
 
-                // INICIA LA RESTAURACIÓN (Irreversible)
+                // INICIA LA RESTAURACIÓN (Lógica existente protegida)
                 
-                // 1. Limpiar todo el esquema
+                // 1. Limpiar todo el esquema (Re-crear tablas vacías)
                 await _context.Database.ExecuteSqlRawAsync("DROP SCHEMA public CASCADE; CREATE SCHEMA public;");
                 await _context.Database.MigrateAsync();
-
-                // Eliminar seeds que EF Core inserta automáticamente para evitar duplicados de Llave Primaria
                 await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"TiposPersonal\"");
 
-                // 2. Insertar Configuraciones y Maestras base (No dependen de nada)
+                // 2. Restaurar en orden de dependencias
+                
+                // Config y Maestras Base
                 if (backup.SystemSettings?.Any() == true)
                 {
                     await _context.SystemSettings.AddRangeAsync(backup.SystemSettings);
@@ -344,82 +362,57 @@ namespace Softcoinp.Backend.Controllers
                     await _context.SaveChangesAsync();
                 }
 
+                // Personal y Vehículos
                 if (backup.Personal?.Any() == true)
                 {
-                    Console.WriteLine($"Insertando {backup.Personal.Count} Personal...");
-                    foreach(var per in backup.Personal)
-                    {
-                        per.Registros = null;
-                        per.Anotaciones = null;
-                    }
+                    foreach(var per in backup.Personal) { per.Registros = new(); per.Anotaciones = new(); }
                     await _context.Personal.AddRangeAsync(backup.Personal);
                     await _context.SaveChangesAsync();
                 }
 
-                // 3. Insertar dependencias de 1er nivel
                 if (backup.Vehiculos?.Any() == true)
                 {
-                    Console.WriteLine($"Insertando {backup.Vehiculos.Count} Vehículos...");
-                    foreach(var veh in backup.Vehiculos)
-                    {
-                        veh.Personal = null;
-                    }
+                    foreach(var veh in backup.Vehiculos) veh.Personal = null!;
                     await _context.Vehiculos.AddRangeAsync(backup.Vehiculos);
                     await _context.SaveChangesAsync();
                 }
 
-                // 4. Insertar transaccionales complejas
+                // Transaccionales
                 if (backup.Registros?.Any() == true)
                 {
-                    Console.WriteLine($"Insertando {backup.Registros.Count} Registros...");
-                    foreach(var reg in backup.Registros)
-                    {
-                        reg.Personal = null;
-                    }
+                    foreach(var reg in backup.Registros) reg.Personal = null!;
                     await _context.Registros.AddRangeAsync(backup.Registros);
                     await _context.SaveChangesAsync();
                 }
 
                 if (backup.RegistrosVehiculos?.Any() == true)
                 {
-                    Console.WriteLine($"Insertando {backup.RegistrosVehiculos.Count} Registros Vehiculares...");
-                    foreach(var rv in backup.RegistrosVehiculos)
-                    {
-                        rv.Vehiculo = null;
-                    }
+                    foreach(var rv in backup.RegistrosVehiculos) rv.Vehiculo = null!;
                     await _context.RegistrosVehiculos.AddRangeAsync(backup.RegistrosVehiculos);
                     await _context.SaveChangesAsync();
                 }
 
                 if (backup.Anotaciones?.Any() == true)
                 {
-                    Console.WriteLine($"Insertando {backup.Anotaciones.Count} Anotaciones...");
-                    foreach(var an in backup.Anotaciones)
-                    {
-                        an.Personal = null;
-                        an.Vehiculo = null;
-                    }
+                    foreach(var an in backup.Anotaciones) { an.Personal = null; an.Vehiculo = null; }
                     await _context.Anotaciones.AddRangeAsync(backup.Anotaciones);
                     await _context.SaveChangesAsync();
                 }
 
                 if (backup.Correspondencias?.Any() == true)
                 {
-                    Console.WriteLine($"Insertando {backup.Correspondencias.Count} Correspondencias...");
                     await _context.Correspondencias.AddRangeAsync(backup.Correspondencias);
                     await _context.SaveChangesAsync();
                 }
 
                 if (backup.AuditLogs?.Any() == true)
                 {
-                    Console.WriteLine($"Insertando {backup.AuditLogs.Count} AuditLogs...");
                     await _context.AuditLogs.AddRangeAsync(backup.AuditLogs);
                     await _context.SaveChangesAsync();
                 }
 
                 if (backup.RecibosPublicos?.Any() == true)
                 {
-                    Console.WriteLine($"Insertando {backup.RecibosPublicos.Count} Recibos Públicos...");
                     foreach(var rp in backup.RecibosPublicos) rp.Entregas = new List<EntregaRecibo>();
                     await _context.RecibosPublicos.AddRangeAsync(backup.RecibosPublicos);
                     await _context.SaveChangesAsync();
@@ -427,18 +420,17 @@ namespace Softcoinp.Backend.Controllers
 
                 if (backup.EntregasRecibos?.Any() == true)
                 {
-                    Console.WriteLine($"Insertando {backup.EntregasRecibos.Count} Entregas de Recibos...");
                     foreach(var er in backup.EntregasRecibos) er.ReciboPublico = null;
                     await _context.EntregasRecibos.AddRangeAsync(backup.EntregasRecibos);
                     await _context.SaveChangesAsync();
                 }
 
-                return Ok(new { message = $"Sistema restaurado exitosamente al estado del {backup.ExportDate:dd/MM/yyyy HH:mm}. Cierra sesión para aplicar los cambios plenamente." });
+                return Ok(new { message = $"Sistema restaurado exitosamente desde {(file.FileName.EndsWith(".zip") ? "paquete ZIP" : "archivo JSON")}. Cierra sesión para aplicar los cambios." });
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error Import: {ex.Message}");
-                return StatusCode(500, new { error = "Error crítico durante la restauración. Posible corrupción de la base de datos.", detail = ex.Message });
+                return StatusCode(500, new { error = "Error crítico durante la restauración. Posible corrupción del archivo.", detail = ex.Message });
             }
         }
     }

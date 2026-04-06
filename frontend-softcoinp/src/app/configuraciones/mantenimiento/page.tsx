@@ -9,6 +9,7 @@ import { settingsService } from "@/services/settingsService";
 
 export default function MantenimientoHubPage() {
   const router = useRouter();
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [usuario, setUsuario] = useState<UserPayload | null>(null);
   const [loading, setLoading] = useState(false);
   const [systemVersion, setSystemVersion] = useState("");
@@ -330,15 +331,22 @@ export default function MantenimientoHubPage() {
               </div>
             </div>
 
-            {/* Botón: Restaurar */}
-            <div className="relative group">
-              <input type="file" accept=".json" onChange={handleImportBackup} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
-              <div className="bg-card rounded-3xl p-5 border border-border shadow-sm flex flex-col items-center gap-3 transition-all group-hover:bg-emerald-50/20 dark:group-hover:bg-emerald-900/10 h-full text-center">
-                <div className="w-10 h-10 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 rounded-xl flex items-center justify-center text-xl transition-transform group-hover:scale-110">🔄</div>
-                <div className="flex-1">
-                  <h3 className="text-[10px] font-black text-foreground uppercase tracking-tight group-hover:text-emerald-600 transition-colors">Restaurar JSON</h3>
-                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">Cargar respaldo JSON</p>
-                </div>
+            {/* Botón: Restaurar (Refactorizado para estabilidad) */}
+            <div 
+              onClick={() => fileInputRef.current?.click()}
+              className="bg-card rounded-3xl p-5 border border-border shadow-sm flex flex-col items-center gap-3 transition-all hover:bg-emerald-50/20 dark:hover:bg-emerald-900/10 h-full text-center cursor-pointer group"
+            >
+              <input 
+                type="file" 
+                ref={fileInputRef}
+                accept=".json,.zip,application/json,application/zip,application/x-zip-compressed" 
+                onChange={handleImportBackup} 
+                className="hidden" 
+              />
+              <div className="w-10 h-10 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 rounded-xl flex items-center justify-center text-xl transition-transform group-hover:scale-110">🔄</div>
+              <div className="flex-1">
+                <h3 className="text-[10px] font-black text-foreground uppercase tracking-tight group-hover:text-emerald-600 transition-colors">Restaurar Datos</h3>
+                <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">Cargar JSON o paquete ZIP</p>
               </div>
             </div>
         </div>

@@ -185,27 +185,88 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Seed de configuraciones iniciales
+// --- LÓGICA DE MIGRACIÓN Y SEEDING AUTOMÁTICO CON REINTENTOS ---
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    try
+    var logger = services.GetRequiredService<ILogger<Program>>();
+    var context = services.GetRequiredService<AppDbContext>();
+
+    int retries = 5;
+    bool success = false;
+
+    while (retries > 0 && !success)
     {
-        var context = services.GetRequiredService<AppDbContext>();
-        if (!context.SystemSettings.Any(s => s.Key == "ClientName"))
+        try
         {
-            context.SystemSettings.Add(new SystemSetting { 
-                Key = "ClientName", 
-                Value = "CONJUNTO RESIDENCIAL", 
-                UpdatedAt = DateTime.UtcNow 
-            });
+            logger.LogInformation($"Intentando conectar a la base de datos... (Reintentos restantes: {retries})");
+
+            // 1. Asegurar que la base de datos esté actualizada
+            context.Database.Migrate();
+
+            // 2. Seed de Configuraciones
+            if (!context.SystemSettings.Any(s => s.Key == "ClientName"))
+            {
+                context.SystemSettings.Add(new SystemSetting { Key = "ClientName", Value = "SOFTCOINP", UpdatedAt = DateTime.UtcNow });
+            }
+            if (!context.SystemSettings.Any(s => s.Key == "SystemVersion"))
+            {
+                context.SystemSettings.Add(new SystemSetting { Key = "SystemVersion", Value = "2.5.0", UpdatedAt = DateTime.UtcNow });
+            }
+
+            // 3. Seed de Tipos de Personal
+            if (!context.TiposPersonal.Any())
+            {
+                context.TiposPersonal.AddRange(new List<TipoPersonal> {
+                    new TipoPersonal { Id = Guid.Parse("00000000-0000-0000-0000-000000000001"), Nombre = "Empleado", Activo = true },
+                    new TipoPersonal { Id = Guid.Parse("00000000-0000-0000-0000-000000000002"), Nombre = "Visitante", Activo = true }
+                });
+            }
+
+            // 4. Seed de Usuarios (Admin y SuperAdmin)
+            if (!context.Users.Any())
+            {
+                var superPass = BCrypt.Net.BCrypt.HashPassword("SuperDev2026!");
+                var adminPass = BCrypt.Net.BCrypt.HashPassword("Admin123");
+
+                context.Users.AddRange(new List<User> {
+                    new User { 
+                        Id = Guid.Parse("00000000-0000-0000-0000-000000000000"), 
+                        Email = "superadmin@dev", 
+                        Nombre = "Super Desarrollador", 
+                        PasswordHash = superPass, 
+                        Role = "superadmin",
+                        CreatedAt = DateTime.UtcNow,
+                        RefreshToken = "",
+                        RefreshTokenExpiry = DateTime.UtcNow
+                    },
+                    new User { 
+                        Id = Guid.Parse("00000000-0000-0000-0000-00000000000A"), 
+                        Email = "admin@local", 
+                        Nombre = "Administrador Sistema", 
+                        PasswordHash = adminPass, 
+                        Role = "admin",
+                        CreatedAt = DateTime.UtcNow,
+                        RefreshToken = "",
+                        RefreshTokenExpiry = DateTime.UtcNow
+                    }
+                });
+            }
+
             context.SaveChanges();
+            logger.LogInformation("✅ Base de datos verificada y datos base sembrados con éxito.");
+            success = true;
         }
-    }
-    catch (Exception ex)
-    {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Ocurrido un error al hacer seed de configuraciones.");
+        catch (Exception ex)
+        {
+            retries--;
+            logger.LogWarning($"⚠️ La base de datos aún no está lista. Reintentando en 5 segundos... ({ex.Message})");
+            System.Threading.Thread.Sleep(5000);
+            if (retries == 0)
+            {
+                logger.LogError(ex, "❌ Error crítico: No se pudo conectar a la base de datos tras varios intentos.");
+            }
+        }
     }
 }
 

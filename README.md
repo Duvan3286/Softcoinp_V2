@@ -1,94 +1,71 @@
 # 🛡️ SOFTCOINP - Enterprise Access Control & Identity Management
 
-**SOFTCOINP** es una solución integral de seguridad de grado empresarial diseñada para la gestión crítica de accesos, supervisión de personal activo, control vehicular y auditoría forense de operaciones. Desarrollado con tecnologías de vanguardia, ofrece una experiencia de usuario fluida con soporte nativo para temas dinámicos y personalización total de marca.
+**SOFTCOINP** es una solución integral de seguridad de grado empresarial diseñada para la gestión crítica de accesos, supervisión de personal activo, control vehicular y auditoría de operaciones. El sistema ahora opera bajo una arquitectura totalmente **Dockerizada**, garantizando portabilidad y estabilidad total.
 
 ---
 
 ## 🏗️ Arquitectura y Stack Tecnológico
 
-El sistema se basa en una arquitectura desacoplada de alto rendimiento (SPA + Web API):
+El ecosistema se distribuye en tres servicios orquestados:
 
 ### 🎨 Frontend (`/frontend-softcoinp`)
-- **Core:** [Next.js 15+](https://nextjs.org/) con App Router y Turbopack.
-- **Lenguaje:** TypeScript (Tipado estricto y seguridad en tiempo de compilación).
-- **Estilos:** Tailwind CSS con arquitectura de variables semánticas para **Soporte de Modo Oscuro/Claro (Auto-Theme)**.
-- **Gráficos:** Recharts para visualización analítica de datos en tiempo real.
-- **Estado Global:** Context API & Hooks avanzados para gestión de sesiones y UI.
-- **Gestión de Fechas:** Day.js con soporte de zonas horarias locales.
+- **Tecnología:** Next.js 15+ (App Router) & TypeScript.
+- **Estilos:** Tailwind CSS con soporte nativo de **Modo Oscuro/Claro**.
+- **Visualización:** Recharts para analítica en tiempo real.
 
 ### ⚙️ Backend (`/Softcoinp.Backend`)
-- **Core:** [ASP.NET Core 8.0 Web API](https://dotnet.microsoft.com/).
-- **Persistencia:** PostgreSQL con Entity Framework Core (Code-First).
-- **Seguridad:** Autenticación por Tokens **JWT** y sistema avanzado de **Permisos basados en Vistas (RBAC)**.
-- **Arquitectura:** Patrón Repository/Service con transferencia de datos mediante DTOs.
-- **Middleware:** Procesamiento centralizado de errores y auditoría automática de transacciones.
+- **Tecnología:** ASP.NET Core 8.0 Web API.
+- **Base de Datos:** PostgreSQL 15.
+- **Seguridad:** JWT (Json Web Tokens) & RBAC (Role-Based Access Control).
+- **Resiliencia:** Auto-migración y Auto-seeding automático al iniciar el contenedor.
 
 ---
 
-## 🚀 Módulos y Capacidades Clave
+## 🚀 Despliegue Rápido (Docker)
 
-### 📊 Dashboard Analítico & Control
-- Panel interactivo con métricas en tiempo real sobre flujos de entrada y salida.
-- Búsqueda global inteligente de personas y vehículos.
-- Registro de ingresos con soporte para **captura fotográfica en vivo** y detección de estados de bloqueo.
+La forma recomendada de ejecutar SOFTCOINP es mediante **Docker Compose**, lo que configura automáticamente la base de datos, el backend (incluyendo herramientas de PostgreSQL) y el frontend.
 
-### 🌓 Interfaz Adaptativa (Dark Mode)
-- Implementación integral de modo oscuro en todas las vistas (Dashboard, Reportes, Registros, Configuraciones).
-- Sincronización automática con la preferencia del sistema o selección manual en el encabezado.
+### Requisitos
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado.
 
-### 📦 Gestión de Correspondencia
-- Sistema completo de recepción y entrega de paquetes y sobres.
-- Seguimiento de estados (En Espera / Entregado) con firmas de recepción y bitácora de entrega.
+### Pasos para iniciar
+1.  Clonar el repositorio y situarse en la raíz.
+2.  Ejecutar el comando de construcción y arranque:
+    ```bash
+    docker-compose up --build -d
+    ```
+3.  Acceso a la aplicación: [http://localhost:3000](http://localhost:3000)
+4.  Acceso a la API: [http://localhost:5100/api](http://localhost:5100/api)
 
-### 🛡️ Seguridad y Permisos
-- Configuración granular de acceso a nivel de vista para cada usuario.
-- Control total sobre acciones administrativas (Exportación, Edición, Eliminación).
-- Sistema de **Bloqueo Preventivo** para personas y vehículos con alertas visuales inmediatas.
-
-### 📋 Mantenimiento y Auditoría Forense
-- **Bitácora de Actividad:** Registro persistente de cada cambio, login o acción crítica realizada en el sistema.
-- **Herramientas de Respaldo:** Exportación e importación de bases de datos completas en formato JSON.
-- **Acciones Críticas:** Limpieza de datos operativos y restauración de configuración de fábrica (Deep Clean).
+### Credenciales Predeterminadas (Primer Inicio)
+| Rol | Email | Password |
+| :--- | :--- | :--- |
+| **SuperAdmin** | `superadmin@dev` | `SuperDev2026!` |
+| **Admin** | `admin@local` | `Admin123` |
 
 ---
 
-## 🛠️ Despliegue y Configuración
+## 🛠️ Capacidades del Módulo de Mantenimiento
 
-### Requisitos del Entorno
-- [Node.js](https://nodejs.org/) (v18.x o superior)
-- [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
-- [PostgreSQL](https://www.postgresql.org/) (Instancia activa)
+El sistema incluye herramientas avanzadas para administradores:
 
-### Configuración del Servidor (API)
-1.  Acceder a la carpeta `Softcoinp.Backend/`.
-2.  Configurar el string de conexión `DefaultConnection` en `appsettings.json`.
-3.  Aplicar esquema de base de datos:
-    ```bash
-    dotnet ef database update
-    ```
-4.  Iniciar servicio:
-    ```bash
-    dotnet run
-    ```
-
-### Configuración de la Interfaz (Frontend)
-1.  Acceder a la carpeta `frontend-softcoinp/`.
-2.  Instalar dependencias:
-    ```bash
-    npm install
-    ```
-3.  Ejecutar entorno de desarrollo:
-    ```bash
-    npm run dev
-    ```
-4.  Acceso predeterminado: [http://localhost:3000](http://localhost:3000)
+- **Backups Inteligentes**:
+    - **Configuración (JSON)**: Respaldo ligero de ajustes y usuarios.
+    - **Completo (SQL)**: Volcado real de la base de datos generado por `pg_dump`.
+- **Restauración Dual**: Soporte para cargar archivos `.json` o `.sql` directamente desde la interfaz web.
+- **Limpieza Selectiva**: Modal que permite eliminar datos por módulos (Registros, Personal, Correspondencia, etc.) sin afectar la base del sistema.
+- **Identidad Corporativa**: Personalización dinámica del nombre de la institución y versión del software.
 
 ---
 
-## 🏷️ Identidad y Personalización (White-Label)
-Softcoinp permite la personalización total de la identidad desde el módulo de Mantenimiento:
-- **Nombre de Institución:** Actualización dinámica de la marca en login, header y reportes.
-- **Versionamiento:** Control visual de la versión del software desplegado.
+## 📋 Comandos Útiles de Docker
+
+| Acción | Comando |
+| :--- | :--- |
+| **Ver logs del sistema** | `docker-compose logs -f` |
+| **Detener el sistema** | `docker-compose stop` |
+| **Reiniciar y reconstruir** | `docker-compose up --build -d` |
+| **Borrar todo (incluyendo datos)** | `docker-compose down -v` |
 
 ---
 © 2026 **Softcoinp Technologies** | *Ingeniería en Control de Acceso e Identidad Digital.*

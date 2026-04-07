@@ -58,92 +58,54 @@ namespace Softcoinp.Backend.Controllers
         }
 
         /// <summary>
-        /// Genera un ZIP con el JSON de toda la base de datos y un dump SQL completo de PostgreSQL (si está disponible).
+        /// Genera un volcado SQL completo de PostgreSQL (pg_dump) y lo descarga directamente.
         /// </summary>
         [HttpGet("export-full-backup")]
         public async Task<IActionResult> ExportFullBackup()
         {
-            var tempDir = Path.Combine(Path.GetTempPath(), $"softcoinp_bkp_{Guid.NewGuid()}");
-            Directory.CreateDirectory(tempDir);
+            var tempSqlPath = Path.Combine(Path.GetTempPath(), $"softcoinp_full_{Guid.NewGuid()}.sql");
 
             try
             {
-                // 1. Generar JSON de Respaldo Completo (Fallback robusto si falla pg_dump)
-                var fullData = new BackupDataDto
+                // 1. Obtener datos de conexión
+                var connString = _configuration.GetConnectionString("DefaultConnection") ?? "";
+                var builder = new Npgsql.NpgsqlConnectionStringBuilder(connString);
+
+                // 2. Configurar pg_dump
+                var processInfo = new ProcessStartInfo
                 {
-                    ExportDate = DateTime.UtcNow,
-                    Version = "2.3.5 (Full+SQL)",
-                    SystemSettings = await _context.SystemSettings.AsNoTracking().ToListAsync(),
-                    TiposPersonal = await _context.TiposPersonal.AsNoTracking().ToListAsync(),
-                    Users = await _context.Users.AsNoTracking().ToListAsync(),
-                    UserPermissions = await _context.UserPermissions.AsNoTracking().ToListAsync(),
-                    Personal = await _context.Personal.AsNoTracking().ToListAsync(),
-                    Vehiculos = await _context.Vehiculos.AsNoTracking().ToListAsync(),
-                    Anotaciones = await _context.Anotaciones.AsNoTracking().ToListAsync(),
-                    Registros = await _context.Registros.AsNoTracking().ToListAsync(),
-                    RegistrosVehiculos = await _context.RegistrosVehiculos.AsNoTracking().ToListAsync(),
-                    Correspondencias = await _context.Correspondencias.AsNoTracking().ToListAsync(),
-                    AuditLogs = await _context.AuditLogs.AsNoTracking().ToListAsync(),
-                    RecibosPublicos = await _context.RecibosPublicos.AsNoTracking().ToListAsync(),
-                    EntregasRecibos = await _context.EntregasRecibos.AsNoTracking().ToListAsync()
+                    FileName = "pg_dump",
+                    Arguments = $"-h {builder.Host} -U {builder.Username} -d {builder.Database} -f \"{tempSqlPath}\" --no-owner --no-privileges",
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
                 };
-                var jsonOptions = new JsonSerializerOptions { WriteIndented = true, ReferenceHandler = ReferenceHandler.IgnoreCycles };
-                var fullJson = JsonSerializer.Serialize(fullData, jsonOptions);
-                await System.IO.File.WriteAllTextAsync(Path.Combine(tempDir, "configuracion.json"), fullJson);
+                processInfo.EnvironmentVariables["PGPASSWORD"] = builder.Password;
 
-                // 2. Intentar generar SQL con pg_dump (Opcional)
-                try 
+                // 3. Ejecutar proceso
+                using (var process = Process.Start(processInfo))
                 {
-                    var connString = _configuration.GetConnectionString("DefaultConnection") ?? "";
-                    var sqlPath = Path.Combine(tempDir, "datos.sql");
-                    var builder = new Npgsql.NpgsqlConnectionStringBuilder(connString);
+                    if (process == null) throw new Exception("No se pudo iniciar pg_dump en el servidor Docker.");
+                    string stderr = await process.StandardError.ReadToEndAsync();
+                    await process.WaitForExitAsync();
 
-                    var processInfo = new ProcessStartInfo
-                    {
-                        FileName = "pg_dump",
-                        Arguments = $"-h {builder.Host} -U {builder.Username} -d {builder.Database} -f \"{sqlPath}\" --no-owner --no-privileges",
-                        RedirectStandardError = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = true
-                    };
-                    processInfo.EnvironmentVariables["PGPASSWORD"] = builder.Password;
-
-                    using (var process = Process.Start(processInfo))
-                    {
-                        if (process != null)
-                        {
-                            await process.WaitForExitAsync();
-                            if (process.ExitCode != 0) 
-                            {
-                                string stderr = await process.StandardError.ReadToEndAsync();
-                                Console.WriteLine($"Aviso: pg_dump falló pero se continuará con el JSON. Error: {stderr}");
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Aviso: pg_dump no disponible o falló: {ex.Message}. Se genera backup solo con JSON.");
-                    // No relanzamos la excepción para permitir que el ZIP se genere solo con el JSON
+                    if (process.ExitCode != 0)
+                        throw new Exception($"Error en pg_dump (Código {process.ExitCode}): {stderr}");
                 }
 
-                // 3. Crear ZIP
-                var zipPath = Path.Combine(Path.GetTempPath(), $"backup_full_{DateTime.Now:yyyyMMdd_HHmm}.zip");
-                if (System.IO.File.Exists(zipPath)) System.IO.File.Delete(zipPath);
+                // 4. Leer archivo generado y devolverlo
+                var sqlBytes = await System.IO.File.ReadAllBytesAsync(tempSqlPath);
                 
-                ZipFile.CreateFromDirectory(tempDir, zipPath);
-                var zipBytes = await System.IO.File.ReadAllBytesAsync(zipPath);
-                
-                // Limpieza post-proceso
-                System.IO.File.Delete(zipPath);
-                Directory.Delete(tempDir, true);
+                // Limpieza inmediata del archivo temporal
+                if (System.IO.File.Exists(tempSqlPath)) System.IO.File.Delete(tempSqlPath);
 
-                return File(zipBytes, "application/zip", $"softcoinp_full_backup_{DateTime.Now:yyyyMMdd}.zip");
+                return File(sqlBytes, "application/sql", $"softcoinp_full_backup_{DateTime.Now:yyyyMMdd_HHmm}.sql");
             }
             catch (Exception ex)
             {
-                if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
-                return StatusCode(500, new { error = "Error crítico al generar backup", detail = ex.Message });
+                if (System.IO.File.Exists(tempSqlPath)) System.IO.File.Delete(tempSqlPath);
+                Console.WriteLine($"Error ExportFull SQL: {ex.Message}");
+                return StatusCode(500, new { error = "Fallo al generar el volcado SQL completo.", detail = ex.Message });
             }
         }
 
@@ -200,24 +162,69 @@ namespace Softcoinp.Backend.Controllers
             }
         }
 
+        public class ClearDataRequest
+        {
+            public bool Registros { get; set; }
+            public bool Personal { get; set; }
+            public bool Vehiculos { get; set; }
+            public bool Anotaciones { get; set; }
+            public bool Correspondencia { get; set; }
+            public bool Recibos { get; set; }
+            public bool Auditoria { get; set; }
+        }
+
         [HttpPost("clear-operational-data")]
-        public async Task<IActionResult> ClearOperationalData()
+        public async Task<IActionResult> ClearOperationalData([FromBody] ClearDataRequest req)
         {
             try
             {
-                // Orden de eliminación para respetar llaves foráneas (Dependencias -> Maestras)
-                await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"EntregasRecibos\"");
-                await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"RecibosPublicos\"");
-                await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"RegistrosVehiculos\"");
-                await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"Registros\"");
-                await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"Anotaciones\"");
-                await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"Correspondencias\"");
+                // El orden de eliminación es crítico para respetar FKs
                 
-                // Ahora borramos las maestras operativas
-                await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"Vehiculos\"");
-                await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"Personal\"");
+                if (req.Recibos)
+                {
+                    await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"EntregasRecibos\"");
+                    await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"RecibosPublicos\"");
+                }
 
-                return Ok(new { message = "Datos operativos limpiados con éxito. Se conservan Usuarios y Configuraciones." });
+                if (req.Registros)
+                {
+                    await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"RegistrosVehiculos\"");
+                    await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"Registros\"");
+                }
+
+                if (req.Anotaciones)
+                {
+                    await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"Anotaciones\"");
+                }
+
+                if (req.Correspondencia)
+                {
+                    await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"Correspondencias\"");
+                }
+
+                if (req.Vehiculos)
+                {
+                    // Nota: Si se borran vehículos, se deben borrar sus registros y anotaciones relacionadas antes
+                    if (!req.Registros) await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"RegistrosVehiculos\"");
+                    if (!req.Anotaciones) await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"Anotaciones\" WHERE \"VehiculoId\" IS NOT NULL");
+                    await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"Vehiculos\"");
+                }
+
+                if (req.Personal)
+                {
+                    // Nota: Si se borra personal, se deben borrar sus dependencias
+                    if (!req.Registros) await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"Registros\"");
+                    if (!req.Anotaciones) await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"Anotaciones\" WHERE \"PersonalId\" IS NOT NULL");
+                    if (!req.Vehiculos) await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"Vehiculos\"");
+                    await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"Personal\"");
+                }
+
+                if (req.Auditoria)
+                {
+                    await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"AuditLogs\"");
+                }
+
+                return Ok(new { message = "Limpieza selectiva completada con éxito." });
             }
             catch (System.Exception ex)
             {
@@ -290,53 +297,117 @@ namespace Softcoinp.Backend.Controllers
         }
 
         /// <summary>
-        /// Restaura la base de datos completa desde un archivo JSON o un paquete ZIP.
+        /// Restaura la base de datos desde un archivo JSON (Configuración o Backup Completo).
         /// </summary>
-        [HttpPost("import-backup")]
-        public async Task<IActionResult> ImportBackup([FromForm] Microsoft.AspNetCore.Http.IFormFile file)
+        [HttpPost("import-json")]
+        public async Task<IActionResult> ImportJson([FromForm] Microsoft.AspNetCore.Http.IFormFile file)
         {
-            if (file == null || file.Length == 0)
-                return BadRequest(new { error = "Archivo no válido o vacío." });
+            if (file == null || file.Length == 0 || !file.FileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+                return BadRequest(new { error = "Por favor selecciona un archivo .json válido." });
 
             try
             {
-                BackupDataDto? backup = null;
+                using var stream = file.OpenReadStream();
                 var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-
-                // 1. Detectar si es ZIP o JSON
-                if (file.FileName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
-                {
-                    using var stream = file.OpenReadStream();
-                    using var archive = new ZipArchive(stream);
-                    var entry = archive.GetEntry("configuracion.json");
-                    
-                    if (entry == null)
-                        return BadRequest(new { error = "El archivo ZIP no contiene 'configuracion.json'." });
-
-                    using var entryStream = entry.Open();
-                    backup = await JsonSerializer.DeserializeAsync<BackupDataDto>(entryStream, options);
-                }
-                else
-                {
-                    using var stream = file.OpenReadStream();
-                    backup = await JsonSerializer.DeserializeAsync<BackupDataDto>(stream, options);
-                }
-
-                if (backup == null)
-                    return BadRequest(new { error = "El formato del respaldo no es válido o está corrupto." });
-
-                Console.WriteLine($"Importando Respaldo v{backup.Version}: {backup.Personal?.Count ?? 0} Personal, {backup.Vehiculos?.Count ?? 0} Vehículos.");
-
-                // INICIA LA RESTAURACIÓN (Lógica existente protegida)
+                var backup = await JsonSerializer.DeserializeAsync<BackupDataDto>(stream, options);
                 
-                // 1. Limpiar todo el esquema (Re-crear tablas vacías)
+                if (backup == null) return BadRequest(new { error = "El formato JSON no es válido." });
+
+                return await ProcessRestoration(backup, "archivo JSON");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Error al procesar el archivo JSON", detail = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Restaura la base de datos desde un archivo .sql (Dump nativo de PostgreSQL).
+        /// </summary>
+        [HttpPost("import-sql")]
+        public async Task<IActionResult> ImportSql([FromForm] Microsoft.AspNetCore.Http.IFormFile file)
+        {
+            if (file == null || file.Length == 0 || !file.FileName.EndsWith(".sql", StringComparison.OrdinalIgnoreCase))
+                return BadRequest(new { error = "Por favor selecciona un archivo .sql válido." });
+
+            var tempSqlPath = Path.Combine(Path.GetTempPath(), $"restore_{Guid.NewGuid()}.sql");
+
+            try
+            {
+                // 1. Guardar archivo temporalmente
+                using (var stream = new FileStream(tempSqlPath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                // 2. Limpiar esquema actual para evitar conflictos de objetos existentes
+                await _context.Database.ExecuteSqlRawAsync("DROP SCHEMA public CASCADE; CREATE SCHEMA public;");
+
+                // 3. Ejecutar psql (Modo no interactivo y con detención en error)
+                var connString = _configuration.GetConnectionString("DefaultConnection") ?? "";
+                var builder = new Npgsql.NpgsqlConnectionStringBuilder(connString);
+
+                Console.WriteLine($"Ejecutando restauración SQL en host: {builder.Host}, BD: {builder.Database}, Usuario: {builder.Username}");
+
+                var processInfo = new ProcessStartInfo
+                {
+                    FileName = "psql",
+                    Arguments = $"-h {builder.Host} -U {builder.Username} -d {builder.Database} -f \"{tempSqlPath}\" -v ON_ERROR_STOP=1 -X -w",
+                    RedirectStandardError = true,
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+                
+                // PGPASSWORD es la forma estándar y segura de pasar la clave a psql en Docker
+                processInfo.EnvironmentVariables["PGPASSWORD"] = builder.Password;
+
+                using (var process = Process.Start(processInfo))
+                {
+                    if (process == null) throw new Exception("No se pudo iniciar el binario 'psql'. ¿Está instalado en el contenedor?");
+                    
+                    string stdout = await process.StandardOutput.ReadToEndAsync();
+                    string stderr = await process.StandardError.ReadToEndAsync();
+                    await process.WaitForExitAsync();
+
+                    if (process.ExitCode != 0)
+                    {
+                        Console.WriteLine($"FALLO PSQL (Código {process.ExitCode}): {stderr}");
+                        throw new Exception($"PostgreSQL reportó un error: {stderr}");
+                    }
+                    
+                    Console.WriteLine("psql completó la restauración exitosamente.");
+                }
+
+                // 4. Aplicar migraciones para asegurar consistencia (opcional pero recomendado)
+                await _context.Database.MigrateAsync();
+
+                return Ok(new { message = "Base de datos restaurada con éxito desde el archivo SQL. Reinicia sesión." });
+            }
+            catch (Exception ex)
+            {
+                // Si falló el SQL, intentamos dejar una base de datos mínima funcional
+                try { await _context.Database.MigrateAsync(); } catch { }
+                return StatusCode(500, new { error = "Error crítico durante la restauración SQL", detail = ex.Message });
+            }
+            finally
+            {
+                if (System.IO.File.Exists(tempSqlPath)) System.IO.File.Delete(tempSqlPath);
+            }
+        }
+
+        private async Task<IActionResult> ProcessRestoration(BackupDataDto backup, string sourceInfo)
+        {
+            try
+            {
+                Console.WriteLine($"Iniciando restauración desde {sourceInfo}...");
+
+                // 1. Limpiar todo el esquema
                 await _context.Database.ExecuteSqlRawAsync("DROP SCHEMA public CASCADE; CREATE SCHEMA public;");
                 await _context.Database.MigrateAsync();
                 await _context.Database.ExecuteSqlRawAsync("DELETE FROM \"TiposPersonal\"");
 
-                // 2. Restaurar en orden de dependencias
-                
-                // Config y Maestras Base
+                // 2. Insertar en orden de jerarquía
                 if (backup.SystemSettings?.Any() == true)
                 {
                     await _context.SystemSettings.AddRangeAsync(backup.SystemSettings);
@@ -362,7 +433,6 @@ namespace Softcoinp.Backend.Controllers
                     await _context.SaveChangesAsync();
                 }
 
-                // Personal y Vehículos
                 if (backup.Personal?.Any() == true)
                 {
                     foreach(var per in backup.Personal) { per.Registros = new(); per.Anotaciones = new(); }
@@ -377,7 +447,6 @@ namespace Softcoinp.Backend.Controllers
                     await _context.SaveChangesAsync();
                 }
 
-                // Transaccionales
                 if (backup.Registros?.Any() == true)
                 {
                     foreach(var reg in backup.Registros) reg.Personal = null!;
@@ -425,12 +494,12 @@ namespace Softcoinp.Backend.Controllers
                     await _context.SaveChangesAsync();
                 }
 
-                return Ok(new { message = $"Sistema restaurado exitosamente desde {(file.FileName.EndsWith(".zip") ? "paquete ZIP" : "archivo JSON")}. Cierra sesión para aplicar los cambios." });
+                return Ok(new { message = $"Sistema restaurado exitosamente desde {sourceInfo}. Reinicia sesión para aplicar los cambios." });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error Import: {ex.Message}");
-                return StatusCode(500, new { error = "Error crítico durante la restauración. Posible corrupción del archivo.", detail = ex.Message });
+                Console.WriteLine($"Error crítico en restauración: {ex.Message}");
+                return StatusCode(500, new { error = "Fallo en la base de datos durante la restauración.", detail = ex.Message });
             }
         }
     }

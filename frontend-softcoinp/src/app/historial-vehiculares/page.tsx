@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -6,7 +6,7 @@ import api from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
 import NotificationModal from "@/components/NotificationModal";
 
-const BACKEND_BASE_URL = "http://localhost:5004/static";
+const BACKEND_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5100/api").replace(/\/api$/, "/static");
 
 interface AnotacionItem {
   id: string;

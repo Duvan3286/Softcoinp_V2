@@ -1,13 +1,23 @@
 version: "3.9"
 
+# ============================================================
+# DESARROLLO LOCAL — sin necesidad de rebuild al cambiar código
+# Uso: docker compose up --build   (solo la primera vez o al cambiar dependencias)
+#      docker compose up           (arranque rápido posterior)
+# ============================================================
+
 services:
+
+  # ──────────────────────────────────────────
+  # Base de datos PostgreSQL
+  # ──────────────────────────────────────────
   db:
     image: postgres:15
     container_name: postgres-softcoinp
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 1234
+      POSTGRES_PASSWORD: "1234"
       POSTGRES_DB: softcoinp
     ports:
       - "5432:5432"
@@ -15,35 +25,69 @@ services:
       - db-data:/var/lib/postgresql/data
     networks:
       - softcoinp-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d softcoinp"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
+  # ──────────────────────────────────────────
+  # Backend — .NET 8 con dotnet watch (hot-reload)
+  # ──────────────────────────────────────────
   backend:
     build:
       context: ./Softcoinp.Backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: backend-softcoinp
-    restart: always
+    restart: unless-stopped
     ports:
-      - "5100:8080" # Mapeo de puerto interno 8080 (default ASP.NET 8) al 5100 externo
+      - "5100:8080"
     environment:
+      # La conexión interna usa el nombre de servicio 'db', no localhost
       - ConnectionStrings__DefaultConnection=Host=db;Database=softcoinp;Username=postgres;Password=1234
       - ASPNETCORE_ENVIRONMENT=Development
+      # Necesario para que dotnet watch detecte cambios de archivo en Windows (bind-mount)
+      - DOTNET_USE_POLLING_FILE_WATCHER=1
+      - DOTNET_WATCH_SUPPRESS_BROWSER_REFRESH=1
+    volumes:
+      # Bind-mount del código fuente → hot-reload sin rebuild
+      - ./Softcoinp.Backend:/app
+      # Proteger directorios de compilación dentro del contenedor
+      - backend-obj:/app/obj
+      - backend-bin:/app/bin
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - softcoinp-network
 
+  # ──────────────────────────────────────────
+  # Frontend — Next.js con Turbopack (hot-reload)
+  # ──────────────────────────────────────────
   frontend:
     build:
       context: ./frontend-softcoinp
-      dockerfile: Dockerfile
-      args:
-        - NEXT_PUBLIC_API_URL=http://localhost:5100/api
+      dockerfile: Dockerfile.dev
     container_name: frontend-softcoinp
-    restart: always
+    restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
+      # NEXT_PUBLIC_* = variable que el BROWSER usa (debe apuntar a localhost del host)
       - NEXT_PUBLIC_API_URL=http://localhost:5100/api
+      # Variable interna para SSR (server-side): usa el nombre de servicio Docker
+      - INTERNAL_API_URL=http://backend:8080/api
+      # Polling para que Webpack/Turbopack detecte cambios en Windows (bind-mount)
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+      - NODE_OPTIONS=--max-old-space-size=2048
+    volumes:
+      # Bind-mount del código fuente → hot-reload sin rebuild
+      - ./frontend-softcoinp:/app
+      # Volúmenes anónimos para proteger node_modules y la caché de Next.js del bind-mount
+      - frontend-node-modules:/app/node_modules
+      - frontend-next-cache:/app/.next
     depends_on:
       - backend
     networks:
@@ -55,3 +99,7 @@ networks:
 
 volumes:
   db-data:
+  backend-obj:
+  backend-bin:
+  frontend-node-modules:
+  frontend-next-cache:

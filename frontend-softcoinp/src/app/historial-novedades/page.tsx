@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -43,7 +43,7 @@ interface AnotacionesResponse {
   data: AnotacionItem[];
 }
 
-const BACKEND_BASE_URL = "http://localhost:5004/static";
+const BACKEND_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5100/api").replace(/\/api$/, "/static");
 
 export default function HistorialNovedadesPage() {
   const router = useRouter();

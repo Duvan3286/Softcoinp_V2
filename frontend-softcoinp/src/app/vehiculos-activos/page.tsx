@@ -1,10 +1,10 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { registroVehiculoService, RegistroVehiculoDto } from "@/services/registroVehiculoService";
 import { useRouter } from "next/navigation";
 
-const BACKEND_BASE_URL = "http://localhost:5004/static";
+const BACKEND_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5100/api").replace(/\/api$/, "/static");
 
 export default function VehiculosActivosPage() {
   const [registrosActivos, setRegistrosActivos] = useState<RegistroVehiculoDto[]>([]);

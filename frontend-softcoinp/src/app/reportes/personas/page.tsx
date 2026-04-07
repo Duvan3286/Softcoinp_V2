@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { personalService } from "@/services/personalService";
@@ -205,7 +205,7 @@ export default function CatalogPersonalPage() {
                           <div className="flex items-center gap-3">
                             {p.fotoUrl ? (
                               <img
-                                src={p.fotoUrl.startsWith("http") ? p.fotoUrl : `http://localhost:5004/static${p.fotoUrl}`}
+                                src={p.fotoUrl.startsWith("http") ? p.fotoUrl : `${(process.env.NEXT_PUBLIC_API_URL || "http://localhost:5100/api").replace(/\/api$/, "/static")}${p.fotoUrl}`}
                                 className="w-10 h-10 rounded-full object-cover border-2 border-border shadow-sm"
                                 alt="Avatar"
                                 onError={e => { (e.target as HTMLImageElement).style.display='none'; }}

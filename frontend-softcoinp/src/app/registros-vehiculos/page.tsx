@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { registroVehiculoService, RegistroVehiculoDto } from "@/services/registroVehiculoService";
@@ -7,7 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import NotificationModal from "@/components/NotificationModal";
 import api from "@/services/api";
 
-const BACKEND_BASE_URL = "http://localhost:5004/static";
+const BACKEND_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5100/api").replace(/\/api$/, "/static");
 
 const formatDateTime = (isoString?: string) => {
   if (!isoString) return { fecha: "-", hora: "-" };

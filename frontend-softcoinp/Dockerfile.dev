@@ -1,0 +1,16 @@
+FROM node:20-alpine
+WORKDIR /app
+
+# Dependencias nativas requeridas por algunas librerías de Node en Alpine
+RUN apk add --no-cache libc6-compat
+
+# Copiar manifiestos e instalar dependencias ANTES de montar el volumen.
+# El directorio node_modules queda dentro de la imagen y docker-compose
+# lo "protege" con un volumen anónimo para que no sea sobreescrito por el bind-mount.
+COPY package*.json ./
+RUN npm install
+
+EXPOSE 3000
+
+# Next.js dev server con Turbopack habilitado (mismo script que en desarrollo local)
+CMD ["npm", "run", "dev"]

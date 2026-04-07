@@ -1,0 +1,16 @@
+FROM mcr.microsoft.com/dotnet/sdk:8.0
+WORKDIR /app
+
+# Instalar postgresql-client para que pg_dump esté disponible igual que en producción
+RUN apt-get update && apt-get install -y postgresql-client && rm -rf /var/lib/apt/lists/*
+
+# Copiar sólo los archivos de proyecto y restaurar dependencias ANTES de montar el volumen.
+# Esto permite que dotnet watch funcione sin necesidad de hacer restore en cada arranque.
+COPY Softcoinp.Backend.csproj ./
+RUN dotnet restore "Softcoinp.Backend.csproj"
+
+# El código fuente real llega mediante el bind-mount definido en docker-compose.yml
+EXPOSE 8080
+
+# dotnet watch: recompila y reinicia automáticamente al detectar cambios en el código fuente
+ENTRYPOINT ["dotnet", "watch", "run", "--no-hot-reload", "--urls", "http://0.0.0.0:8080"]

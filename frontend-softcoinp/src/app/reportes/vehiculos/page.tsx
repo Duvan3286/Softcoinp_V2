@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { vehiculoService } from "@/services/vehiculoService";
@@ -204,7 +204,7 @@ export default function CatalogVehiculosPage() {
                           <div className="flex items-center gap-3">
                             {v.fotoUrl ? (
                               <img
-                                src={v.fotoUrl.startsWith("http") ? v.fotoUrl : `http://localhost:5004/static${v.fotoUrl}`}
+                                src={v.fotoUrl.startsWith("http") ? v.fotoUrl : `${(process.env.NEXT_PUBLIC_API_URL || "http://localhost:5100/api").replace(/\/api$/, "/static")}${v.fotoUrl}`}
                                 className="w-10 h-10 rounded-xl object-cover border-2 border-border shadow-sm"
                                 alt="Vehiculo"
                                 onError={e => { (e.target as HTMLImageElement).style.display='none'; }}

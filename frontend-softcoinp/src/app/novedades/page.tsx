@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -9,7 +9,7 @@ import { getCurrentUser, UserPayload } from "@/utils/auth";
 import CustomModal, { ModalType } from "@/components/CustomModal";
 import ImageZoomModal from "@/components/ImageZoomModal";
 
-const BACKEND_BASE_URL = "http://localhost:5004/static";
+const BACKEND_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5100/api").replace(/\/api$/, "/static");
 
 interface PersonalResult {
   id: string;          // ID del Registro (último)

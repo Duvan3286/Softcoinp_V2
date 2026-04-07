@@ -73,6 +73,34 @@ namespace Softcoinp.Backend
                 .HasForeignKey(up => up.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // ── Índices de rendimiento ──────────────────────────────────────────
+            // Sin estos, cada búsqueda hace full table scan en PostgreSQL.
+            // Con ellos, las queries más frecuentes pasan de segundos a milisegundos.
+
+            // Registro: columnas de filtrado más usadas
+            modelBuilder.Entity<Registro>()
+                .HasIndex(r => r.Documento);
+            modelBuilder.Entity<Registro>()
+                .HasIndex(r => r.HoraIngresoUtc);
+            modelBuilder.Entity<Registro>()
+                .HasIndex(r => r.HoraSalidaUtc); // NULL = entrada activa
+
+            // Vehículo: búsqueda por placa es la operación más frecuente
+            modelBuilder.Entity<Vehiculo>()
+                .HasIndex(v => v.Placa)
+                .IsUnique();
+
+            modelBuilder.Entity<Anotacion>()
+                .HasIndex(a => a.VehiculoId);
+
+            // Vehículo: búsqueda por placa Y relación con el personal
+            modelBuilder.Entity<Vehiculo>()
+                .HasIndex(v => v.Placa)
+                .IsUnique();
+
+            modelBuilder.Entity<Vehiculo>()
+                .HasIndex(v => v.PersonalId);
+
             base.OnModelCreating(modelBuilder);
         }
 

@@ -205,37 +205,70 @@ namespace Softcoinp.Backend.Controllers
         [HttpGet("{id}")]
         public IActionResult GetById(Guid id)
         {
-            var registro = _db.Registros
-                .Where(r => r.Id == id)
-                .Select(r => new RegistroDto
+            // JOIN con Vehiculo por PersonalId (ID de la persona)
+            // Esto garantiza que se traiga el vehículo asociado en el sistema,
+            // no solo el del historial de este registro específico.
+            var result = (
+                from r in _db.Registros
+                join v in _db.Vehiculos on r.PersonalId equals v.PersonalId into vJoin
+                from v in vJoin.OrderByDescending(x => x.FechaCreacionUtc).Take(1).DefaultIfEmpty()
+                where r.Id == id
+                select new
                 {
-                    Id = r.Id,
-                    Nombre = r.Personal!.Nombre,
-                    Apellido = r.Personal!.Apellido,
-                    Documento = r.Personal!.Documento,
-                    Telefono = r.Personal!.Telefono,
-                    Motivo = r.Motivo,
-                    Destino = r.Destino,
-                    Tipo = r.Personal!.Tipo,
-                    HoraIngresoUtc = r.HoraIngresoUtc,
-                    HoraIngresoLocal = r.HoraIngresoLocal,
-                    HoraSalidaUtc = r.HoraSalidaUtc,
-                    HoraSalidaLocal = r.HoraSalidaLocal,
-                    RegistradoPor = r.RegistradoPor,
-                    FotoUrl = r.Personal!.FotoUrl ?? r.FotoUrl, 
-                    IsBloqueado = r.Personal!.IsBloqueado,
-                    MotivoBloqueo = r.Personal!.MotivoBloqueo,
-                    PlacaVehiculo = r.PlacaVehiculo,
-                    MarcaVehiculo = _db.Vehiculos.Where(v => v.Placa == r.PlacaVehiculo).Select(v => v.Marca).FirstOrDefault() ?? r.MarcaVehiculo,
-                    ModeloVehiculo = _db.Vehiculos.Where(v => v.Placa == r.PlacaVehiculo).Select(v => v.Modelo).FirstOrDefault() ?? r.ModeloVehiculo,
-                    ColorVehiculo = _db.Vehiculos.Where(v => v.Placa == r.PlacaVehiculo).Select(v => v.Color).FirstOrDefault() ?? r.ColorVehiculo,
-                    TipoVehiculo = _db.Vehiculos.Where(v => v.Placa == r.PlacaVehiculo).Select(v => v.TipoVehiculo).FirstOrDefault() ?? r.TipoVehiculo,
-                    FotoVehiculoUrl = _db.Vehiculos.Where(v => v.Placa == r.PlacaVehiculo).Select(v => v.FotoUrl).FirstOrDefault() ?? r.FotoVehiculoUrl
-                })
-                .FirstOrDefault();
+                    r.Id,
+                    Nombre          = r.Personal!.Nombre,
+                    Apellido        = r.Personal!.Apellido,
+                    Documento       = r.Personal!.Documento,
+                    Telefono        = r.Personal!.Telefono,
+                    r.Motivo,
+                    r.Destino,
+                    Tipo            = r.Personal!.Tipo,
+                    r.HoraIngresoUtc,
+                    r.HoraIngresoLocal,
+                    r.HoraSalidaUtc,
+                    r.HoraSalidaLocal,
+                    r.RegistradoPor,
+                    FotoUrl         = r.Personal!.FotoUrl ?? r.FotoUrl,
+                    IsBloqueado     = r.Personal!.IsBloqueado,
+                    MotivoBloqueo   = r.Personal!.MotivoBloqueo,
+                    r.PlacaVehiculo,
+                    // Si hay un vehículo maestro asociado, usamos su data; si no, la del historial
+                    MarcaVehiculo   = v.Marca      ?? r.MarcaVehiculo,
+                    ModeloVehiculo  = v.Modelo     ?? r.ModeloVehiculo,
+                    ColorVehiculo   = v.Color      ?? r.ColorVehiculo,
+                    TipoVehiculo    = v.TipoVehiculo ?? r.TipoVehiculo,
+                    FotoVehiculoUrl = v.FotoUrl    ?? r.FotoVehiculoUrl
+                }
+            ).FirstOrDefault();
 
-            if (registro == null)
+            if (result == null)
                 return NotFound(ApiResponse<RegistroDto>.Fail(null, "Registro no encontrado"));
+
+            var registro = new RegistroDto
+            {
+                Id              = result.Id,
+                Nombre          = result.Nombre,
+                Apellido        = result.Apellido,
+                Documento       = result.Documento,
+                Telefono        = result.Telefono,
+                Motivo          = result.Motivo,
+                Destino         = result.Destino,
+                Tipo            = result.Tipo,
+                HoraIngresoUtc  = result.HoraIngresoUtc,
+                HoraIngresoLocal = result.HoraIngresoLocal,
+                HoraSalidaUtc   = result.HoraSalidaUtc,
+                HoraSalidaLocal = result.HoraSalidaLocal,
+                RegistradoPor   = result.RegistradoPor,
+                FotoUrl         = result.FotoUrl,
+                IsBloqueado     = result.IsBloqueado,
+                MotivoBloqueo   = result.MotivoBloqueo,
+                PlacaVehiculo   = result.PlacaVehiculo,
+                MarcaVehiculo   = result.MarcaVehiculo,
+                ModeloVehiculo  = result.ModeloVehiculo,
+                ColorVehiculo   = result.ColorVehiculo,
+                TipoVehiculo    = result.TipoVehiculo,
+                FotoVehiculoUrl = result.FotoVehiculoUrl
+            };
 
             return Ok(ApiResponse<RegistroDto>.SuccessResponse(registro));
         }
@@ -247,40 +280,74 @@ namespace Softcoinp.Backend.Controllers
             if (string.IsNullOrWhiteSpace(documento))
                 return BadRequest(ApiResponse<RegistroDto>.Fail(null, "El documento es obligatorio"));
 
-            var registro = _db.Registros
-                .Where(r => r.Documento == documento)
-                .OrderByDescending(r => r.HoraIngresoUtc)
-                .Select(r => new RegistroDto
+            // JOIN con Vehiculo por PersonalId (ID de la persona) en vez de placa.
+            // Esto permite que el buscador traiga el vehículo actual del propietario
+            // incluso si el último registro lo hizo a pie.
+            var result = (
+                from r in _db.Registros
+                join v in _db.Vehiculos on r.PersonalId equals v.PersonalId into vJoin
+                from v in vJoin.OrderByDescending(x => x.FechaCreacionUtc).Take(1).DefaultIfEmpty()
+                where r.Documento == documento
+                orderby r.HoraIngresoUtc descending
+                select new
                 {
-                    Id = r.Id,
-                    PersonalId = r.PersonalId,
-                    Nombre = r.Personal!.Nombre,
-                    Apellido = r.Personal!.Apellido,
-                    Documento = r.Personal!.Documento,
-                    Telefono = r.Personal!.Telefono,
-                    Motivo = r.Motivo,
-                    Destino = r.Destino,
-                    Tipo = r.Personal!.Tipo,
-                    HoraIngresoUtc = r.HoraIngresoUtc,
-                    HoraIngresoLocal = r.HoraIngresoLocal,
-                    HoraSalidaUtc = r.HoraSalidaUtc,
-                    HoraSalidaLocal = r.HoraSalidaLocal,
-                    RegistradoPor = r.RegistradoPor,
-                    FotoUrl = r.Personal!.FotoUrl ?? r.FotoUrl,
-                    IsBloqueado = r.Personal!.IsBloqueado,
+                    r.Id,
+                    r.PersonalId,
+                    Nombre        = r.Personal!.Nombre,
+                    Apellido      = r.Personal!.Apellido,
+                    Documento     = r.Personal!.Documento,
+                    Telefono      = r.Personal!.Telefono,
+                    r.Motivo,
+                    r.Destino,
+                    Tipo          = r.Personal!.Tipo,
+                    r.HoraIngresoUtc,
+                    r.HoraIngresoLocal,
+                    r.HoraSalidaUtc,
+                    r.HoraSalidaLocal,
+                    r.RegistradoPor,
+                    FotoUrl       = r.Personal!.FotoUrl ?? r.FotoUrl,
+                    IsBloqueado   = r.Personal!.IsBloqueado,
                     MotivoBloqueo = r.Personal!.MotivoBloqueo,
-                    PlacaVehiculo = r.PlacaVehiculo,
-                    VehiculoId = _db.Vehiculos.Where(v => v.Placa == r.PlacaVehiculo).Select(v => (Guid?)v.Id).FirstOrDefault(),
-                    MarcaVehiculo = _db.Vehiculos.Where(v => v.Placa == r.PlacaVehiculo).Select(v => v.Marca).FirstOrDefault() ?? r.MarcaVehiculo,
-                    ModeloVehiculo = _db.Vehiculos.Where(v => v.Placa == r.PlacaVehiculo).Select(v => v.Modelo).FirstOrDefault() ?? r.ModeloVehiculo,
-                    ColorVehiculo = _db.Vehiculos.Where(v => v.Placa == r.PlacaVehiculo).Select(v => v.Color).FirstOrDefault() ?? r.ColorVehiculo,
-                    TipoVehiculo = _db.Vehiculos.Where(v => v.Placa == r.PlacaVehiculo).Select(v => v.TipoVehiculo).FirstOrDefault() ?? r.TipoVehiculo,
-                    FotoVehiculoUrl = _db.Vehiculos.Where(v => v.Placa == r.PlacaVehiculo).Select(v => v.FotoUrl).FirstOrDefault() ?? r.FotoVehiculoUrl
-                })
-                .FirstOrDefault();
+                    PlacaVehiculo   = v.Placa ?? r.PlacaVehiculo, // Priorizar la placa del carro master
+                    VehiculoId         = (Guid?)v.Id,
+                    MarcaVehiculo      = v.Marca      ?? r.MarcaVehiculo,
+                    ModeloVehiculo     = v.Modelo     ?? r.ModeloVehiculo,
+                    ColorVehiculo      = v.Color      ?? r.ColorVehiculo,
+                    TipoVehiculo       = v.TipoVehiculo ?? r.TipoVehiculo,
+                    FotoVehiculoUrl    = v.FotoUrl    ?? r.FotoVehiculoUrl
+                }
+            ).FirstOrDefault();
 
-            if (registro == null)
+            if (result == null)
                 return NotFound(ApiResponse<RegistroDto>.Fail(null, "No se encontró una persona con ese documento"));
+
+            var registro = new RegistroDto
+            {
+                Id              = result.Id,
+                PersonalId      = result.PersonalId,
+                Nombre          = result.Nombre,
+                Apellido        = result.Apellido,
+                Documento       = result.Documento,
+                Telefono        = result.Telefono,
+                Motivo          = result.Motivo,
+                Destino         = result.Destino,
+                Tipo            = result.Tipo,
+                HoraIngresoUtc  = result.HoraIngresoUtc,
+                HoraIngresoLocal = result.HoraIngresoLocal,
+                HoraSalidaUtc   = result.HoraSalidaUtc,
+                HoraSalidaLocal = result.HoraSalidaLocal,
+                RegistradoPor   = result.RegistradoPor,
+                FotoUrl         = result.FotoUrl,
+                IsBloqueado     = result.IsBloqueado,
+                MotivoBloqueo   = result.MotivoBloqueo,
+                PlacaVehiculo   = result.PlacaVehiculo,
+                VehiculoId      = result.VehiculoId,
+                MarcaVehiculo   = result.MarcaVehiculo,
+                ModeloVehiculo  = result.ModeloVehiculo,
+                ColorVehiculo   = result.ColorVehiculo,
+                TipoVehiculo    = result.TipoVehiculo,
+                FotoVehiculoUrl = result.FotoVehiculoUrl
+            };
 
             return Ok(ApiResponse<RegistroDto>.SuccessResponse(registro));
         }

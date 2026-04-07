@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, memo } from "react";
 import api from "@/services/api";
 import { useRouter } from "next/navigation";
 import CameraCapture from "@/components/CameraCapture";
@@ -12,9 +12,45 @@ import { getCurrentUser, UserPayload } from "@/utils/auth";
 import ImageZoomModal from "@/components/ImageZoomModal";
 import { useTheme } from "next-themes";
 
+// URL base del backend para recursos estáticos (fotos)
+const BACKEND_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5100/api")
+  .replace(/\/api$/, "/static");
 
-// CONFIGURACIÓN CRÍTICA: La URL base de tu API de C#.
-const BACKEND_BASE_URL = "http://localhost:5004/static";
+// ── Reloj extraído como componente independiente ──────────────────────────────
+// Al estar separado, su setInterval de 1s sólo re-renderiza este pequeño
+// componente y NO el formulario completo del dashboard.
+const LiveClock = memo(function LiveClock() {
+  const [now, setNow] = useState(() => new Date());
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  if (!mounted) {
+    return (
+      <div className="animate-pulse flex flex-col items-center gap-2">
+        <div className="h-2.5 w-28 bg-border rounded-full" />
+        <div className="h-10 w-40 bg-border rounded-full" />
+      </div>
+    );
+  }
+  return (
+    <>
+      <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.4em] leading-tight relative z-10">
+        {now.toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "short", year: "numeric" })}
+      </p>
+      <div className="flex items-baseline gap-1 mt-1 relative z-10">
+        <p className="text-5xl font-black text-indigo-600 dark:text-indigo-400 tracking-tighter leading-none drop-shadow-sm">
+          {now.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit", hour12: false })}
+        </p>
+        <span className="text-2xl font-black text-indigo-300 dark:text-indigo-800 animate-pulse">
+          :{now.getSeconds().toString().padStart(2, "0")}
+        </span>
+      </div>
+    </>
+  );
+});
 
 // Definición de tipos para el modal
 interface ModalState {
@@ -28,35 +64,11 @@ interface RegistroActivo {
   id: string;
 }
 
-// 📸 FUNCIÓN REFORZADA: Convierte una URL de imagen a Base64 usando Fetch API
-const urlToBase64 = async (url: string): Promise<string> => {
-  const fullUrl = url.startsWith('/') ? `${BACKEND_BASE_URL}${url}` : url;
-
-  try {
-    const response = await fetch(fullUrl, {
-      mode: 'cors',
-      cache: 'no-cache'
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const blob = await response.blob();
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = () => {
-        console.error("❌ Error al leer el blob de la imagen.");
-        resolve("");
-      };
-      reader.readAsDataURL(blob);
-    });
-  } catch (error) {
-    console.error(`❌ Error al descargar la foto desde: ${fullUrl}`, error);
-    return "";
-  }
-};
+// Resuelve una URL de imagen (relativa o absoluta) a su URL completa.
+// Ya NO se convierte a base64 — el browser carga las imágenes directamente
+// desde la URL, lo que es ~10x más rápido y no bloquea el hilo de JS.
+const resolveImageUrl = (url: string): string =>
+  url.startsWith("http") ? url : `${BACKEND_BASE_URL}${url}`;
 
 export default function DashboardPage() {
   const identificacionRef = useRef<HTMLInputElement>(null);
@@ -78,8 +90,6 @@ export default function DashboardPage() {
   const [cargo, setCargo] = useState("");
   const [destino, setDestino] = useState("");
   const [motivo, setMotivo] = useState("");
-  const [fechaHora, setFechaHora] = useState(new Date());
-  const [mounted, setMounted] = useState(false);
 
   
   // 🏷️ ESTADOS para los tipos de personal dinámicos
@@ -160,16 +170,11 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    setMounted(true);
     setUsuario(getCurrentUser());
-    const timer = setInterval(() => setFechaHora(new Date()), 1000);
-    
     // 🎯 Auto-focus en el campo de identificación al cargar
     setTimeout(() => {
       identificacionRef.current?.focus();
     }, 100);
-
-    return () => clearInterval(timer);
   }, []);
 
   const showModal = (message: string, type: ModalType, title?: string) => {
@@ -498,22 +503,9 @@ export default function DashboardPage() {
 
       if (persona) {
         if (persona.isBloqueado) {
-           setIsBloqueado(true);
-           setMotivoBloqueo(persona.motivoBloqueo || "Motivo no especificado");
-           showModal(`🚫 ACCESO DENEGADO: Esta persona se encuentra BLOQUEADA. Motivo: ${persona.motivoBloqueo}`, "error");
-        }
-
-        // ✅ Verificar si tiene entrada activa usando el endpoint dedicado
-        try {
-          const activoRes = await api.get(`/registros/activo`, { params: { documento: identificacion } }) as any;
-          if (activoRes.data?.data) {
-            setRegistroActivo({ id: activoRes.data.data.id });
-          } else {
-            setRegistroActivo(null);
-          }
-        } catch {
-          // 404 significa que no hay entrada activa
-          setRegistroActivo(null);
+          setIsBloqueado(true);
+          setMotivoBloqueo(persona.motivoBloqueo || "Motivo no especificado");
+          showModal(`🚫 ACCESO DENEGADO: Esta persona se encuentra BLOQUEADA. Motivo: ${persona.motivoBloqueo}`, "error");
         }
 
         setNombres(persona.nombre || "");
@@ -521,48 +513,84 @@ export default function DashboardPage() {
         setTelefono(persona.telefono || "");
         setTipo(persona.tipo || "visitante");
 
-        // Autocompletar vehículo si existe
+        // 📸 Foto de la persona
+        if (persona.fotoUrl) setFotoUrl(persona.fotoUrl);
+
+        // 🚗 Autocompletar vehículo asociado si la persona tiene uno
         if (persona.placaVehiculo) {
           setPlaca(persona.placaVehiculo);
           setMarca(persona.marcaVehiculo || "");
           setModelo(persona.modeloVehiculo || "");
           setColor(persona.colorVehiculo || "");
           setTipoVehiculo(persona.tipoVehiculo || "");
+          // Usar la foto del registro como placeholder inicial; se actualizará abajo
+          if (persona.fotoVehiculoUrl) setFotoVehiculoUrl(persona.fotoVehiculoUrl);
+        }
 
-          if (persona.placaVehiculo) {
-            try {
-              const vRes = (await api.get(`/vehiculos/placa/${persona.placaVehiculo}`)) as { data: { data?: any } };
-              const vData = vRes.data?.data;
-              if (vData?.isBloqueado) {
-                setIsVehiculoBloqueado(true);
-                setMotivoBloqueoVehiculo(vData.motivoBloqueo || "Motivo no especificado");
-              } else {
-                setIsVehiculoBloqueado(false);
-                setMotivoBloqueoVehiculo("");
-              }
-            } catch {
+        // ✅ Lanzar TODAS las peticiones secundarias EN PARALELO
+        const [activoRes, vehiculoData, activoVehRes, alertasPersona, alertasVehiculo] = await Promise.allSettled([
+          // 1. ¿La persona tiene una entrada activa?
+          api.get(`/registros/activo`, { params: { documento: identificacion } }),
+          // 2. Datos actualizados del vehículo (foto, bloqueo, etc.)
+          persona.placaVehiculo
+            ? api.get(`/vehiculos/placa/${persona.placaVehiculo}`)
+            : Promise.resolve(null),
+          // 3. ¿El vehículo asociado tiene una entrada activa?
+          persona.placaVehiculo
+            ? registroVehiculoService.getActivo(persona.placaVehiculo)
+            : Promise.resolve(null),
+          // 4. Anotaciones de seguridad de la persona
+          persona.personalId
+            ? anotacionService.getAnotacionesPorPersonal(persona.personalId)
+            : Promise.resolve([]),
+          // 5. Anotaciones de seguridad del vehículo
+          persona.vehiculoId
+            ? anotacionService.getAnotacionesPorVehiculo(persona.vehiculoId)
+            : Promise.resolve([]),
+        ]);
+
+        // — Entrada activa de la PERSONA
+        if (activoRes.status === "fulfilled" && (activoRes.value as any)?.data?.data) {
+          setRegistroActivo({ id: (activoRes.value as any).data.data.id });
+        } else {
+          setRegistroActivo(null);
+        }
+
+        // — Datos actualizados del VEHÍCULO (foto, bloqueo)
+        if (vehiculoData.status === "fulfilled" && vehiculoData.value) {
+          const vData = (vehiculoData.value as any)?.data?.data;
+          if (vData) {
+            // Sobreescribir con datos más frescos del vehículo
+            if (!persona.marcaVehiculo && vData.marca) setMarca(vData.marca);
+            if (!persona.modeloVehiculo && vData.modelo) setModelo(vData.modelo);
+            if (!persona.colorVehiculo && vData.color) setColor(vData.color);
+            if (!persona.tipoVehiculo && vData.tipoVehiculo) setTipoVehiculo(vData.tipoVehiculo);
+            // Foto actual del vehículo (puede ser más reciente que la del registro)
+            if (vData.fotoUrl) setFotoVehiculoUrl(vData.fotoUrl);
+
+            if (vData.isBloqueado) {
+              setIsVehiculoBloqueado(true);
+              setMotivoBloqueoVehiculo(vData.motivoBloqueo || "Motivo no especificado");
+              showModal(`🚫 El vehículo ${persona.placaVehiculo} está BLOQUEADO. Motivo: ${vData.motivoBloqueo}`, "error");
+            } else {
               setIsVehiculoBloqueado(false);
               setMotivoBloqueoVehiculo("");
             }
           }
         }
 
-        // 📸 Carga de fotos para el snapshot y la vista
-        let pBase64 = null;
-        if (persona.fotoUrl) {
-          setFotoUrl(persona.fotoUrl);
-          pBase64 = await urlToBase64(persona.fotoUrl);
-          if (pBase64) setFotoBase64(pBase64);
+        // — Entrada activa del VEHÍCULO
+        if (activoVehRes.status === "fulfilled" && (activoVehRes.value as any)?.data?.data) {
+          setRegistroVehiculoActivo({ id: (activoVehRes.value as any).data.data.id });
+        } else {
+          setRegistroVehiculoActivo(null);
         }
 
-        let vBase64 = null;
-        if (persona.fotoVehiculoUrl) {
-          setFotoVehiculoUrl(persona.fotoVehiculoUrl);
-          vBase64 = await urlToBase64(persona.fotoVehiculoUrl);
-          if (vBase64) setFotoVehiculoBase64(vBase64);
-        }
+        // — Anotaciones de seguridad
+        if (alertasPersona.status === "fulfilled") setAnotacionesAlerta(alertasPersona.value as AnotacionDto[]);
+        if (alertasVehiculo.status === "fulfilled") setAnotacionesVehiculoAlerta(alertasVehiculo.value as AnotacionDto[]);
 
-        // 📸 Guardar snapshot de los datos originales con base64 para detectar cambios
+        // Snapshot de datos originales
         setDatosOriginales({
           nombre: persona.nombre || "",
           apellido: persona.apellido || "",
@@ -573,22 +601,12 @@ export default function DashboardPage() {
           modelo: persona.modeloVehiculo || "",
           color: persona.colorVehiculo || "",
           tipoVehiculo: persona.tipoVehiculo || "",
-          fotoBase64: pBase64,
-          fotoVehiculoBase64: vBase64,
+          fotoUrl: persona.fotoUrl || null,
+          fotoVehiculoUrl: persona.fotoVehiculoUrl || null,
         });
 
-        // 🔍 Verificar Novedades de Seguridad
-        if (persona.personalId) {
-          const alerts = await anotacionService.getAnotacionesPorPersonal(persona.personalId);
-          setAnotacionesAlerta(alerts);
-        }
-        if (persona.vehiculoId) {
-          const vAlerts = await anotacionService.getAnotacionesPorVehiculo(persona.vehiculoId);
-          setAnotacionesVehiculoAlerta(vAlerts);
-        }
-
         if (!persona.fotoUrl) {
-           showModal("Persona encontrada. Tome una foto para el registro.", "info");
+          showModal("Persona encontrada. Tome una foto para el registro.", "info");
         }
       } else {
         showModal("⚠️ No se encontró persona con ese documento. Diligencie los datos.", "warning");
@@ -639,46 +657,34 @@ export default function DashboardPage() {
           setMotivoBloqueoVehiculo("");
         }
         
-        let vBase64_local = null;
-        if (vehiculo.fotoUrl) {
-           setFotoVehiculoUrl(vehiculo.fotoUrl);
-           vBase64_local = await urlToBase64(vehiculo.fotoUrl);
-           if (vBase64_local) setFotoVehiculoBase64(vBase64_local);
-        }
+        // 📸 Fotos: asignar URL directamente
+        if (vehiculo.fotoUrl) setFotoVehiculoUrl(vehiculo.fotoUrl);
 
-        const vAlerts = await anotacionService.getAnotacionesPorVehiculo(vehiculo.id);
-        setAnotacionesVehiculoAlerta(vAlerts);
+        // Lanzar peticiones secundarias EN PARALELO
+        const [vAlertas, activoVeh, alertasPropietario] = await Promise.allSettled([
+          anotacionService.getAnotacionesPorVehiculo(vehiculo.id),
+          registroVehiculoService.getActivo(placa),
+          vehiculo.propietarioId
+            ? anotacionService.getAnotacionesPorPersonal(vehiculo.propietarioId)
+            : Promise.resolve([]),
+        ]);
 
-        // Verificar si tiene entrada activa
-        try {
-          const activo = await registroVehiculoService.getActivo(placa);
-          if (activo?.data) {
-            setRegistroVehiculoActivo({ id: activo.data.id });
-          } else {
-            setRegistroVehiculoActivo(null);
-          }
-        } catch {
+        if (vAlertas.status === "fulfilled") setAnotacionesVehiculoAlerta(vAlertas.value as AnotacionDto[]);
+
+        if (activoVeh.status === "fulfilled" && (activoVeh.value as any)?.data) {
+          setRegistroVehiculoActivo({ id: (activoVeh.value as any).data.id });
+        } else {
           setRegistroVehiculoActivo(null);
         }
 
-        let pBase64_local = null;
         if (!identificacion) {
-            setIdentificacion(vehiculo.propietarioDocumento || "");
-            setNombres(vehiculo.propietarioNombre || "");
-            setApellidos(vehiculo.propietarioApellido || "");
-            setTelefono(vehiculo.propietarioTelefono || "");
-            setTipo(vehiculo.propietarioTipo || "visitante");
-            
-            if (vehiculo.propietarioFotoUrl) {
-              setFotoUrl(vehiculo.propietarioFotoUrl);
-              pBase64_local = await urlToBase64(vehiculo.propietarioFotoUrl);
-              if (pBase64_local) setFotoBase64(pBase64_local);
-            }
-            
-            if (vehiculo.propietarioId) {
-               const alerts = await anotacionService.getAnotacionesPorPersonal(vehiculo.propietarioId);
-               setAnotacionesAlerta(alerts);
-            }
+          setIdentificacion(vehiculo.propietarioDocumento || "");
+          setNombres(vehiculo.propietarioNombre || "");
+          setApellidos(vehiculo.propietarioApellido || "");
+          setTelefono(vehiculo.propietarioTelefono || "");
+          setTipo(vehiculo.propietarioTipo || "visitante");
+          if (vehiculo.propietarioFotoUrl) setFotoUrl(vehiculo.propietarioFotoUrl);
+          if (alertasPropietario.status === "fulfilled") setAnotacionesAlerta(alertasPropietario.value as AnotacionDto[]);
         }
 
         setDatosOriginales({
@@ -691,9 +697,8 @@ export default function DashboardPage() {
           modelo: vehiculo.modelo || "",
           color: vehiculo.color || "",
           tipoVehiculo: vehiculo.tipoVehiculo || "",
-          fotoBase64: pBase64_local,
-          fotoVehiculoBase64: vBase64_local,
-          fotoVehiculoUrl: vehiculo.fotoUrl,
+          fotoUrl: vehiculo.propietarioFotoUrl || null,
+          fotoVehiculoUrl: vehiculo.fotoUrl || null,
         });
       }
     } catch (err: any) {
@@ -837,7 +842,7 @@ export default function DashboardPage() {
                         {fotoVehiculoBase64 ? (
                           <img src={fotoVehiculoBase64} alt="Vehículo" className="w-full h-full object-cover" />
                         ) : fotoVehiculoUrl ? (
-                          <img src={fotoVehiculoUrl.startsWith('http') ? fotoVehiculoUrl : `${BACKEND_BASE_URL}${fotoVehiculoUrl}`} alt="Vehículo" className="w-full h-full object-cover" />
+                          <img src={resolveImageUrl(fotoVehiculoUrl)} alt="Vehículo" className="w-full h-full object-cover" />
                         ) : (
                           <svg className="w-10 lg:w-12 h-10 lg:h-12 text-slate-200 dark:text-slate-700 group-hover:text-indigo-300 transition duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.218A2 2 0 0110.125 4h3.75a2 2 0 011.664.89l.812 1.218A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         )}
@@ -1005,24 +1010,8 @@ export default function DashboardPage() {
 
             <div className="bg-card rounded-3xl border border-border shadow-[0_8px_30px_rgb(0,0,0,0.02)] p-5 flex flex-col items-center justify-center gap-1.5 text-center relative overflow-hidden group transition-colors duration-300">
               <div className="absolute inset-0 bg-indigo-50/30 dark:bg-indigo-900/10 -translate-y-full group-hover:translate-y-0 transition-transform duration-700"></div>
-              {mounted ? (
-                <>
-                  <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.4em] leading-tight relative z-10">
-                    {fechaHora.toLocaleDateString("es-CO", { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' })}
-                  </p>
-                  <div className="flex items-baseline gap-1 mt-1 relative z-10">
-                    <p className="text-5xl font-black text-indigo-600 dark:text-indigo-400 tracking-tighter leading-none drop-shadow-sm">
-                      {fechaHora.toLocaleTimeString("es-CO", { hour: '2-digit', minute: '2-digit', hour12: false })}
-                    </p>
-                    <span className="text-2xl font-black text-indigo-300 dark:text-indigo-800 animate-pulse">:{fechaHora.getSeconds().toString().padStart(2, '0')}</span>
-                  </div>
-                </>
-              ) : (
-                <div className="animate-pulse flex flex-col items-center gap-2">
-                  <div className="h-2.5 w-28 bg-border rounded-full"></div>
-                  <div className="h-10 w-40 bg-border rounded-full"></div>
-                </div>
-              )}
+              {/* LiveClock es un componente separado — su setInterval no re-renderiza el formulario */}
+              <LiveClock />
             </div>
 
           </div>
@@ -1061,7 +1050,7 @@ export default function DashboardPage() {
                       {fotoBase64 ? (
                         <img src={fotoBase64} alt="Foto" className="w-full h-full object-cover" />
                       ) : fotoUrl ? (
-                        <img src={fotoUrl.startsWith('http') ? fotoUrl : `${BACKEND_BASE_URL}${fotoUrl}`} alt="Foto" className="w-full h-full object-cover" />
+                        <img src={resolveImageUrl(fotoUrl)} alt="Foto" className="w-full h-full object-cover" />
                       ) : (
                         <svg className="w-12 lg:w-14 h-12 lg:h-14 text-slate-200 dark:text-slate-700 group-hover:text-indigo-300 transition duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                       )}

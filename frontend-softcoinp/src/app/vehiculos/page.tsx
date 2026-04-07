@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import api from "@/services/api";
@@ -20,7 +20,7 @@ interface VehiculoRow {
   propietarioTipo: string;
 }
 
-const BACKEND_BASE_URL = "http://localhost:5004/static";
+const BACKEND_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5100/api").replace(/\/api$/, "/static");
 
 export default function VehiculosPage() {
   const [vehiculos, setVehiculos] = useState<VehiculoRow[]>([]);

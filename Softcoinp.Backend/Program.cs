@@ -12,15 +12,30 @@ using System.Text.Json.Serialization;
 using Softcoinp.Backend.Helpers;
 using Softcoinp.Backend.Middlewares;
 using Microsoft.AspNetCore.StaticFiles; 
-using Softcoinp.Backend.Filters; // CORRECCIÓN: Se cambió Microsoft.AspNetCore.Filters a Softcoinp.Backend.Filters
+using Softcoinp.Backend.Filters;
 using Softcoinp.Backend.Models;
 using Microsoft.Extensions.FileProviders; 
 using System.IO; 
-using Microsoft.AspNetCore.Http; 
-
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Compresión de respuestas HTTP (reduce tamaño del JSON ~70% sin costo de CPU significativo)
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<BrotliCompressionProvider>();
+    options.Providers.Add<GzipCompressionProvider>();
+    options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[]
+    {
+        "application/json",
+        "text/plain"
+    });
+});
+builder.Services.Configure<BrotliCompressionProviderOptions>(o => o.Level = System.IO.Compression.CompressionLevel.Fastest);
+builder.Services.Configure<GzipCompressionProviderOptions>(o => o.Level = System.IO.Compression.CompressionLevel.Fastest);
 
 
 // Conexión a PostgreSQL
@@ -128,7 +143,10 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// 1. Usar CORS (debe ir ANTES de UseStaticFiles)
+// 1. Compresión de respuestas (reduce tamaño del JSON ~70%)
+app.UseResponseCompression();
+
+// 2. Usar CORS (debe ir ANTES de UseStaticFiles)
 app.UseCors("AllowFrontend");
 
 // 2. CONFIGURACIÓN FINAL DE ARCHIVOS ESTÁTICOS
@@ -146,15 +164,16 @@ if (Directory.Exists(webRootPath))
     {
         FileProvider = new PhysicalFileProvider(webRootPath),
         ContentTypeProvider = provider, 
-        // Usamos el prefijo /static para evitar conflictos con rutas API
         RequestPath = "/static", 
         OnPrepareResponse = ctx =>
         {
-            // Permitir CORS para archivos estáticos (necesario para descargar fotos en el frontend)
+            // CORS para archivos estáticos
             ctx.Context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
             ctx.Context.Response.Headers.Append("Access-Control-Allow-Methods", "GET, OPTIONS");
             ctx.Context.Response.Headers.Append("Access-Control-Allow-Headers", "*");
             ctx.Context.Response.Headers.Remove("Content-Disposition");
+            // Caché de imágenes: el browser no vuelve a descargar por 7 días
+            ctx.Context.Response.Headers.Append("Cache-Control", "public, max-age=604800, immutable");
         }
     }); 
 }

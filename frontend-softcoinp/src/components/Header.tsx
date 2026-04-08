@@ -5,8 +5,6 @@ import { useRouter, usePathname } from "next/navigation";
 import { getApiResponse } from "@/services/api";
 import { useSidebar } from "@/context/SidebarContext";
 import { settingsService } from "@/services/settingsService";
-import { useTheme } from "next-themes";
-
 interface AuthUser {
   nombre: string;
 }
@@ -15,13 +13,12 @@ export default function Header() {
   const [usuario, setUsuario] = useState("");
   const [clientName, setClientName] = useState("SOFTCOINP");
   const [systemVersion, setSystemVersion] = useState("");
-  const [mounted, setMounted] = useState(false);
+
   const pathname = usePathname();
   const router = useRouter();
-  const { theme, setTheme, resolvedTheme } = useTheme();
 
   useEffect(() => {
-    setMounted(true);
+
     if (pathname === "/login") return;
     const cargarDatos = async () => {
       try {
@@ -100,23 +97,8 @@ export default function Header() {
         </div>
       </div>
 
-      {/* ── DERECHA: Selector de Tema + Botón Salir ── */}
+      {/* ── DERECHA: Botón Salir ── */}
       <div className="ml-auto flex items-center gap-2 lg:gap-3">
-        {mounted && (
-          <button
-            onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
-            title={`Cambiar a modo ${resolvedTheme === 'dark' ? 'claro' : 'oscuro'}`}
-            className="group relative flex items-center justify-center w-9 h-9 rounded-xl bg-background border border-border hover:border-emerald-500 dark:hover:border-emerald-500 transition-all active:scale-90"
-          >
-            <div className="relative w-5 h-5 flex items-center justify-center">
-              {resolvedTheme === 'dark' ? (
-                <svg className="w-5 h-5 text-emerald-400 animate-in zoom-in duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
-              ) : (
-                <svg className="w-5 h-5 text-amber-500 animate-in zoom-in duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 9H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-              )}
-            </div>
-          </button>
-        )}
 
         <button
           onClick={handleLogout}

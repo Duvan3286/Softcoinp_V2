@@ -17,7 +17,6 @@ const geistMono = Geist_Mono({
 });
 
 import { AuthProvider } from "@/context/AuthContext";
-import { ThemeProvider } from "@/components/ThemeProvider";
 
 export const metadata: Metadata = {
   title: "SOFTCOINP | Control de Acceso",
@@ -34,29 +33,22 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased lg:h-screen lg:overflow-hidden min-h-screen flex flex-col bg-background text-foreground transition-colors duration-300`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <SidebarProvider>
-            <AuthProvider>
-              {/* 🔝 HEADER GLOBAL */}
-              <Header />
+        <SidebarProvider>
+          <AuthProvider>
+            {/* 🔝 HEADER GLOBAL */}
+            <Header />
 
-              {/* 📄 CONTENIDO */}
-              <main className="flex flex-row flex-1 w-full overflow-hidden relative">
-                <SessionGuard>
-                  <Sidebar />
-                  <div className="flex-1 lg:overflow-hidden overflow-y-auto bg-background w-full relative flex flex-col min-h-0 transition-colors duration-300">
-                    {children}
-                  </div>
-                </SessionGuard>
-              </main>
-            </AuthProvider>
-          </SidebarProvider>
-        </ThemeProvider>
+            {/* 📄 CONTENIDO */}
+            <main className="flex flex-row flex-1 w-full overflow-hidden relative">
+              <SessionGuard>
+                <Sidebar />
+                <div className="flex-1 lg:overflow-hidden overflow-y-auto bg-background w-full relative flex flex-col min-h-0 transition-colors duration-300">
+                  {children}
+                </div>
+              </SessionGuard>
+            </main>
+          </AuthProvider>
+        </SidebarProvider>
       </body>
     </html>
   );

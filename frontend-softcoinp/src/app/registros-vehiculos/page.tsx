@@ -6,6 +6,16 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import NotificationModal from "@/components/NotificationModal";
 import api from "@/services/api";
+import { 
+  Car, 
+  ScrollText, 
+  Download, 
+  Eraser, 
+  Filter, 
+  CarFront, 
+  ChevronLeft, 
+  ChevronRight 
+} from "lucide-react";
 
 const BACKEND_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5100/api").replace(/\/api$/, "/static");
 
@@ -122,8 +132,8 @@ export default function RegistrosVehiculosPage() {
         {/* 📋 Header Section */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-4 shrink-0">
           <div className="flex items-center gap-3">
-             <div className="p-2 bg-emerald-600 rounded-xl text-white shadow-none border border-emerald-500/20">
-               <span className="text-xl">🚗</span>
+             <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 rounded-xl shadow-sm flex-shrink-0 transition-transform hover:rotate-3">
+               <Car className="w-6 h-6" />
             </div>
             <div>
               <h1 className="text-lg lg:text-xl font-black text-foreground uppercase tracking-tight">Historial de ingreso Vehícular</h1>
@@ -134,15 +144,15 @@ export default function RegistrosVehiculosPage() {
           <div className="flex gap-2">
             <button
                onClick={() => router.push('/registros')}
-               className="btn-secondary"
+               className="btn-secondary flex items-center justify-center gap-1.5"
             >
-               📜 Ver Personas
+               <ScrollText className="w-4 h-4" /> Ver Personas
             </button>
             {hasPermission("exportar-registros-vehiculos") && (
               <button
                 onClick={handleExportExcel}
                 disabled={exporting}
-                className="btn-success px-8"
+                className="btn-success px-8 flex items-center justify-center gap-1.5"
               >
                 {exporting ? (
                   <>
@@ -151,7 +161,7 @@ export default function RegistrosVehiculosPage() {
                   </>
                 ) : (
                   <>
-                    <span className="text-lg">📥</span>
+                    <Download className="w-4 h-4" />
                     Exportar Excel
                   </>
                 )}
@@ -201,15 +211,15 @@ export default function RegistrosVehiculosPage() {
                   setPage(1);
                   fetchRegistros(1, { placa: "", desde: "", hasta: "" });
                 }}
-                className="btn-secondary px-8"
+                className="btn-secondary px-8 flex items-center justify-center gap-1.5"
               >
-                🧹 Limpiar
+                <Eraser className="w-4 h-4" /> Limpiar
               </button>
               <button
                 onClick={handleBuscar}
                 className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-xl font-black shadow-none transition-all active:scale-95 flex items-center justify-center gap-2 text-xs uppercase"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <Filter className="w-5 h-5" />
                 Filtrar Vehículos
               </button>
             </div>
@@ -242,7 +252,7 @@ export default function RegistrosVehiculosPage() {
                       <tr>
                         <td colSpan={6} className="px-6 py-20 text-center">
                           <div className="flex flex-col items-center gap-4 opacity-30 grayscale">
-                            <span className="text-6xl">🚘</span>
+                            <CarFront className="w-16 h-16 text-foreground" />
                             <p className="text-sm font-black uppercase tracking-widest text-foreground">Sin registros de vehículos</p>
                           </div>
                         </td>
@@ -264,7 +274,7 @@ export default function RegistrosVehiculosPage() {
                                     alt="Vehículo" 
                                   />
                                 ) : (
-                                  <div className="w-full h-full flex items-center justify-center text-xl grayscale opacity-30">🚗</div>
+                                  <div className="w-full h-full flex items-center justify-center text-slate-300 dark:text-slate-600"><CarFront className="w-8 h-8" /></div>
                                 )}
                               </div>
                             </td>
@@ -316,7 +326,7 @@ export default function RegistrosVehiculosPage() {
                     onClick={() => setPage((p) => p - 1)}
                     className="p-2 bg-card text-slate-600 dark:text-slate-400 border border-border rounded-xl hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 disabled:opacity-30 disabled:hover:bg-card disabled:hover:text-slate-600 transition-all shadow-sm active:scale-95"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 19l-7-7 7-7" /></svg>
+                    <ChevronLeft className="w-5 h-5" />
                   </button>
                   
                   <div className="flex items-center bg-background px-4 py-1.5 rounded-xl border border-border">
@@ -331,7 +341,7 @@ export default function RegistrosVehiculosPage() {
                     onClick={() => setPage((p) => p + 1)}
                     className="p-2 bg-card text-slate-600 dark:text-slate-400 border border-border rounded-xl hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 disabled:opacity-30 disabled:hover:bg-card disabled:hover:text-slate-600 transition-all shadow-sm active:scale-95"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7" /></svg>
+                    <ChevronRight className="w-5 h-5" />
                   </button>
                 </div>
 

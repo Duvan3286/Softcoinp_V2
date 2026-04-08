@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getCurrentUser, UserPayload } from "@/utils/auth";
 import { settingsService } from "@/services/settingsService";
+import { Users, Key, Tags, Wrench, Settings, ArrowRight } from "lucide-react";
 
 export default function ConfiguracionesHubPage() {
   const router = useRouter();
@@ -28,7 +29,7 @@ export default function ConfiguracionesHubPage() {
     {
       title: "Gestión de Usuarios",
       description: "Crear, editar y administrar usuarios del sistema.",
-      icon: "👥",
+      icon: <Users className="w-6 h-6" />,
       path: "/configuraciones/usuarios",
       color: "bg-emerald-50 text-emerald-600",
       roles: ["admin", "superadmin"]
@@ -36,15 +37,15 @@ export default function ConfiguracionesHubPage() {
     {
       title: "Gestión de Permisos",
       description: "Controla qué vistas puede ver cada usuario en el sistema.",
-      icon: "🔑",
+      icon: <Key className="w-6 h-6" />,
       path: "/configuraciones/permisos",
-      color: "bg-cyan-50 text-cyan-600",
+      color: "bg-emerald-50 text-emerald-600",
       roles: ["admin", "superadmin"]
     },
     {
       title: "Tipos de Personal",
       description: "Administra las categorías de personal (Empleado, Visitante, etc.).",
-      icon: "🏷️",
+      icon: <Tags className="w-6 h-6" />,
       path: "/configuraciones/tipos",
       color: "bg-emerald-50 text-emerald-600",
       roles: ["admin", "superadmin"]
@@ -52,15 +53,15 @@ export default function ConfiguracionesHubPage() {
     {
       title: "Mantenimiento",
       description: "Auditoría de registros, backups y acciones críticas del sistema.",
-      icon: "🛠️",
+      icon: <Wrench className="w-6 h-6" />,
       path: "/configuraciones/mantenimiento",
-      color: "bg-cyan-50 text-cyan-600",
+      color: "bg-emerald-50 text-emerald-600",
       roles: ["superadmin"]
     },
     {
       title: "General",
       description: "Ajustes globales, logos e institución.",
-      icon: "⚙️",
+      icon: <Settings className="w-6 h-6" />,
       path: "/configuraciones/general",
       color: "bg-zinc-50 text-zinc-600",
       roles: ["admin", "superadmin"]
@@ -75,8 +76,8 @@ export default function ConfiguracionesHubPage() {
     <div className="h-full bg-background p-4 lg:p-12 flex flex-col items-center justify-start overflow-hidden gap-8 transition-colors duration-300">
       <div className="w-full max-w-4xl flex flex-col items-start shrink-0">
         <div className="flex items-center gap-4 mb-2">
-            <div className="p-3 bg-emerald-600 rounded-xl text-white shadow-lg dark:shadow-none transition-all hover:scale-110">
-              <span className="text-2xl">⚙️</span>
+            <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 rounded-xl shadow-sm flex-shrink-0 transition-transform hover:rotate-90">
+              <Settings className="w-6 h-6" />
             </div>
             <div>
                 <h1 className="text-xl lg:text-3xl font-black text-foreground uppercase tracking-tight leading-none">Configuraciones</h1>
@@ -108,10 +109,10 @@ export default function ConfiguracionesHubPage() {
             </div>
             
             {/* Botón de acción minimalista */}
-            <div className="btn-primary px-6 opacity-0 group-hover:opacity-100 translate-x-4 group-hover:translate-x-0 hidden sm:flex">
-                Acceder <span>→</span>
+            <div className="btn-primary px-6 opacity-0 group-hover:opacity-100 translate-x-4 group-hover:translate-x-0 hidden sm:flex items-center gap-1.5">
+                Acceder <ArrowRight className="w-4 h-4 ml-1" />
             </div>
-            <div className="sm:hidden text-emerald-400 font-bold">➔</div>
+            <div className="sm:hidden text-emerald-600 dark:text-emerald-400 font-bold"><ArrowRight className="w-5 h-5" /></div>
           </div>
         ))}
       </div>

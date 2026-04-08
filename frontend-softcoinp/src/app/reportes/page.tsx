@@ -5,6 +5,7 @@ import { getDashboardStats, DashboardStatsDto } from "@/services/reportesService
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
+import { PlugZap, TrendingUp, LogIn, AlertTriangle, ChevronRight, CarFront, Users, ArrowUpRight, Car } from "lucide-react";
 
 // Paletas de colores
 const COLORS_NOVEDADES = ['#10b981', '#06b6d4']; // Emerald, Cyan
@@ -62,7 +63,7 @@ export default function ReportesDashboardPage() {
   if (!stats) {
     return (
       <div className="flex-1 flex flex-col h-full bg-background p-4 justify-center items-center">
-        <span className="text-5xl mb-4 grayscale opacity-30">🔌</span>
+        <PlugZap className="w-16 h-16 text-slate-300 dark:text-slate-600 opacity-50 mb-4" />
         <h2 className="text-foreground font-black text-xl mb-1 uppercase tracking-tight">Error de Conexión</h2>
         <p className="text-slate-500 font-bold text-xs uppercase tracking-widest text-center">No fue posible obtener los datos analíticos del servidor.</p>
         <button onClick={() => loadStats()} className="btn-primary mt-4 px-6 py-2">Reintentar</button>
@@ -91,8 +92,8 @@ export default function ReportesDashboardPage() {
         {/* HEADER & FILTERS (COMPACTED) */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2 mb-3 shrink-0 bg-card/60 p-3 lg:px-4 rounded-xl border border-border shadow-sm backdrop-blur-md transition-colors">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-xl text-white shadow-lg shadow-emerald-500/30 flex items-center justify-center">
-               <span className="text-xl">📈</span>
+            <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 rounded-xl shadow-sm flex items-center justify-center shrink-0">
+               <TrendingUp className="w-6 h-6" />
             </div>
             <div>
               <h1 className="text-lg lg:text-xl font-black text-foreground uppercase tracking-tight leading-none drop-shadow-sm">Dashboard Analítico</h1>
@@ -149,7 +150,7 @@ export default function ReportesDashboardPage() {
               <div className="absolute -top-6 -right-6 w-24 h-24 bg-gradient-to-br from-emerald-500/5 to-emerald-500/10 rounded-full blur-xl"></div>
               <div className="relative z-10 flex flex-col h-full gap-2">
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xs shadow-sm">📥</div>
+                  <div className="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-sm"><LogIn className="w-4 h-4" /></div>
                   <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-tight">Accesos <br/><span className="text-cyan-400">En Rango</span></p>
                 </div>
                 <div className="flex items-end gap-1 mt-auto">
@@ -168,10 +169,10 @@ export default function ReportesDashboardPage() {
               <div className="relative z-10 flex flex-col h-full gap-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-500 flex items-center justify-center text-xs shadow-sm group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/50 transition-colors">⚠️</div>
+                    <div className="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 text-emerald-500 flex items-center justify-center shadow-sm group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/50 transition-colors"><AlertTriangle className="w-4 h-4" /></div>
                     <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-tight">Novedades <br/><span className="text-emerald-500">Personas</span></p>
                   </div>
-                  <span className="text-[10px] text-emerald-300 opacity-0 group-hover:opacity-100 transition-opacity">▸</span>
+                  <span className="text-emerald-300 opacity-0 group-hover:opacity-100 transition-opacity"><ChevronRight className="w-3 h-3" /></span>
                 </div>
                 <div className="flex items-end gap-1 mt-auto">
                   <span className="text-2xl lg:text-3xl font-black text-emerald-600 dark:text-emerald-400 leading-none tracking-tighter">{stats.novedadesPersonas}</span>
@@ -189,10 +190,10 @@ export default function ReportesDashboardPage() {
               <div className="relative z-10 flex flex-col h-full gap-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-cyan-50 dark:bg-cyan-900/30 text-cyan-500 flex items-center justify-center text-xs shadow-sm group-hover:bg-cyan-100 dark:group-hover:bg-cyan-900/50 transition-colors">🚨</div>
+                    <div className="w-7 h-7 rounded-lg bg-cyan-50 dark:bg-cyan-900/30 text-cyan-500 flex items-center justify-center shadow-sm group-hover:bg-cyan-100 dark:group-hover:bg-cyan-900/50 transition-colors"><CarFront className="w-4 h-4" /></div>
                     <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-tight">Novedades <br/><span className="text-cyan-500">Vehículos</span></p>
                   </div>
-                  <span className="text-[10px] text-cyan-300 opacity-0 group-hover:opacity-100 transition-opacity">▸</span>
+                  <span className="text-cyan-300 opacity-0 group-hover:opacity-100 transition-opacity"><ChevronRight className="w-3 h-3" /></span>
                 </div>
                 <div className="flex items-end gap-1 mt-auto">
                   <span className="text-2xl lg:text-3xl font-black text-cyan-500 leading-none tracking-tighter">{stats.novedadesVehiculos}</span>
@@ -210,10 +211,10 @@ export default function ReportesDashboardPage() {
               <div className="relative z-10 flex flex-col h-full gap-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-500 flex items-center justify-center text-xs shadow-sm group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/50 transition-colors">👥</div>
+                    <div className="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 text-emerald-500 flex items-center justify-center shadow-sm group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/50 transition-colors"><Users className="w-4 h-4" /></div>
                     <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-tight">Catálogo <br/><span className="text-emerald-500">Personas</span></p>
                   </div>
-                  <span className="text-[10px] text-emerald-300 opacity-0 group-hover:opacity-100 transition-opacity">↗</span>
+                  <span className="text-emerald-300 opacity-0 group-hover:opacity-100 transition-opacity"><ArrowUpRight className="w-3 h-3" /></span>
                 </div>
                 <div className="flex items-end gap-1 mt-auto">
                   <span className="text-2xl lg:text-3xl font-black text-foreground leading-none tracking-tighter">{stats.totalPersonas}</span>
@@ -231,10 +232,10 @@ export default function ReportesDashboardPage() {
               <div className="relative z-10 flex flex-col h-full gap-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-cyan-50 dark:bg-cyan-900/30 text-cyan-500 flex items-center justify-center text-xs shadow-sm group-hover:bg-cyan-100 dark:group-hover:bg-cyan-900/50 transition-colors">🚗</div>
+                    <div className="w-7 h-7 rounded-lg bg-cyan-50 dark:bg-cyan-900/30 text-cyan-500 flex items-center justify-center shadow-sm group-hover:bg-cyan-100 dark:group-hover:bg-cyan-900/50 transition-colors"><Car className="w-4 h-4" /></div>
                     <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-tight">Catálogo <br/><span className="text-cyan-500">Vehículos</span></p>
                   </div>
-                  <span className="text-[10px] text-cyan-300 opacity-0 group-hover:opacity-100 transition-opacity">↗</span>
+                  <span className="text-cyan-300 opacity-0 group-hover:opacity-100 transition-opacity"><ArrowUpRight className="w-3 h-3" /></span>
                 </div>
                 <div className="flex items-end gap-1 mt-auto">
                   <span className="text-2xl lg:text-3xl font-black text-foreground leading-none tracking-tighter">{stats.totalVehiculos}</span>

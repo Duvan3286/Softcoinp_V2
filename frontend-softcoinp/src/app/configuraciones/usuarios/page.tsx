@@ -7,6 +7,7 @@ import UserTable from "@/components/configuraciones/UserTable";
 import UserModal from "@/components/configuraciones/UserModal";
 import CustomModal, { ModalType } from "@/components/CustomModal";
 import { settingsService } from "@/services/settingsService";
+import { Users, ArrowLeft, XCircle } from "lucide-react";
 
 export default function UsuariosConfigPage() {
   const router = useRouter();
@@ -112,8 +113,8 @@ export default function UsuariosConfigPage() {
       <div className="w-full max-w-4xl flex flex-col items-start shrink-0">
         <div className="flex items-center justify-between w-full mb-2">
             <div className="flex items-center gap-4">
-                <div className="p-2.5 bg-emerald-600 rounded-xl text-white shadow-sm transition-transform hover:scale-110">
-                    <span className="text-xl">👥</span>
+                <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 rounded-xl shadow-sm flex-shrink-0 transition-transform hover:rotate-6">
+                    <Users className="w-6 h-6" />
                 </div>
                 <div>
                     <h1 className="text-xl lg:text-2xl font-black text-foreground uppercase tracking-tight leading-none">Gestión de Usuarios</h1>
@@ -125,7 +126,7 @@ export default function UsuariosConfigPage() {
                   onClick={() => router.push("/configuraciones")}
                   className="bg-card text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 py-2 px-4 rounded-xl font-black border border-border shadow-sm transition-all active:scale-95 flex items-center gap-2 text-[10px] uppercase tracking-widest"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                  <ArrowLeft className="w-4 h-4" />
                   Volver
                 </button>
                 <button
@@ -141,7 +142,7 @@ export default function UsuariosConfigPage() {
 
       <main className="w-full max-w-4xl flex flex-col min-h-0 overflow-y-auto pr-1 pb-10 custom-scrollbar">
         {error && <div className="bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/50 text-rose-700 dark:text-rose-400 p-4 rounded-xl mb-6 text-[11px] font-bold uppercase tracking-tight flex items-center gap-3 animate-in fade-in slide-in-from-top">
-          <span className="text-lg">❌</span> {error}
+          <XCircle className="w-5 h-5" /> {error}
         </div>}
 
         {loading && (

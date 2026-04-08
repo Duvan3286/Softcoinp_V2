@@ -6,6 +6,7 @@ import { userService, User } from "@/services/userService";
 import { permissionsService, ViewInfo } from "@/services/permissionsService";
 import { getCurrentUser } from "@/utils/auth";
 import NotificationModal from "@/components/NotificationModal";
+import { ShieldCheck, Users, ArrowLeft, Save, Loader2, Check, Folder } from "lucide-react";
 
 export default function PermissionsPage() {
     const router = useRouter();
@@ -135,7 +136,7 @@ export default function PermissionsPage() {
                 <div className="p-6 border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-10 flex items-center justify-between">
                     <div>
                         <h2 className="text-xs font-black text-cyan-600 dark:text-cyan-400 uppercase tracking-widest flex items-center gap-2">
-                            <span className="p-2 bg-cyan-50 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 rounded-xl shadow-sm">👥</span> 
+                            <span className="p-2 bg-cyan-50 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 rounded-xl shadow-sm shrink-0"><Users className="w-4 h-4" /></span> 
                             Usuarios
                         </h2>
                         <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 mt-1 uppercase tracking-tighter">Selecciona para editar</p>
@@ -145,7 +146,7 @@ export default function PermissionsPage() {
                         className="p-2 text-slate-400 dark:text-slate-500 hover:text-cyan-600 dark:hover:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-900/30 rounded-xl transition-all active:scale-95 border border-transparent hover:border-cyan-100 dark:hover:border-cyan-800"
                         title="Volver"
                     >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                        <ArrowLeft className="w-5 h-5" />
                     </button>
                 </div>
                 
@@ -218,12 +219,12 @@ export default function PermissionsPage() {
                                     <span className="relative z-10 flex items-center gap-2">
                                         {saving ? (
                                             <>
-                                                <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                                <Loader2 className="animate-spin h-4 w-4 text-white" />
                                                 Sincronizando...
                                             </>
                                         ) : (
                                             <>
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
+                                                <Save className="w-4 h-4" />
                                                 Aplicar Cambios
                                             </>
                                         )}
@@ -244,8 +245,8 @@ export default function PermissionsPage() {
                                                 <div className="flex flex-col gap-1">
                                                     <span className="text-[10px] font-black text-cyan-500 dark:text-cyan-400 uppercase tracking-[0.3em] mb-1">Módulo</span>
                                                     <h3 className="text-lg font-black text-foreground uppercase tracking-tight flex items-center gap-3">
-                                                        <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-card border border-border shadow-sm text-xl group-hover/section:scale-110 transition-transform duration-500">
-                                                            {views[0]?.icon || "📁"}
+                                                        <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-card border border-border shadow-sm group-hover/section:scale-110 transition-transform duration-500">
+                                                            <Folder className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
                                                         </span>
                                                         {category}
                                                     </h3>
@@ -284,9 +285,7 @@ export default function PermissionsPage() {
                                                                     : 'bg-background border-border group-hover:border-cyan-400'}
                                                             `}>
                                                                 {isSelected && (
-                                                                    <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7" />
-                                                                    </svg>
+                                                                    <Check className="w-3.5 h-3.5 text-white" />
                                                                 )}
                                                             </div>
                                                             
@@ -320,8 +319,8 @@ export default function PermissionsPage() {
                     <div className="flex-1 flex flex-col items-center justify-center p-10 relative z-10">
                         <div className="relative group">
                             <div className="relative bg-card p-12 lg:p-16 rounded-xl border border-border shadow-sm flex flex-col items-center text-center max-w-md transition-colors">
-                                <div className="w-28 h-28 bg-cyan-50 dark:bg-cyan-900/30 rounded-xl flex items-center justify-center text-5xl mb-8 shadow-inner transition-transform duration-500 group-hover:scale-110">
-                                    🛡️
+                                <div className="w-28 h-28 bg-cyan-50 dark:bg-cyan-900/30 rounded-xl flex items-center justify-center mb-8 shadow-inner transition-transform duration-500 group-hover:scale-110">
+                                    <ShieldCheck className="w-12 h-12 text-cyan-600 dark:text-cyan-400" />
                                 </div>
                                 <h2 className="text-2xl font-black text-foreground uppercase tracking-tight">Consola de Seguridad</h2>
                                 <p className="text-xs font-bold text-slate-400 dark:text-slate-500 mt-4 uppercase tracking-[0.1em] leading-relaxed">

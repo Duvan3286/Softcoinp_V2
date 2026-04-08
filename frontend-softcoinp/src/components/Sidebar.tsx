@@ -5,6 +5,18 @@ import { usePathname, useRouter } from "next/navigation";
 import { useSidebar } from "@/context/SidebarContext";
 import { settingsService } from "@/services/settingsService";
 import { useAuth } from "@/context/AuthContext";
+import { 
+  LayoutDashboard, 
+  MapPin, 
+  Package, 
+  ScrollText, 
+  AlertTriangle, 
+  BarChart3, 
+  Database, 
+  Settings, 
+  Wrench,
+  ChevronRight
+} from "lucide-react";
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -13,10 +25,11 @@ export default function Sidebar() {
   const [isExpanded, setIsExpanded] = useState(false);
   const { user, hasPermission, loading: authLoading } = useAuth();
   const [systemVersion, setSystemVersion] = useState("");
-  const [isHistorialOpen, setIsHistorialOpen] = useState(false);
-  const [isEnSitioOpen, setIsEnSitioOpen] = useState(false);
-  const [isNovedadesOpen, setIsNovedadesOpen] = useState(false);
-  const [isAnaliticaOpen, setIsAnaliticaOpen] = useState(false);
+  
+  // Accordion State: Solo un grupo de nivel superior puede estar desplegado
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
+  
+
 
   useEffect(() => {
     if (pathname === "/login") return;
@@ -25,14 +38,20 @@ export default function Sidebar() {
     settingsService.getSystemVersion().then(setSystemVersion);
 
     // Auto-abrir grupos si la ruta actual pertenece a ellos
-    if (pathname.includes("registros")) setIsHistorialOpen(true);
-    if (pathname.includes("activo")) setIsEnSitioOpen(true);
-    if (pathname.includes("novedades")) setIsNovedadesOpen(true);
-    if (pathname.includes("reportes")) setIsAnaliticaOpen(true);
+    if (pathname.includes("registros")) setOpenGroup("historial");
+    if (pathname.includes("activo")) setOpenGroup("en-sitio");
+    if (pathname.includes("novedades")) setOpenGroup("novedades");
+    if (pathname.includes("reportes") && (pathname.includes("personas") || pathname.includes("vehiculos"))) setOpenGroup("catalogos");
     
     // Cerrar sidebar en móvil al navegar
     setIsOpen(false);
   }, [pathname, setIsOpen]);
+
+  const toggleGroup = (group: string) => {
+    setOpenGroup(openGroup === group ? null : group);
+  };
+
+
 
   if (pathname === "/login" || authLoading) return null;
 
@@ -55,85 +74,80 @@ export default function Sidebar() {
         onMouseEnter={() => setIsExpanded(true)}
         onMouseLeave={() => setIsExpanded(false)}
       >
-         <nav className="flex flex-col gap-2 flex-grow px-4 overflow-y-auto overflow-x-hidden custom-scrollbar mt-4">
+         <nav className="flex flex-col gap-1.5 flex-grow px-3 overflow-y-auto overflow-x-hidden custom-scrollbar mt-4 pb-4">
+            
             {hasPermission("dashboard") && (
-                <NavItem icon="🏢" text="Dashboard" path="/dashboard" currentPath={pathname} isExpanded={isExpanded} router={router} />
+                <NavItem icon={<LayoutDashboard className="w-5 h-5" />} text="Dashboard" path="/dashboard" currentPath={pathname} isExpanded={isExpanded} router={router} />
             )}
             
-            {/* Grupo Novedades */}
-            {(hasPermission("novedades-personas") || hasPermission("novedades-vehicular")) && (
-                <NavGroup 
-                icon="📁" 
-                text="Novedades" 
-                isOpen={isNovedadesOpen && isExpanded} 
-                isExpanded={isExpanded} 
-                onToggle={() => setIsNovedadesOpen(!isNovedadesOpen)}
-                >
-                {hasPermission("novedades-personas") && <NavItem icon="👥" text="Novedades Personas" path="/novedades" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />}
-                {hasPermission("novedades-vehicular") && <NavItem icon="🚗" text="Novedades Vehicular" path="/novedades-vehiculares" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />}
-                </NavGroup>
-            )}
-
-            {/* Grupo Analítica y Catálogos */}
-            {(hasPermission("analitica-dashboard") || hasPermission("analitica-personas") || hasPermission("analitica-vehiculos")) && (
-                <NavGroup 
-                icon="📊" 
-                text="Analítica & Catálogos" 
-                isOpen={isAnaliticaOpen && isExpanded} 
-                isExpanded={isExpanded}
-                onToggle={() => setIsAnaliticaOpen(!isAnaliticaOpen)}
-                >
-                {hasPermission("analitica-dashboard") && <NavItem icon="📈" text="Dashboard Analítico" path="/reportes" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />}
-                {hasPermission("analitica-personas") && <NavItem icon="👥" text="Catálogo Personas" path="/reportes/personas" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />}
-                {hasPermission("analitica-vehiculos") && <NavItem icon="🚗" text="Catálogo Vehículos" path="/reportes/vehiculos" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />}
-                {hasPermission("exportar-reportes") && <p className="hidden" />} {/* Marcador de permiso */}
-                </NavGroup>
-            )}
-            
-            {/* Grupo Historial */}
-            {(hasPermission("historial-personas") || hasPermission("historial-vehiculos") || hasPermission("historial-vehiculares")) && (
-                <NavGroup 
-                icon="📜" 
-                text="Historial De Ingresos" 
-                isOpen={isHistorialOpen && isExpanded} 
-                isExpanded={isExpanded}
-                onToggle={() => setIsHistorialOpen(!isHistorialOpen)}
-                >
-                {hasPermission("historial-personas") && <NavItem icon="👥" text="Historial Personas" path="/registros" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />}
-                {hasPermission("historial-vehiculos") && <NavItem icon="🚗" text="Historial Vehículos" path="/registros-vehiculos" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />}
-                </NavGroup>
-            )}
-
-            {/* Grupo En Sitio */}
             {(hasPermission("sitio-personas") || hasPermission("sitio-vehiculos")) && (
                 <NavGroup 
-                icon="📍" 
-                text="En Sitio" 
-                isOpen={isEnSitioOpen && isExpanded} 
-                isExpanded={isExpanded}
-                onToggle={() => setIsEnSitioOpen(!isEnSitioOpen)}
+                    icon={<MapPin className="w-5 h-5" />} 
+                    text="En Sitio" 
+                    isOpen={openGroup === 'en-sitio'} 
+                    isExpanded={isExpanded}
+                    onToggle={() => toggleGroup('en-sitio')}
                 >
-                {hasPermission("sitio-personas") && <NavItem icon="👤" text="Personas Activas" path="/personal-activo" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />}
-                {hasPermission("sitio-vehiculos") && <NavItem icon="🚘" text="Vehículos Activos" path="/vehiculos-activos" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />}
+                    {hasPermission("sitio-personas") && <NavItem text="Personas Activas" path="/personal-activo" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />}
+                    {hasPermission("sitio-vehiculos") && <NavItem text="Vehículos Activos" path="/vehiculos-activos" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />}
                 </NavGroup>
             )}
 
             {hasPermission("correspondencia") && (
-                <NavItem icon="📦" text="Correspondencia" path="/correspondencia" currentPath={pathname} isExpanded={isExpanded} router={router} />
+                <NavItem icon={<Package className="w-5 h-5" />} text="Correspondencia" path="/correspondencia" currentPath={pathname} isExpanded={isExpanded} router={router} />
+            )}
+
+            {(hasPermission("historial-personas") || hasPermission("historial-vehiculos") || hasPermission("historial-vehiculares")) && (
+                <NavGroup 
+                    icon={<ScrollText className="w-5 h-5" />} 
+                    text="Historial de Ingresos" 
+                    isOpen={openGroup === 'historial'} 
+                    isExpanded={isExpanded}
+                    onToggle={() => toggleGroup('historial')}
+                >
+                    {hasPermission("historial-personas") && <NavItem text="Personas" path="/registros" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />}
+                    {hasPermission("historial-vehiculos") && <NavItem text="Vehículos" path="/registros-vehiculos" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />}
+                </NavGroup>
+            )}
+
+            {(hasPermission("novedades-personas") || hasPermission("novedades-vehicular")) && (
+                <NavGroup 
+                    icon={<AlertTriangle className="w-5 h-5" />} 
+                    text="Novedades" 
+                    isOpen={openGroup === 'novedades'} 
+                    isExpanded={isExpanded} 
+                    onToggle={() => toggleGroup('novedades')}
+                >
+                    {hasPermission("novedades-personas") && <NavItem text="Personas" path="/novedades" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />}
+                    {hasPermission("novedades-vehicular") && <NavItem text="Vehículos" path="/novedades-vehiculares" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />}
+                </NavGroup>
+            )}
+
+            {hasPermission("analitica-dashboard") && (
+                <NavItem icon={<BarChart3 className="w-5 h-5" />} text="Analítica" path="/reportes" currentPath={pathname} isExpanded={isExpanded} router={router} />
+            )}
+
+            {(hasPermission("analitica-personas") || hasPermission("analitica-vehiculos")) && (
+                <NavGroup 
+                    icon={<Database className="w-5 h-5" />} 
+                    text="Catálogos" 
+                    isOpen={openGroup === 'catalogos'} 
+                    isExpanded={isExpanded}
+                    onToggle={() => toggleGroup('catalogos')}
+                >
+                    {hasPermission("analitica-personas") && <NavItem text="Personas" path="/reportes/personas" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />}
+                    {hasPermission("analitica-vehiculos") && <NavItem text="Vehículos" path="/reportes/vehiculos" currentPath={pathname} isExpanded={isExpanded} router={router} isSubItem />}
+                    {hasPermission("exportar-reportes") && <p className="hidden" />} 
+                </NavGroup>
             )}
 
             {(user?.role === "admin" || user?.role === "superadmin") && hasPermission("configuraciones") && (
-               <div className="mt-2 pt-2 border-t border-border">
-                   <NavItem icon="🔑" text="Configuraciones" path="/configuraciones" currentPath={pathname} isExpanded={isExpanded} router={router} />
-               </div>
+                <NavItem icon={<Settings className="w-5 h-5" />} text="Configuraciones" path="/configuraciones" currentPath={pathname} isExpanded={isExpanded} router={router} />
             )}
 
-           {user?.role === "superadmin" && (
-              <div className="mt-2 text-[10px] uppercase font-black text-slate-400 dark:text-slate-500 px-4 mb-1">Super Admin</div>
-           )}
-           {user?.role === "superadmin" && (
-              <NavItem icon="🛠️" text="Mantenimiento" path="/configuraciones/mantenimiento" currentPath={pathname} isExpanded={isExpanded} router={router} highlightRed />
-           )}
+            {user?.role === "superadmin" && (
+                <NavItem icon={<Wrench className="w-5 h-5" />} text="Mantenimiento (Super Admin)" path="/configuraciones/mantenimiento" currentPath={pathname} isExpanded={isExpanded} router={router} highlightRed />
+            )}
         </nav>
 
         <div className="mt-auto pt-4 border-t border-border text-center overflow-hidden flex flex-col items-center justify-center min-h-[40px]">
@@ -148,32 +162,36 @@ export default function Sidebar() {
   );
 }
 
+
+
 function NavGroup({ icon, text, isOpen, isExpanded, onToggle, children }: any) {
     return (
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col">
             <button 
                 onClick={onToggle}
-                className={`flex items-center p-3 rounded-xl transition-all duration-200 font-semibold border whitespace-nowrap overflow-hidden group relative w-full
+                className={`flex items-center p-3 rounded-xl transition-all duration-200 font-medium border whitespace-nowrap overflow-hidden group relative w-full
                     ${isOpen 
-                        ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/50' 
+                        ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/50 shadow-sm' 
                         : 'text-slate-500 dark:text-slate-400 border-transparent hover:bg-slate-50 dark:hover:bg-zinc-900 hover:text-slate-800 dark:hover:text-slate-200'}
                 `}
                 title={text}
             >
-                <span className="text-xl flex-shrink-0 flex items-center justify-center w-8 group-hover:scale-110 transition-transform">{icon}</span>
+                <span className="flex-shrink-0 flex items-center justify-center w-6 group-hover:scale-110 transition-transform">
+                    {icon}
+                </span>
                 <span 
-                    className={`text-sm ml-3 transition-opacity duration-300 flex-1 text-left tracking-wide ${isExpanded ? 'lg:opacity-100' : 'lg:opacity-0 lg:w-0 lg:hidden'}`}
+                    className={`ml-3 text-sm transition-opacity duration-300 flex-1 text-left tracking-wide font-semibold ${isExpanded ? 'lg:opacity-100 lg:w-auto' : 'lg:opacity-0 lg:w-0 lg:hidden'}`}
                 >
                     {text}
                 </span>
                 {isExpanded && (
-                    <span className={`transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                    <span className={`transition-transform duration-300 flex-shrink-0 ${isOpen ? 'rotate-90 text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}>
+                        <ChevronRight className="w-4 h-4" />
                     </span>
                 )}
             </button>
             {isOpen && (
-                <div className="flex flex-col gap-1 ml-4 border-l-2 border-slate-100 dark:border-zinc-800 pl-2 animate-in slide-in-from-top-2 duration-200">
+                <div className={`flex flex-col gap-1 mt-1 mb-2 relative before:absolute before:inset-y-2 before:left-[24px] before:w-[1px] before:bg-slate-200 dark:before:bg-zinc-800 animate-in slide-in-from-top-1 duration-200 ${!isExpanded ? 'lg:hidden' : ''}`}>
                     {children}
                 </div>
             )}
@@ -184,30 +202,48 @@ function NavGroup({ icon, text, isOpen, isExpanded, onToggle, children }: any) {
 function NavItem({ icon, text, path, currentPath, isExpanded, alert, highlightRed, router, isSubItem }: any) {
   const isActive = currentPath === path || (currentPath !== '/dashboard' && currentPath.startsWith(path) && path !== '/dashboard');
   
-  let baseClass = `flex items-center ${isSubItem ? 'p-2' : 'p-3'} rounded-xl transition-all duration-200 font-semibold border whitespace-nowrap overflow-hidden group relative `;
+  let baseClass = `flex items-center rounded-xl transition-all duration-200 whitespace-nowrap overflow-hidden group relative w-full border ${
+    isSubItem 
+      ? 'pl-6 pr-3 py-2.5 font-medium text-[13px]' // pl-6 es 1.5rem de padding-left
+      : 'p-3 font-semibold text-sm'
+  } `;
   
   if (highlightRed) {
-     baseClass += `bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-900/50 hover:bg-rose-100 dark:hover:bg-rose-900/40 animate-pulse-red `;
+     baseClass += `text-rose-600 dark:text-rose-400 border-transparent hover:bg-rose-50 dark:hover:bg-rose-950/20 hover:border-rose-200 dark:hover:border-rose-900/50 `;
   } else if (alert) {
      baseClass += `bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-900/50 hover:bg-rose-100 dark:hover:bg-rose-900/40 animate-pulse shadow-[0_0_15px_rgba(225,29,72,0.1)] `;
   } else if (isActive) {
-     baseClass += `bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 shadow-sm `;
+     if (isSubItem) {
+        baseClass += `text-emerald-600 dark:text-emerald-400 border-transparent font-bold bg-transparent`; 
+     } else {
+        baseClass += `bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 shadow-sm `;
+     }
   } else {
-     baseClass += `text-slate-500 dark:text-slate-400 border-transparent hover:bg-slate-50 dark:hover:bg-zinc-900 hover:text-slate-800 dark:hover:text-slate-200 `;
+     baseClass += `text-slate-500 dark:text-slate-400 border-transparent hover:text-slate-800 dark:hover:text-slate-200 ${!isSubItem ? 'hover:bg-slate-50 dark:hover:bg-zinc-900' : ''} `;
   }
 
   return (
     <button onClick={() => router.push(path)} className={baseClass} title={text}>
-       <span className={`${isSubItem ? 'text-lg' : 'text-xl'} flex-shrink-0 flex items-center justify-center w-8 group-hover:scale-110 transition-transform ${isActive ? 'drop-shadow-md' : ''}`}>{icon}</span>
+       {!isSubItem && (
+         <span className={`flex-shrink-0 flex items-center justify-center w-6 group-hover:scale-110 transition-transform ${isActive ? 'drop-shadow-md z-10 relative' : 'z-10 relative'}`}>
+           {icon}
+         </span>
+       )}
+       
+       {isSubItem && isActive && (
+         <div className="absolute left-[21px] top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-emerald-500 z-10 shadow-sm ring-4 ring-card" />
+       )}
+
        <span 
-         className={`${isSubItem ? 'text-xs' : 'text-sm'} ml-3 transition-opacity duration-300 flex-1 text-left tracking-wide ${isExpanded ? 'lg:opacity-100' : 'lg:opacity-0 lg:w-0 lg:hidden'}`}
+         className={`transition-opacity duration-300 flex-1 text-left tracking-wide ${(!isExpanded && !isSubItem) ? 'lg:opacity-0 lg:w-0 lg:hidden' : ''} ${!isSubItem ? 'ml-3' : 'ml-6'}`}
        >
          {text}
        </span>
-       {/* Pill indicator for active state when collapsed */}
-       {!isExpanded && isActive && (
+       
+       {!isExpanded && isActive && !isSubItem && (
          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-1/2 bg-emerald-600 dark:bg-emerald-500 rounded-r-full shadow-sm"></div>
        )}
     </button>
   );
 }
+

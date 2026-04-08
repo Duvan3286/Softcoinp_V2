@@ -11,6 +11,20 @@ import CustomModal, { ModalType } from "@/components/CustomModal";
 import { getCurrentUser, UserPayload } from "@/utils/auth";
 import ImageZoomModal from "@/components/ImageZoomModal";
 import { useTheme } from "next-themes";
+import { 
+  Car, 
+  Ban, 
+  AlertTriangle, 
+  LogIn, 
+  LogOut, 
+  ScrollText, 
+  UserCheck, 
+  Camera, 
+  Trash2, 
+  RefreshCw,
+  Calendar,
+  X 
+} from "lucide-react";
 
 // URL base del backend para recursos estáticos (fotos)
 const BACKEND_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5100/api")
@@ -736,17 +750,15 @@ export default function DashboardPage() {
           <div className="bg-card px-5 py-3 border-b border-border flex justify-between items-center bg-gradient-to-r from-red-50/50 dark:from-red-900/20 to-transparent transition-colors">
             <div className="flex items-center gap-2">
               <div className="w-1.5 h-4 bg-red-600 rounded-full"></div>
-              <h3 className="text-xs font-black uppercase tracking-widest text-foreground">
-                ⚠️ Antecedentes: {nombre}
+              <h3 className="text-xs font-black uppercase tracking-widest text-foreground flex items-center gap-1.5">
+                <AlertTriangle className="w-3.5 h-3.5 text-red-500" /> Antecedentes: {nombre}
               </h3>
             </div>
             <button 
               onClick={onClose}
               className="text-slate-400 dark:text-slate-500 hover:text-red-600 transition-colors p-1"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <X className="w-4 h-4" />
             </button>
           </div>
 
@@ -758,7 +770,7 @@ export default function DashboardPage() {
                   <div className="bg-card rounded-xl p-4 border border-border shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-1">
-                        🗓️ {new Date(a.fechaCreacionUtc).toLocaleString("es-CO", { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        <Calendar className="w-3 h-3 text-slate-400" /> {new Date(a.fechaCreacionUtc).toLocaleString("es-CO", { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                       </span>
                       {a.registradoPorEmail && (
                         <span className="text-[9px] text-red-600 font-bold uppercase tracking-widest">{a.registradoPorEmail.split('@')[0]}</span>
@@ -847,7 +859,7 @@ export default function DashboardPage() {
                 <div className="flex flex-col justify-center flex-1 min-w-0">
                   <h3 className="text-sm lg:text-base font-black text-foreground flex items-center gap-2 tracking-tight uppercase">
                     <div className="p-2 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 rounded-xl flex-shrink-0 shadow-sm">
-                      <span className="text-lg">🚗</span>
+                      <Car className="w-5 h-5" />
                     </div>
                     Vehículo
                   </h3>
@@ -873,7 +885,7 @@ export default function DashboardPage() {
                         ) : fotoVehiculoUrl ? (
                           <img src={resolveImageUrl(fotoVehiculoUrl)} alt="Vehículo" className="w-full h-full object-cover" />
                         ) : (
-                          <svg className="w-10 lg:w-12 h-10 lg:h-12 text-slate-300 dark:text-zinc-700 group-hover:text-emerald-300 transition duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.218A2 2 0 0110.125 4h3.75a2 2 0 011.664.89l.812 1.218A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                          <Camera className="w-10 lg:w-12 h-10 lg:h-12 text-slate-300 dark:text-zinc-700 group-hover:text-emerald-300 transition duration-300" />
                         )}
                       </div>
                     </div>
@@ -888,14 +900,14 @@ export default function DashboardPage() {
                           className="p-2 bg-card border border-border rounded-xl shadow-sm hover:bg-emerald-50 dark:hover:bg-emerald-950/20 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all active:scale-90"
                           title="Cambiar foto de vehículo"
                         >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.218A2 2 0 0110.125 4h3.75a2 2 0 011.664.89l.812 1.218A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                          <Camera className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => { setFotoVehiculoBase64(null); setFotoVehiculoUrl(null); }}
                           className="p-2 bg-card border border-border rounded-xl shadow-sm hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 transition-all active:scale-90"
                           title="Eliminar foto de vehículo"
                         >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </>
                     )}
@@ -906,7 +918,7 @@ export default function DashboardPage() {
               {isVehiculoBloqueado && (
                 <div className="bg-red-50 dark:bg-red-950/30 text-red-800 dark:text-red-200 p-3 rounded-xl shadow-sm border border-red-100 dark:border-red-900/50 animate-in slide-in-from-top duration-300 mb-1 flex-shrink-0 relative overflow-hidden transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className="text-2xl animate-pulse">🛑</div>
+                    <div className="text-red-500 animate-pulse"><Ban className="w-8 h-8" /></div>
                     <div>
                       <p className="text-[10px] font-black uppercase tracking-widest text-red-600 dark:text-red-400 leading-tight">Acceso Denegado</p>
                       <p className="text-[11px] font-bold leading-tight mt-0.5">"{motivoBloqueoVehiculo}"</p>
@@ -938,9 +950,9 @@ export default function DashboardPage() {
                   {(anotacionesVehiculoAlerta.length > 0 || isVehiculoBloqueado) && (
                     <button
                       onClick={() => setIsVehiculoTimelineOpen(true)}
-                      className={`absolute right-3 top-2.5 p-1 rounded-lg shadow-lg transition-all ${isVehiculoBloqueado ? 'bg-red-600 animate-bounce' : 'bg-amber-500 animate-pulse'}`}
+                      className={`absolute right-3 top-2.5 p-1 text-white rounded-lg shadow-lg transition-all ${isVehiculoBloqueado ? 'bg-red-600 animate-bounce' : 'bg-amber-500 animate-pulse'}`}
                     >
-                      <span className="text-[12px]">{isVehiculoBloqueado ? "🚫" : "⚠️"}</span>
+                      {isVehiculoBloqueado ? <Ban className="w-3.5 h-3.5" /> : <AlertTriangle className="w-3.5 h-3.5" />}
                     </button>
                   )}
                 </div>
@@ -1014,7 +1026,7 @@ export default function DashboardPage() {
                       (registroVehiculoActivo || isVehiculoBloqueado || isVehiculoNuevo) && '!bg-slate-100 dark:!bg-zinc-800 !text-slate-300 dark:!text-zinc-600 !border-border dark:!border-zinc-800 !shadow-none'
                     }`}
                   >
-                    {isVehiculoBloqueado ? "🚫 BLOQUEO" : !!isVehiculoNuevo ? "⚠️ NUEVO" : "📥 ENTRADA"}
+                    {isVehiculoBloqueado ? <><Ban className="w-3.5 h-3.5 inline-block mr-1 -mt-0.5" /> BLOQUEO</> : !!isVehiculoNuevo ? <><AlertTriangle className="w-3.5 h-3.5 inline-block mr-1 -mt-0.5" /> NUEVO</> : <><LogIn className="w-3.5 h-3.5 inline-block mr-1 -mt-0.5" /> ENTRADA</>}
                   </button>
                   <button
                     onClick={() => handleRegistrarVehiculo("salida")}
@@ -1025,15 +1037,15 @@ export default function DashboardPage() {
                         : '!bg-red-600 hover:!bg-red-700'
                     }`}
                   >
-                    📤 SALIDA
+                    <LogOut className="w-3.5 h-3.5 inline-block mr-1 -mt-0.5" /> SALIDA
                   </button>
                 </div>
 
                 <button
                   onClick={() => router.push('/registros-vehiculos')}
-                  className="btn-secondary !w-full !mt-1 !py-3 !text-[9px] !tracking-[0.2em]"
+                  className="btn-secondary !w-full !mt-1 !py-3 !text-[9px] !tracking-[0.2em] flex items-center justify-center gap-2"
                 >
-                  <span className="text-lg">📜</span>
+                  <ScrollText className="w-4 h-4" />
                   Historial de Vehículos
                 </button>
               </div>
@@ -1055,8 +1067,8 @@ export default function DashboardPage() {
             <div className="flex items-center gap-4 mb-4 flex-shrink-0 relative z-10">
               <div className="flex flex-col justify-center flex-1 min-w-0">
                 <h2 className="text-base lg:text-lg font-black text-foreground flex items-center gap-3 tracking-tight uppercase">
-                  <div className="p-2.5 bg-emerald-600 rounded-xl text-white flex-shrink-0 shadow-none">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                  <div className="p-2 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 rounded-xl flex-shrink-0 shadow-sm">
+                    <UserCheck className="w-5 h-5" />
                   </div>
                   Registro de Persona
                 </h2>
@@ -1082,7 +1094,7 @@ export default function DashboardPage() {
                       ) : fotoUrl ? (
                         <img src={resolveImageUrl(fotoUrl)} alt="Foto" className="w-full h-full object-cover" />
                       ) : (
-                        <svg className="w-12 lg:w-14 h-12 lg:h-14 text-slate-300 dark:text-zinc-700 group-hover:text-emerald-300 transition duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                        <Camera className="w-10 lg:w-12 h-10 lg:h-12 text-slate-300 dark:text-zinc-700 group-hover:text-emerald-300 transition duration-500" />
                       )}
                     </div>
                   </div>
@@ -1096,14 +1108,14 @@ export default function DashboardPage() {
                         className="p-2.5 bg-card border border-border rounded-xl shadow-sm hover:bg-emerald-50 dark:hover:bg-emerald-950/20 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all active:scale-90"
                         title="Cambiar foto"
                       >
-                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.218A2 2 0 0110.125 4h3.75a2 2 0 011.664.89l.812 1.218A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                         <Camera className="w-5 h-5" />
                       </button>
                       <button
                         onClick={() => { setFotoBase64(null); setFotoUrl(null); }}
                         className="p-2.5 bg-card border border-border rounded-xl shadow-sm hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 transition-all active:scale-90"
                         title="Eliminar foto"
                       >
-                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                         <Trash2 className="w-5 h-5" />
                       </button>
                     </>
                   )}
@@ -1114,7 +1126,7 @@ export default function DashboardPage() {
             {isBloqueado && (
               <div className="bg-red-50 dark:bg-red-950/30 text-red-800 dark:text-red-200 p-4 rounded-xl shadow-sm border border-red-100 dark:border-red-900/50 animate-in slide-in-from-top duration-300 mb-4 flex-shrink-0 relative overflow-hidden transition-colors">
                 <div className="flex items-center gap-4 relative z-10">
-                  <div className="text-3xl animate-pulse">🛑</div>
+                  <div className="text-red-500 animate-pulse"><Ban className="w-10 h-10" /></div>
                   <div>
                     <p className="text-[10px] font-black uppercase tracking-[0.3em] text-red-600 dark:text-red-400">Alerta de Seguridad</p>
                     <p className="text-sm font-black mt-1">Persona Bloqueada: "{motivoBloqueo}"</p>
@@ -1147,9 +1159,9 @@ export default function DashboardPage() {
                   {(anotacionesAlerta.length > 0 || isBloqueado) && (
                     <button
                       onClick={() => setIsTimelineOpen(true)}
-                      className={`absolute right-3 top-3.5 p-1.5 rounded-xl shadow-lg transition-all ${isBloqueado ? 'bg-red-600 animate-bounce' : 'bg-amber-500 animate-pulse'}`}
+                      className={`absolute right-3 top-3.5 p-1.5 text-white rounded-xl shadow-lg transition-all ${isBloqueado ? 'bg-red-600 animate-bounce' : 'bg-amber-500 animate-pulse'}`}
                     >
-                      <span className="text-[14px]">{isBloqueado ? "🚫" : "⚠️"}</span>
+                      {isBloqueado ? <Ban className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
                     </button>
                   )}
                 </div>
@@ -1249,7 +1261,7 @@ export default function DashboardPage() {
                     (isBloqueado || isVehiculoBloqueado || !!registroActivo) && '!bg-slate-100 dark:!bg-zinc-800 !text-slate-300 dark:!text-zinc-600 !border-border dark:!border-zinc-800 !shadow-none'
                   }`}
                 >
-                  {isBloqueado ? "🚫 BLOQUEADO" : "✅ REGISTRAR ENTRADA"}
+                  {isBloqueado ? <><Ban className="w-4 h-4 inline-block mr-1 -mt-0.5" /> BLOQUEADO</> : <><LogIn className="w-4 h-4 inline-block mr-1 -mt-0.5" /> REGISTRAR ENTRADA</>}
                 </button>
                 <button
                   onClick={() => handleRegistrar("salida")}
@@ -1260,7 +1272,7 @@ export default function DashboardPage() {
                       : '!bg-red-600 hover:!bg-red-700'
                   }`}
                 >
-                  🚪 REGISTRAR SALIDA
+                  <LogOut className="w-4 h-4 inline-block mr-1 -mt-0.5" /> REGISTRAR SALIDA
                 </button>
               </div>
               <div className="flex gap-3">
@@ -1268,7 +1280,7 @@ export default function DashboardPage() {
                   onClick={handleActualizarDatos}
                   className="btn-primary flex-1 !py-3 !bg-emerald-50 dark:!bg-emerald-950/20 !text-emerald-600 dark:!text-emerald-400 !shadow-none !border-emerald-100 dark:!border-emerald-900/50 hover:!bg-emerald-600 hover:!text-white !text-[9px] !tracking-[0.2em]"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                  <RefreshCw className="w-4 h-4" />
                   Sincronizar Información
                 </button>
                 <button
@@ -1276,7 +1288,7 @@ export default function DashboardPage() {
                   className="btn-secondary !px-5 !py-3 !text-[9px] !tracking-[0.2em]"
                   title="Limpiar Formulario"
                 >
-                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
             </div>

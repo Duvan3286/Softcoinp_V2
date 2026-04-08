@@ -5,6 +5,15 @@ import api from "@/services/api";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import NotificationModal from "@/components/NotificationModal";
+import { 
+  ScrollText, 
+  Car, 
+  Download, 
+  Search, 
+  RefreshCw, 
+  ChevronLeft, 
+  ChevronRight 
+} from "lucide-react";
 
 const BACKEND_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5100/api")
   .replace(/\/api$/, "/static");
@@ -176,8 +185,8 @@ export default function RegistrosPage() {
           {/* 📋 Header Section */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6 shrink-0">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-emerald-600 rounded-xl text-white shadow-none border border-emerald-500/20">
-                <span className="text-2xl">📜</span>
+              <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 rounded-xl shadow-sm flex-shrink-0 transition-transform hover:rotate-3">
+                <ScrollText className="w-6 h-6" />
               </div>
               <div>
                 <h1 className="text-xl lg:text-2xl font-black text-foreground uppercase tracking-tight">Historial de Personas</h1> 
@@ -187,15 +196,15 @@ export default function RegistrosPage() {
             <div className="flex gap-3">
               <button
                 onClick={() => router.push('/registros-vehiculos')}
-                className="btn-secondary"
+                className="btn-secondary flex items-center justify-center gap-1.5"
               >
-                🚗 Ver Vehículos
+                <Car className="w-4 h-4" /> Ver Vehículos
               </button>
               {hasPermission("exportar-registros") && (
                 <button
                   onClick={handleExportExcel}
                   disabled={exporting}
-                  className="btn-success px-8"
+                  className="btn-success px-8 flex items-center justify-center gap-1.5"
                 >
                   {exporting ? (
                     <>
@@ -204,7 +213,7 @@ export default function RegistrosPage() {
                     </>
                   ) : (
                     <>
-                      <span className="text-lg">📥</span>
+                      <Download className="w-4 h-4" />
                       Exportar Excel
                     </>
                   )}
@@ -257,17 +266,17 @@ export default function RegistrosPage() {
               <div className="lg:col-span-2 flex gap-2">
                 <button
                   onClick={handleBuscar}
-                  className="btn-primary flex-1 py-3"
+                  className="btn-primary flex-1 py-3 flex items-center justify-center gap-1.5"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                  <Search className="w-4 h-4" />
                   Buscar
                 </button>
                 <button
                   onClick={() => { setNombre(""); setDocumento(""); setDesde(""); setHasta(""); fetchRegistros(1, { nombre: "", documento: "", desde: "", hasta: "" }); }}
-                  className="btn-secondary px-4 py-3"
+                  className="btn-secondary px-4 py-3 flex items-center justify-center"
                   title="Limpiar filtros"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                  <RefreshCw className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -300,7 +309,7 @@ export default function RegistrosPage() {
                         <tr>
                           <td colSpan={7} className="px-6 py-20 text-center">
                             <div className="flex flex-col items-center gap-4 opacity-30 grayscale">
-                              <span className="text-6xl text-foreground">📜</span>
+                              <ScrollText className="w-16 h-16 text-foreground" />
                               <p className="text-sm font-black uppercase tracking-widest text-foreground">No se encontraron registros</p>
                             </div>
                           </td>
@@ -384,7 +393,7 @@ export default function RegistrosPage() {
                       onClick={() => setPage((p) => p - 1)}
                       className="p-2 bg-card text-slate-600 dark:text-slate-400 border border-border rounded-xl hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 disabled:opacity-30 disabled:hover:bg-card disabled:hover:text-slate-600 transition-all shadow-sm active:scale-95"
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 19l-7-7 7-7" /></svg>
+                      <ChevronLeft className="w-5 h-5" />
                     </button>
                     
                     <div className="flex items-center bg-background px-4 py-1.5 rounded-xl border border-border">
@@ -399,7 +408,7 @@ export default function RegistrosPage() {
                       onClick={() => setPage((p) => p + 1)}
                       className="p-2 bg-card text-slate-600 dark:text-slate-400 border border-border rounded-xl hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 disabled:opacity-30 disabled:hover:bg-card disabled:hover:text-slate-600 transition-all shadow-sm active:scale-95"
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7" /></svg>
+                      <ChevronRight className="w-5 h-5" />
                     </button>
                   </div>
 

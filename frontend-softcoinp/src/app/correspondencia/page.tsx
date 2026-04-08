@@ -8,6 +8,16 @@ import CustomModal, { ModalType } from "@/components/CustomModal";
 import { getCurrentUser, UserPayload } from "@/utils/auth";
 import dayjs from "dayjs";
 import "dayjs/locale/es";
+import { 
+  Package, 
+  FileText, 
+  FolderOpen, 
+  CheckCircle2, 
+  Clock, 
+  Search, 
+  ArrowLeft,
+  X
+} from "lucide-react";
 
 dayjs.locale("es");
 
@@ -175,7 +185,7 @@ export default function CorrespondenciaPage() {
                   <h2 className="text-xs font-black uppercase tracking-widest text-foreground">Entregar Paquete</h2>
                 </div>
                 <button onClick={() => setEntregarPaqueteModal({ isOpen: false, id: null })} className="text-slate-400 hover:text-rose-600 p-1">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg>
+                  <X className="w-4 h-4" />
                 </button>
               </div>
               <div className="p-5 space-y-4">
@@ -207,7 +217,7 @@ export default function CorrespondenciaPage() {
                   <h2 className="text-xs font-black uppercase tracking-widest text-foreground">Entregar: {entregaReciboModal.servicio}</h2>
                 </div>
                 <button onClick={() => setEntregaReciboModal({ isOpen: false, id: null, servicio: "" })} className="text-slate-400 hover:text-rose-600 p-1">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg>
+                  <X className="w-4 h-4" />
                 </button>
               </div>
               <div className="p-5 space-y-4">
@@ -239,7 +249,7 @@ export default function CorrespondenciaPage() {
                   <h2 className="text-sm font-black uppercase tracking-widest text-foreground">Relación de Entregas: {verEntregasModal.servicio}</h2>
                 </div>
                 <button onClick={() => setVerEntregasModal({ isOpen: false, id: null, servicio: "" })} className="text-slate-400 hover:text-rose-600 p-1 transition-all hover:rotate-90">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg>
+                  <X className="w-5 h-5" />
                 </button>
               </div>
               <div className="p-0 overflow-y-auto custom-scrollbar flex-1 bg-background transition-colors">
@@ -290,15 +300,13 @@ export default function CorrespondenciaPage() {
                 onClick={() => router.back()}
                 className="group flex items-center gap-2 px-3 py-1.5 bg-background border border-border rounded-xl text-slate-500 hover:text-emerald-500 transition-all shadow-sm"
             >
-                <svg className="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" />
-                </svg>
+                <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
                 <span className="text-[11px] font-black uppercase tracking-widest">Volver</span>
             </button>
 
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-emerald-600 rounded-xl shadow-xl shadow-emerald-100 dark:shadow-none transition-transform hover:rotate-3">
-                <span className="text-2xl text-white">📦</span>
+              <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 rounded-xl shadow-sm flex-shrink-0 transition-transform hover:rotate-3">
+                <Package className="w-6 h-6" />
               </div>
               <div>
                 <h1 className="text-xl font-black text-foreground tracking-tight leading-none uppercase">Gestión de Correspondencia</h1>
@@ -308,8 +316,8 @@ export default function CorrespondenciaPage() {
           </div>
 
           <nav className="flex gap-1.5 bg-background p-1.5 rounded-xl border border-border transition-colors">
-            <button onClick={() => setActiveTab("paquetes")} className={`px-5 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${activeTab === "paquetes" ? "bg-card text-emerald-600 dark:text-emerald-400 shadow-sm border border-border" : "text-slate-400 hover:text-emerald-500"}`}>📦 Paquetes</button>
-            <button onClick={() => setActiveTab("recibos")} className={`px-5 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${activeTab === "recibos" ? "bg-card text-emerald-600 dark:text-emerald-400 shadow-sm border border-border" : "text-slate-400 hover:text-emerald-500"}`}>📄 Recibos Públicos</button>
+            <button onClick={() => setActiveTab("paquetes")} className={`flex items-center gap-1.5 px-5 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${activeTab === "paquetes" ? "bg-card text-emerald-600 dark:text-emerald-400 shadow-sm border border-border" : "text-slate-400 hover:text-emerald-500"}`}><Package className="w-3.5 h-3.5" /> Paquetes</button>
+            <button onClick={() => setActiveTab("recibos")} className={`flex items-center gap-1.5 px-5 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${activeTab === "recibos" ? "bg-card text-emerald-600 dark:text-emerald-400 shadow-sm border border-border" : "text-slate-400 hover:text-emerald-500"}`}><FileText className="w-3.5 h-3.5" /> Recibos Públicos</button>
             <div className="w-px bg-border h-6 my-auto mx-1"></div>
             <button onClick={() => setActiveTab(activeTab.includes("recibo") ? "nuevo_recibo" : "nuevo_paquete")} className="px-5 py-2 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-100 dark:shadow-none hover:bg-emerald-700 active:scale-95 transition-all">
               {activeTab.includes("recibo") ? "+ Nuevo Lote" : "+ Registrar Paquete"}
@@ -355,7 +363,7 @@ export default function CorrespondenciaPage() {
                           <tr key={p.id} className="hover:bg-emerald-50/30 dark:hover:bg-emerald-900/10 transition-colors group">
                             <td className="px-6 py-4">
                                <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[9px] font-black border uppercase tracking-tighter ${p.estado === 'entregado' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 border-emerald-100 dark:border-emerald-800' : 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 border-amber-100 dark:border-amber-800'}`}>
-                                 {p.estado === 'entregado' ? '✓ Entregado' : '🕒 En Espera'}
+                                 {p.estado === 'entregado' ? <><CheckCircle2 className="w-3 h-3" /> Entregado</> : <><Clock className="w-3 h-3" /> En Espera</>}
                                </span>
                                <p className="text-[11px] font-black mt-2 text-foreground">{dayjs(p.fechaRecepcionLocal).format("DD/MM HH:mm")}</p>
                             </td>
@@ -441,8 +449,8 @@ export default function CorrespondenciaPage() {
 
                        <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden flex flex-col transition-colors flex-1">
                           {listaRecibos.length === 0 ? (
-                            <div className="py-20 text-center">
-                               <span className="text-5xl opacity-20 grayscale">📂</span>
+                            <div className="py-20 text-center flex flex-col items-center">
+                               <FolderOpen className="w-12 h-12 text-slate-300 dark:text-slate-600" />
                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-4">No se hallaron registros con esos filtros</p>
                                <button onClick={() => { setFiltroHServicio(""); setFiltroHMes(""); setFiltroHAnio(""); loadAllData(); }} className="mt-4 text-[10px] font-black text-emerald-600 uppercase underline decoration-2 underline-offset-4">Limpiar Filtros</button>
                             </div>
@@ -463,7 +471,7 @@ export default function CorrespondenciaPage() {
                                       <tr key={r.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
                                           <td className="px-6 py-4">
                                               <div className="flex items-center gap-3">
-                                                  <span className="text-xl">✅</span>
+                                                  <CheckCircle2 className="w-5 h-5 text-emerald-500" />
                                                   <p className="text-[13px] font-black text-foreground uppercase tracking-tight">{r.servicio}</p>
                                               </div>
                                           </td>
@@ -502,8 +510,8 @@ export default function CorrespondenciaPage() {
                   ) : (
                     /* VISTA DE TARJETAS (CARDS) PARA LOTES ACTIVOS */
                     listaRecibos.length === 0 ? (
-                      <div className="py-20 text-center bg-card rounded-xl border border-dashed border-border transition-colors">
-                         <span className="text-5xl opacity-20 grayscale">📂</span>
+                      <div className="py-20 text-center bg-card rounded-xl border border-dashed border-border transition-colors flex flex-col items-center">
+                         <FolderOpen className="w-12 h-12 text-slate-300 dark:text-slate-600" />
                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-4">No hay lotes de recibos activos actualmente</p>
                       </div>
                     ) : (
@@ -514,8 +522,8 @@ export default function CorrespondenciaPage() {
                             <div className={`absolute bottom-0 left-0 h-1 transition-all duration-1000 ${r.activo ? 'bg-emerald-600' : 'bg-emerald-500'}`} style={{ width: `${(r.totalEntregados / r.totalRecibidos) * 100}%` }}></div>
                             
                             <div className="flex justify-between items-start">
-                                <div className={`p-3 rounded-xl text-xl shadow-inner group-hover:scale-110 transition-transform ${r.activo ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'}`}>
-                                    {r.activo ? "📄" : "✅"}
+                                <div className={`p-2.5 rounded-xl shadow-inner group-hover:scale-110 transition-transform ${r.activo ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' : 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'}`}>
+                                    {r.activo ? <FileText className="w-5 h-5" /> : <CheckCircle2 className="w-5 h-5" />}
                                 </div>
                                 <div className="text-right">
                                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{r.activo ? 'Lote Activo' : 'Completado'}</p>
@@ -558,7 +566,7 @@ export default function CorrespondenciaPage() {
                                     className={`py-3 px-4 bg-card border border-border rounded-xl text-[9px] font-black uppercase tracking-widest transition-all hover:bg-slate-50 dark:hover:bg-slate-800 ${!r.activo && 'w-full'}`}
                                     title="Ver detalles de entregas"
                                 >
-                                    {r.activo ? "🔍" : "🔍 Ver Verificación"}
+                                    {r.activo ? <Search className="w-4 h-4 mx-auto" /> : <div className="flex items-center justify-center gap-2"><Search className="w-4 h-4" /> Ver Verificación</div>}
                                 </button>
                             </div>
                           </div>
@@ -575,7 +583,9 @@ export default function CorrespondenciaPage() {
             <div className="bg-card p-6 md:p-10 rounded-xl border border-border shadow-sm flex flex-col flex-grow min-h-0 animate-in slide-in-from-right duration-500 transition-colors">
                <div className="max-w-3xl mx-auto w-full space-y-8">
                   <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-emerald-600 rounded-xl flex items-center justify-center text-2xl shadow-xl shadow-emerald-100 text-white">📦</div>
+                    <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 rounded-xl shadow-sm flex-shrink-0 transition-transform">
+                      <Package className="w-6 h-6" />
+                    </div>
                     <div>
                       <h2 className="text-xl font-black text-foreground uppercase tracking-tight">Recepción de Paquetería</h2>
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1">Registra el ingreso de mensajería y domicilios</p>
@@ -623,7 +633,9 @@ export default function CorrespondenciaPage() {
             <div className="bg-card p-6 md:p-10 rounded-xl border border-border shadow-sm flex flex-col flex-grow min-h-0 animate-in slide-in-from-right duration-500 transition-colors">
                <div className="max-w-3xl mx-auto w-full space-y-8">
                   <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-emerald-600 rounded-xl flex items-center justify-center text-2xl shadow-xl shadow-emerald-100 text-white">📄</div>
+                    <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 rounded-xl shadow-sm flex-shrink-0 transition-transform">
+                      <FileText className="w-6 h-6" />
+                    </div>
                     <div>
                       <h2 className="text-xl font-black text-foreground uppercase tracking-tight">Carga Masiva de Recibos</h2>
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1">Registra la llegada de facturas de servicios públicos</p>

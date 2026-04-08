@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { tipoService, TipoPersonal } from "@/services/tipoService";
 import CustomModal, { ModalType } from "@/components/CustomModal";
 import { settingsService } from "@/services/settingsService";
+import { Tags, ArrowLeft, XCircle, CheckCircle2, AlertTriangle, Power, Edit3, Trash2, ChevronRight, X } from "lucide-react";
 
 export default function TiposConfigPage() {
   const router = useRouter();
@@ -114,8 +115,8 @@ export default function TiposConfigPage() {
       <div className="w-full max-w-4xl flex flex-col items-start shrink-0">
         <div className="flex items-center justify-between w-full mb-2">
             <div className="flex items-center gap-4">
-                <div className="p-2.5 bg-emerald-600 rounded-xl text-white shadow-sm transition-transform hover:scale-110">
-                    <span className="text-xl">🏷️</span>
+                <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 rounded-xl shadow-sm flex-shrink-0 transition-transform hover:-rotate-3">
+                    <Tags className="w-6 h-6" />
                 </div>
                 <div>
                     <h1 className="text-xl lg:text-2xl font-black text-foreground uppercase tracking-tight leading-none">Tipos de Personal</h1>
@@ -127,7 +128,7 @@ export default function TiposConfigPage() {
                   onClick={() => router.push("/configuraciones")}
                   className="bg-card text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 py-2 px-4 rounded-xl font-black border border-border shadow-sm transition-all active:scale-95 flex items-center gap-2 text-[10px] uppercase tracking-widest"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                  <ArrowLeft className="w-4 h-4" />
                   Volver
                 </button>
                 <button
@@ -144,7 +145,7 @@ export default function TiposConfigPage() {
       <main className="w-full max-w-4xl flex flex-col min-h-0 overflow-y-auto pr-1 pb-10 custom-scrollbar">
         {error && (
           <div className="bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/50 text-rose-700 dark:text-rose-400 p-4 rounded-xl mb-6 text-[11px] font-bold uppercase tracking-tight flex items-center gap-3 animate-in fade-in slide-in-from-top">
-            <span>❌</span> {error}
+            <XCircle className="w-5 h-5" /> {error}
           </div>
         )}
 
@@ -164,7 +165,7 @@ export default function TiposConfigPage() {
               >
                 {/* Indicador de Estado */}
                 <div className={`w-12 h-12 shrink-0 ${t.activo ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500'} rounded-xl flex items-center justify-center text-xl shadow-inner transition-all group-hover:scale-110`}>
-                   {t.activo ? "✅" : "🚥"}
+                   {t.activo ? <CheckCircle2 className="w-6 h-6" /> : <AlertTriangle className="w-6 h-6" />}
                 </div>
                 
                 {/* Info */}
@@ -187,25 +188,25 @@ export default function TiposConfigPage() {
                         className={`p-2 rounded-lg transition-all shadow-sm ${t.activo ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 hover:bg-orange-500 hover:text-white' : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-600 hover:text-white'}`}
                         title={t.activo ? "Desactivar" : "Activar"}
                     >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636" /></svg>
+                        <Power className="w-4 h-4" />
                     </button>
                     <button 
                         onClick={() => handleOpenModal(t)}
                         className="p-2 bg-background text-slate-500 dark:text-slate-400 hover:bg-emerald-600 dark:hover:bg-emerald-500 hover:text-white rounded-lg transition-all shadow-sm"
                         title="Editar"
                     >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                        <Edit3 className="w-4 h-4" />
                     </button>
                     <button 
                         onClick={() => handleDelete(t.id)}
                         className="p-2 bg-background text-slate-400 dark:text-slate-500 hover:bg-rose-600 dark:hover:bg-rose-500 hover:text-white rounded-lg transition-all shadow-sm"
                         title="Eliminar"
                     >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        <Trash2 className="w-4 h-4" />
                     </button>
                 </div>
                 <div className="group-hover:hidden transition-all text-slate-300 dark:text-slate-700">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+                    <ChevronRight className="w-5 h-5" />
                 </div>
               </div>
             ))}
@@ -236,7 +237,7 @@ export default function TiposConfigPage() {
                 onClick={() => setIsModalOpen(false)} 
                 className="text-slate-400 dark:text-slate-500 hover:text-rose-600 transition-colors p-1"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg>
+                <X className="w-5 h-5" />
               </button>
             </div>
 

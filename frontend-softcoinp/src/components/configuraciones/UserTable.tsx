@@ -3,6 +3,7 @@
 import React from "react";
 import { User } from "@/services/userService";
 import { getCurrentUser } from "@/utils/auth";
+import { Users, Edit3, Key, Trash2, ChevronRight } from "lucide-react";
 
 interface UserTableProps {
   users: User[];
@@ -17,7 +18,7 @@ export default function UserTable({ users, onEdit, onDelete, onResetPassword }: 
   if (users.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 bg-card rounded-xl border border-dashed border-border transition-colors">
-        <span className="text-4xl mb-4 opacity-20">👥</span>
+        <Users className="w-16 h-16 text-slate-300 dark:text-slate-600 opacity-50 mb-4" />
         <p className="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest text-xs">No hay usuarios registrados</p>
       </div>
     );
@@ -71,14 +72,14 @@ export default function UserTable({ users, onEdit, onDelete, onResetPassword }: 
                         className="p-2 bg-background text-slate-500 dark:text-slate-400 hover:bg-emerald-600 dark:hover:bg-emerald-500 hover:text-white rounded-lg transition-all shadow-sm border border-border"
                         title="Editar Usuario"
                     >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                        <Edit3 className="w-4 h-4" />
                     </button>
                     <button
                         onClick={() => onResetPassword(user.id)}
                         className="p-2 bg-background text-slate-500 dark:text-slate-400 hover:bg-orange-500 dark:hover:bg-orange-400 hover:text-white rounded-lg transition-all shadow-sm border border-border"
                         title="Resetear Contraseña"
                     >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
+                        <Key className="w-4 h-4" />
                     </button>
                     {user.email !== currentUser?.email && (
                         <button
@@ -86,13 +87,13 @@ export default function UserTable({ users, onEdit, onDelete, onResetPassword }: 
                             className="p-2 bg-background text-slate-400 dark:text-slate-500 hover:bg-rose-600 dark:hover:bg-rose-500 hover:text-white rounded-lg transition-all shadow-sm border border-border"
                             title="Eliminar Usuario"
                         >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            <Trash2 className="w-4 h-4" />
                         </button>
                     )}
                 </div>
             )}
             <div className="group-hover:hidden transition-all text-slate-300 dark:text-slate-700">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+                <ChevronRight className="w-5 h-5" />
             </div>
           </div>
         </div>

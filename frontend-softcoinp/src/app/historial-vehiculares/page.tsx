@@ -5,6 +5,10 @@ import { useRouter } from "next/navigation";
 import api from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
 import NotificationModal from "@/components/NotificationModal";
+import {
+  ClipboardList, Download, ArrowLeft, Search, Calendar, ChevronLeft, ChevronRight,
+  FileX, PenTool, X, Filter, CarFront
+} from "lucide-react";
 
 const BACKEND_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5100/api").replace(/\/api$/, "/static");
 
@@ -192,8 +196,8 @@ export default function HistorialVehicularesPage() {
         {/* Header Section */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-3 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-emerald-600 rounded-xl text-white shadow-sm dark:shadow-none">
-               <span className="text-xl">📋</span>
+            <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 rounded-xl shadow-sm flex-shrink-0 transition-transform hover:-rotate-3">
+               <ClipboardList className="w-6 h-6" />
             </div>
             <div>
               <h1 className="text-lg lg:text-xl font-black text-foreground uppercase tracking-tight leading-none">Historial de Novedades Vehiculares</h1>
@@ -215,7 +219,7 @@ export default function HistorialVehicularesPage() {
                   </>
                 ) : (
                   <>
-                    <span className="text-lg">📥</span>
+                    <Download className="w-4 h-4" />
                     Exportar Excel
                   </>
                 )}
@@ -225,7 +229,7 @@ export default function HistorialVehicularesPage() {
               onClick={() => router.push("/novedades-vehiculares")}
               className="bg-card text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 py-2 px-4 rounded-xl font-black border border-border shadow-sm transition-all active:scale-95 flex items-center gap-2 text-[10px] uppercase tracking-widest"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+              <ArrowLeft className="w-4 h-4" />
               Volver
             </button>
           </div>
@@ -237,7 +241,9 @@ export default function HistorialVehicularesPage() {
           <div className="flex flex-col gap-1 flex-1 min-w-[180px]">
             <label className="text-[9px] uppercase font-black text-slate-400 dark:text-slate-500 px-1 tracking-widest">Búsqueda Libre</label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">🔍</span>
+              <div className="absolute left-3 top-1/2 -translate-y-1/2">
+                <Search className="w-4 h-4 text-slate-400" />
+              </div>
               <input
                 type="text"
                 value={filtroBusqueda}
@@ -292,8 +298,8 @@ export default function HistorialVehicularesPage() {
               className="px-3 py-2 bg-background border border-border rounded-xl text-[13px] font-bold focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 outline-none transition-all shadow-sm text-foreground"
             >
               <option value="">Todos los Eventos</option>
-              <option value="bloqueado">🚫 Bloqueados</option>
-              <option value="habilitado">🔓 Habilitados</option>
+              <option value="bloqueado">Bloqueados</option>
+              <option value="habilitado">Habilitados</option>
             </select>
           </div>
 
@@ -302,7 +308,7 @@ export default function HistorialVehicularesPage() {
               onClick={fetchAllNovedades}
               className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-[10px] font-black transition-all shadow-sm dark:shadow-none active:scale-95 flex items-center gap-2 uppercase tracking-widest"
             >
-              <span>Filtrar</span>
+              <Filter className="w-3.5 h-3.5" /> Filtrar
             </button>
             <button
               onClick={clearFilters}
@@ -333,7 +339,7 @@ export default function HistorialVehicularesPage() {
             </div>
           ) : vehiculosAgrupados.length === 0 ? (
             <div className="bg-card rounded-xl py-20 text-center text-slate-300 dark:text-slate-700 border-2 border-dashed border-border flex flex-col items-center gap-3">
-               <span className="text-5xl grayscale opacity-20">📭</span>
+               <FileX className="w-16 h-16 text-slate-300 dark:text-slate-600 opacity-50" />
                <p className="text-xs font-black uppercase tracking-widest">No se encontraron resultados para los filtros aplicados</p>
             </div>
           ) : (
@@ -351,7 +357,7 @@ export default function HistorialVehicularesPage() {
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          "🚗"
+                          <CarFront className="w-5 h-5 opacity-70" />
                         )}
                       </div>
                        <div className="min-w-0">
@@ -376,7 +382,7 @@ export default function HistorialVehicularesPage() {
                           {v.novedades.length} Eventos
                         </span>
                         <div className="flex items-center gap-1.5 opacity-60">
-                           <span className="text-[10px]">📅</span>
+                           <Calendar className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight">
                               Último: {new Date(v.ultimaFecha).toLocaleDateString("es-CO", { day: '2-digit', month: 'short', year: 'numeric' })}
                            </span>
@@ -412,7 +418,7 @@ export default function HistorialVehicularesPage() {
                   onClick={() => setCurrentPage(prev => prev - 1)}
                   className="p-2 hover:bg-background rounded-lg text-slate-400 dark:text-slate-600 disabled:opacity-30 transition-all border border-transparent hover:border-border"
                 >
-                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg>
+                   <ChevronLeft className="w-5 h-5" />
                 </button>
                 
                 <div className="flex gap-1">
@@ -446,7 +452,7 @@ export default function HistorialVehicularesPage() {
                   onClick={() => setCurrentPage(prev => prev + 1)}
                   className="p-2 hover:bg-background rounded-lg text-slate-400 dark:text-slate-600 disabled:opacity-30 transition-all border border-transparent hover:border-border"
                 >
-                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+                   <ChevronRight className="w-5 h-5" />
                 </button>
              </div>
           </div>
@@ -468,7 +474,7 @@ export default function HistorialVehicularesPage() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    "🚗"
+                    <CarFront className="w-6 h-6 opacity-70" />
                   )}
                 </div>
                 <div>
@@ -491,7 +497,7 @@ export default function HistorialVehicularesPage() {
                 onClick={() => setSelectedVehiculo(null)}
                 className="bg-white/5 hover:bg-white/10 text-white p-2 rounded-full transition-all outline-none active:scale-90"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
+                <X className="w-6 h-6" />
               </button>
             </div>
 
@@ -504,7 +510,7 @@ export default function HistorialVehicularesPage() {
                   <div key={anot.id} className="relative pl-9 group">
                     {/* Punto del timeline */}
                     <div className="absolute left-0 top-1.5 w-[28px] h-[28px] rounded-full bg-card border-2 border-emerald-500 shadow-sm flex items-center justify-center z-10 transition-transform group-hover:scale-110">
-                      <span className="text-[12px]">📝</span>
+                      <PenTool className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                     </div>
                     
                     <div className="bg-card rounded-xl p-4 border border-border shadow-sm transition-all hover:shadow-md hover:border-emerald-100 dark:hover:border-emerald-900/50">

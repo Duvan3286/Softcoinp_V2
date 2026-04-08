@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { personalService } from "@/services/personalService";
+import { Users, Search, FolderOpen, User, ChevronLeft, ChevronRight } from "lucide-react";
 
 export interface PersonalListDto {
   id: string;
@@ -144,8 +145,8 @@ export default function CatalogPersonalPage() {
 
 
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-emerald-600 rounded-xl text-white shadow-md shadow-emerald-100 dark:shadow-none">
-                 <span className="text-xl">👥</span>
+              <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 rounded-xl shadow-sm shrink-0">
+                 <Users className="w-6 h-6" />
               </div>
               <div>
                 <h1 className="text-lg lg:text-xl font-black text-foreground uppercase tracking-tight leading-none drop-shadow-sm">Catálogo de Personas</h1>
@@ -156,7 +157,7 @@ export default function CatalogPersonalPage() {
           
           <div className="flex items-center gap-2">
             <div className="relative min-w-[230px]">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">🔍</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center justify-center"><Search className="w-4 h-4 text-slate-400" /></span>
               <input
                 type="text"
                 value={searchTerm}
@@ -186,8 +187,8 @@ export default function CatalogPersonalPage() {
                    <p className="text-[10px] font-black uppercase tracking-widest">Cargando base de datos...</p>
                 </div>
              ) : currentItems.length === 0 ? (
-                <div className="flex items-center justify-center h-full min-h-[300px] text-slate-300 dark:text-slate-700 flex-col gap-3">
-                   <span className="text-5xl opacity-30 grayscale">📭</span>
+                <div className="flex items-center justify-center h-full min-h-[300px] text-slate-300 dark:text-slate-600 flex-col gap-3">
+                   <FolderOpen className="w-12 h-12 opacity-50" />
                    <p className="text-[10px] font-black uppercase tracking-widest">No se hallaron resultados</p>
                 </div>
              ) : (
@@ -215,7 +216,7 @@ export default function CatalogPersonalPage() {
                                 onError={e => { (e.target as HTMLImageElement).style.display='none'; }}
                               />
                             ) : (
-                              <div className="w-10 h-10 rounded-full bg-input flex items-center justify-center text-slate-400 dark:text-slate-600 text-lg border-2 border-border shadow-sm">👤</div>
+                              <div className="w-10 h-10 rounded-full bg-input flex items-center justify-center border-2 border-border shadow-sm"><User className="w-5 h-5 text-slate-400 dark:text-slate-600" /></div>
                             )}
                             <div>
                                <p className="uppercase leading-none group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">{p.nombre} {p.apellido}</p>
@@ -257,7 +258,7 @@ export default function CatalogPersonalPage() {
                     onClick={() => setCurrentPage(prev => prev - 1)}
                     className="p-1.5 bg-card border border-border rounded-lg text-slate-400 hover:text-emerald-600 disabled:opacity-30 disabled:hover:text-slate-400 transition-all shadow-sm active:scale-90"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" /></svg>
+                    <ChevronLeft className="w-4 h-4" />
                   </button>
 
                   <div className="flex items-center bg-card px-3 py-1.5 rounded-xl border border-border shadow-sm">
@@ -272,7 +273,7 @@ export default function CatalogPersonalPage() {
                     onClick={() => setCurrentPage(prev => prev + 1)}
                     className="p-1.5 bg-card border border-border rounded-lg text-slate-400 hover:text-emerald-600 disabled:opacity-30 disabled:hover:text-slate-400 transition-all shadow-sm active:scale-90"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" /></svg>
+                    <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
 

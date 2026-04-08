@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { User, userService } from "@/services/userService";
 import { getCurrentUser, UserPayload } from "@/utils/auth";
+import { X, XCircle } from "lucide-react";
 
 interface UserModalProps {
   user: User | null; // Si es null, estamos creando
@@ -90,14 +91,14 @@ export default function UserModal({ user, onClose, onSave }: UserModalProps) {
             onClick={onClose}
             className="text-slate-400 dark:text-slate-500 hover:text-rose-600 transition-colors p-1"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg>
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         <div className="p-5 overflow-y-auto custom-scrollbar">
           {error && (
             <div className="mb-4 bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 p-3 rounded-xl text-[10px] font-bold uppercase tracking-tight flex items-center gap-2">
-              <span>❌</span> {error}
+              <XCircle className="w-3.5 h-3.5" /> {error}
             </div>
           )}
 

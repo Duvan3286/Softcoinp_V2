@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getCurrentUser, UserPayload } from "@/utils/auth";
 import { settingsService } from "@/services/settingsService";
+import { Settings, ArrowLeft, LifeBuoy, ArrowRight } from "lucide-react";
 
 export default function GeneralPage() {
   const router = useRouter();
@@ -43,8 +44,8 @@ export default function GeneralPage() {
       <div className="w-full max-w-4xl flex flex-col items-start shrink-0">
         <div className="flex items-center justify-between w-full mb-2">
           <div className="flex items-center gap-4">
-              <div className="p-2.5 bg-emerald-600 rounded-xl text-white shadow-sm transition-transform hover:scale-110">
-                <span className="text-xl">⚙️</span>
+              <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 rounded-xl shadow-sm flex-shrink-0 transition-transform hover:-rotate-3">
+                <Settings className="w-6 h-6" />
               </div>
               <div>
                   <h1 className="text-xl lg:text-2xl font-black text-foreground uppercase tracking-tight leading-none">
@@ -59,7 +60,7 @@ export default function GeneralPage() {
               onClick={() => router.push("/configuraciones")}
               className="bg-card text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 py-2 px-4 rounded-xl font-black border border-border shadow-sm transition-all active:scale-95 flex items-center gap-2 text-[10px] uppercase tracking-widest"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+              <ArrowLeft className="w-4 h-4" />
               Volver
             </button>
         </div>
@@ -84,8 +85,8 @@ export default function GeneralPage() {
         {/* 🆘 SECCIÓN DE SOPORTE */}
         <section className="pt-4 border-t border-border border-dashed transition-colors">
           <div className="bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/50 rounded-xl p-6 lg:p-8 flex flex-col md:flex-row items-center gap-8 group transition-colors text-center md:text-left">
-            <div className="w-20 h-20 bg-emerald-600 rounded-xl flex items-center justify-center text-white text-3xl shadow-sm transition-transform group-hover:rotate-6">
-              🆘
+            <div className="w-20 h-20 bg-emerald-600 rounded-xl flex items-center justify-center text-white shadow-sm transition-transform group-hover:rotate-6">
+              <LifeBuoy className="w-10 h-10 opacity-80" />
             </div>
             <div className="flex-grow">
               <h3 className="text-lg font-black text-foreground uppercase tracking-tight mb-2">Asistencia Técnica Softcoinp</h3>
@@ -96,7 +97,7 @@ export default function GeneralPage() {
                 href="mailto:soporte@softcoinp.com"
                 className="inline-flex px-8 py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-sm hover:bg-emerald-700 transition-all active:scale-95"
               >
-                Contactar Ingeniería <span>➔</span>
+                Contactar Ingeniería <ArrowRight className="w-4 h-4 ml-1" />
               </a>
             </div>
           </div>

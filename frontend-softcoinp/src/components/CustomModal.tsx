@@ -36,8 +36,8 @@ const CustomModal: React.FC<CustomModalProps> = ({
         };
       case "error":
         return {
-          bar: "bg-rose-600",
-          gradient: "from-rose-50/50 dark:from-rose-900/20",
+          bar: "bg-red-600",
+          gradient: "from-red-50/50 dark:from-red-900/20",
           icon: "❌",
           btn: "btn-danger",
         };
@@ -102,7 +102,7 @@ const CustomModal: React.FC<CustomModalProps> = ({
           </div>
           <button 
             onClick={onClose}
-            className="text-slate-400 dark:text-slate-500 hover:text-rose-600 transition-colors p-1"
+            className="text-slate-400 dark:text-slate-500 hover:text-red-600 transition-colors p-1"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" />

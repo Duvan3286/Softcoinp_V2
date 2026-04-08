@@ -720,40 +720,64 @@ export default function DashboardPage() {
 
   const TimelineModal = ({ isOpen, onClose, anotaciones, nombre }: any) => {
     if (!isOpen) return null;
+
+    useEffect(() => {
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape" || e.key === "Enter") onClose();
+      };
+      window.addEventListener("keydown", handleKeyDown);
+      return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [onClose]);
+
     return (
-      <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-colors">
-        <div className="bg-card rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden animate-in fade-in zoom-in duration-300">
-          <div className="bg-red-600 p-4 text-white flex items-center justify-between">
+      <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
+        <div className="bg-card rounded-2xl shadow-2xl w-full max-w-xl relative z-10 overflow-hidden flex flex-col max-h-[85vh] transform animate-in zoom-in slide-in-from-bottom-8 duration-500 border border-border transition-colors">
+          
+          <div className="bg-card px-5 py-3 border-b border-border flex justify-between items-center bg-gradient-to-r from-red-50/50 dark:from-red-900/20 to-transparent transition-colors">
             <div className="flex items-center gap-2">
-              <span className="text-xl">⚠️</span>
-              <h3 className="text-lg font-bold uppercase tracking-tight">Antecedentes: {nombre}</h3>
+              <div className="w-1.5 h-4 bg-red-600 rounded-full"></div>
+              <h3 className="text-xs font-black uppercase tracking-widest text-foreground">
+                ⚠️ Antecedentes: {nombre}
+              </h3>
             </div>
-            <button onClick={onClose} className="hover:bg-red-700 p-1 rounded-full transition-colors">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            <button 
+              onClick={onClose}
+              className="text-slate-400 dark:text-slate-500 hover:text-red-600 transition-colors p-1"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
           </div>
-          <div className="p-6 max-h-[60vh] overflow-y-auto bg-background custom-scrollbar">
+
+          <div className="p-5 overflow-y-auto bg-background custom-scrollbar">
             <div className="space-y-4 relative before:content-[''] before:absolute before:left-[11px] before:top-0 before:bottom-0 before:w-0.5 before:bg-red-100 dark:before:bg-red-900/30">
               {anotaciones.map((a: any) => (
                 <div key={a.id} className="relative pl-8">
                   <div className="absolute left-0 top-1.5 w-6 h-6 rounded-full bg-card border-4 border-red-500 shadow-sm z-10" />
                   <div className="bg-card rounded-xl p-4 border border-border shadow-sm hover:shadow-md transition-shadow">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">
-                        {new Date(a.fechaCreacionUtc).toLocaleString("es-CO", { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-1">
+                        🗓️ {new Date(a.fechaCreacionUtc).toLocaleString("es-CO", { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                       </span>
                       {a.registradoPorEmail && (
-                        <span className="text-[9px] text-red-500 font-bold uppercase italic">{a.registradoPorEmail.split('@')[0]}</span>
+                        <span className="text-[9px] text-red-600 font-bold uppercase tracking-widest">{a.registradoPorEmail.split('@')[0]}</span>
                       )}
                     </div>
-                    <p className="text-sm text-foreground font-medium">{a.texto}</p>
+                    <p className="text-xs text-foreground font-bold uppercase tracking-tight opacity-80">{a.texto}</p>
                   </div>
                 </div>
               ))}
             </div>
           </div>
-          <div className="p-4 bg-card border-t border-border flex justify-end">
-            <button onClick={onClose} className="btn-secondary">Cerrar</button>
+
+          <div className="p-4 px-5 flex gap-2 mt-auto border-t border-border bg-background transition-colors">
+            <button
+              onClick={onClose}
+              className="w-full px-4 py-2 bg-red-600 text-white rounded-lg font-black text-[9px] uppercase tracking-widest shadow-md transition-all active:scale-[0.98] dark:shadow-none"
+            >
+              Entendido
+            </button>
           </div>
         </div>
       </div>
@@ -868,7 +892,7 @@ export default function DashboardPage() {
                         </button>
                         <button
                           onClick={() => { setFotoVehiculoBase64(null); setFotoVehiculoUrl(null); }}
-                          className="p-2 bg-card border border-border rounded-xl shadow-sm hover:bg-rose-50 dark:hover:bg-rose-900/30 hover:text-rose-600 dark:hover:text-rose-400 transition-all active:scale-90"
+                          className="p-2 bg-card border border-border rounded-xl shadow-sm hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 transition-all active:scale-90"
                           title="Eliminar foto de vehículo"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
@@ -880,11 +904,11 @@ export default function DashboardPage() {
               </div>
               
               {isVehiculoBloqueado && (
-                <div className="bg-rose-50 dark:bg-rose-950/30 text-rose-800 dark:text-rose-200 p-3 rounded-xl shadow-sm border border-rose-100 dark:border-rose-900/50 animate-in slide-in-from-top duration-300 mb-1 flex-shrink-0 relative overflow-hidden transition-colors">
+                <div className="bg-red-50 dark:bg-red-950/30 text-red-800 dark:text-red-200 p-3 rounded-xl shadow-sm border border-red-100 dark:border-red-900/50 animate-in slide-in-from-top duration-300 mb-1 flex-shrink-0 relative overflow-hidden transition-colors">
                   <div className="flex items-center gap-3">
                     <div className="text-2xl animate-pulse">🛑</div>
                     <div>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-rose-600 dark:text-rose-400 leading-tight">Acceso Denegado</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-red-600 dark:text-red-400 leading-tight">Acceso Denegado</p>
                       <p className="text-[11px] font-bold leading-tight mt-0.5">"{motivoBloqueoVehiculo}"</p>
                     </div>
                   </div>
@@ -914,7 +938,7 @@ export default function DashboardPage() {
                   {(anotacionesVehiculoAlerta.length > 0 || isVehiculoBloqueado) && (
                     <button
                       onClick={() => setIsVehiculoTimelineOpen(true)}
-                      className={`absolute right-3 top-2.5 p-1 rounded-lg shadow-lg transition-all ${isVehiculoBloqueado ? 'bg-rose-600 animate-bounce' : 'bg-amber-500 animate-pulse'}`}
+                      className={`absolute right-3 top-2.5 p-1 rounded-lg shadow-lg transition-all ${isVehiculoBloqueado ? 'bg-red-600 animate-bounce' : 'bg-amber-500 animate-pulse'}`}
                     >
                       <span className="text-[12px]">{isVehiculoBloqueado ? "🚫" : "⚠️"}</span>
                     </button>
@@ -996,7 +1020,9 @@ export default function DashboardPage() {
                     onClick={() => handleRegistrarVehiculo("salida")}
                     disabled={!registroVehiculoActivo}
                     className={`btn-danger !py-3 !text-[9px] ${
-                      !registroVehiculoActivo && '!bg-slate-100 dark:!bg-zinc-800 !text-slate-300 dark:!text-zinc-600 !border-border dark:!border-zinc-800 !shadow-none'
+                      !registroVehiculoActivo 
+                        ? '!bg-slate-100 dark:!bg-zinc-800 !text-slate-300 dark:!text-zinc-600 !border-border dark:!border-zinc-800 !shadow-none' 
+                        : '!bg-red-600 hover:!bg-red-700'
                     }`}
                   >
                     📤 SALIDA
@@ -1074,7 +1100,7 @@ export default function DashboardPage() {
                       </button>
                       <button
                         onClick={() => { setFotoBase64(null); setFotoUrl(null); }}
-                        className="p-2.5 bg-card border border-border rounded-xl shadow-sm hover:bg-rose-50 dark:hover:bg-rose-900/30 hover:text-rose-600 dark:hover:text-rose-400 transition-all active:scale-90"
+                        className="p-2.5 bg-card border border-border rounded-xl shadow-sm hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 transition-all active:scale-90"
                         title="Eliminar foto"
                       >
                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
@@ -1086,11 +1112,11 @@ export default function DashboardPage() {
             </div>
 
             {isBloqueado && (
-              <div className="bg-rose-50 dark:bg-rose-950/30 text-rose-800 dark:text-rose-200 p-4 rounded-xl shadow-sm border border-rose-100 dark:border-rose-900/50 animate-in slide-in-from-top duration-300 mb-4 flex-shrink-0 relative overflow-hidden transition-colors">
+              <div className="bg-red-50 dark:bg-red-950/30 text-red-800 dark:text-red-200 p-4 rounded-xl shadow-sm border border-red-100 dark:border-red-900/50 animate-in slide-in-from-top duration-300 mb-4 flex-shrink-0 relative overflow-hidden transition-colors">
                 <div className="flex items-center gap-4 relative z-10">
                   <div className="text-3xl animate-pulse">🛑</div>
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-rose-600 dark:text-rose-400">Alerta de Seguridad</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-red-600 dark:text-red-400">Alerta de Seguridad</p>
                     <p className="text-sm font-black mt-1">Persona Bloqueada: "{motivoBloqueo}"</p>
                   </div>
                 </div>
@@ -1121,7 +1147,7 @@ export default function DashboardPage() {
                   {(anotacionesAlerta.length > 0 || isBloqueado) && (
                     <button
                       onClick={() => setIsTimelineOpen(true)}
-                      className={`absolute right-3 top-3.5 p-1.5 rounded-xl shadow-lg transition-all ${isBloqueado ? 'bg-rose-600 animate-bounce' : 'bg-amber-500 animate-pulse'}`}
+                      className={`absolute right-3 top-3.5 p-1.5 rounded-xl shadow-lg transition-all ${isBloqueado ? 'bg-red-600 animate-bounce' : 'bg-amber-500 animate-pulse'}`}
                     >
                       <span className="text-[14px]">{isBloqueado ? "🚫" : "⚠️"}</span>
                     </button>
@@ -1229,7 +1255,9 @@ export default function DashboardPage() {
                   onClick={() => handleRegistrar("salida")}
                   disabled={!registroActivo}
                   className={`btn-danger !py-4 !text-xs ${
-                    !registroActivo && '!bg-slate-100 dark:!bg-zinc-800 !text-slate-300 dark:!text-zinc-600 !border-border dark:!border-zinc-800 !shadow-none'
+                    !registroActivo 
+                      ? '!bg-slate-100 dark:!bg-zinc-800 !text-slate-300 dark:!text-zinc-600 !border-border dark:!border-zinc-800 !shadow-none' 
+                      : '!bg-red-600 hover:!bg-red-700'
                   }`}
                 >
                   🚪 REGISTRAR SALIDA

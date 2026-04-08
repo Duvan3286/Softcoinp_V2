@@ -296,13 +296,6 @@ export default function CorrespondenciaPage() {
         {/* HEADER & TABS PRINCIPALES */}
         <div className="flex flex-col lg:flex-row items-center justify-between gap-4 bg-card p-4 rounded-xl border border-border shadow-sm transition-colors shrink-0">
           <div className="flex items-center gap-4">
-            <button 
-                onClick={() => router.back()}
-                className="group flex items-center gap-2 px-3 py-1.5 bg-background border border-border rounded-xl text-slate-500 hover:text-emerald-500 transition-all shadow-sm"
-            >
-                <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-                <span className="text-[11px] font-black uppercase tracking-widest">Volver</span>
-            </button>
 
             <div className="flex items-center gap-4">
               <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 rounded-xl shadow-sm flex-shrink-0 transition-transform hover:rotate-3">

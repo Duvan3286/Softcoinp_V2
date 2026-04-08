@@ -56,15 +56,6 @@ export default function PersonalActivoPage() {
       <div className="w-full max-w-[1400px] h-full flex flex-col overflow-hidden">
         {/* Header */}
         <div className="flex-shrink-0 mt-4 flex items-center w-full border-b border-border pb-4 transition-colors">
-          <button 
-              onClick={() => router.back()}
-              className="group flex items-center gap-2 px-3 py-1.5 bg-card border border-border rounded-xl text-slate-500 hover:text-cyan-600 dark:hover:text-[#22D3EE] transition-all shadow-none"
-          >
-              <svg className="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" />
-              </svg>
-              <span className="text-[11px] font-black uppercase tracking-widest">Volver</span>
-          </button>
 
           <h1 className="text-xl lg:text-2xl font-black text-foreground uppercase tracking-tight text-center flex-1">
             Personal Con Registro Activo

@@ -21,11 +21,25 @@ namespace Softcoinp.Backend.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IConfiguration _configuration;
+        private readonly Services.Reporting.IReportDataService _reportData;
+        private readonly Services.Reporting.IPdfReportService _pdfService;
+        private readonly Services.Reporting.IExcelReportService _excelService;
+        private readonly Services.Reporting.IEmailService _emailService;
 
-        public MaintenanceController(AppDbContext context, IConfiguration configuration)
+        public MaintenanceController(
+            AppDbContext context, 
+            IConfiguration configuration,
+            Services.Reporting.IReportDataService reportData,
+            Services.Reporting.IPdfReportService pdfService,
+            Services.Reporting.IExcelReportService excelService,
+            Services.Reporting.IEmailService emailService)
         {
             _context = context;
             _configuration = configuration;
+            _reportData = reportData;
+            _pdfService = pdfService;
+            _excelService = excelService;
+            _emailService = emailService;
         }
 
         /// <summary>
@@ -502,7 +516,74 @@ namespace Softcoinp.Backend.Controllers
                 return StatusCode(500, new { error = "Fallo en la base de datos durante la restauración.", detail = ex.Message });
             }
         }
+
+        public class ManualReportRequest
+        {
+            public string? Email { get; set; }
+            public int? Mes { get; set; }
+            public int? Anio { get; set; }
+        }
+
+        /// <summary>
+        /// Disparo manual del reporte de inteligencia de datos.
+        /// </summary>
+        [HttpPost("enviar-reporte-analitico")]
+        public async Task<IActionResult> EnviarReporteAnalitico([FromBody] ManualReportRequest req)
+        {
+            try
+            {
+                // Usar mes/año solicitado o por defecto el mes ACTUAL para pruebas manuales
+                var now = DateTime.UtcNow;
+                int month = req.Mes ?? now.Month;
+                int year = req.Anio ?? now.Year;
+                
+                // 1. Obtener Datos
+                var analytics = await _reportData.GetMonthlyAnalyticsAsync(month, year);
+
+                // 2. Generar Documentos
+                var pdfBytes = _pdfService.GenerateMonthlyReport(analytics);
+                var excelBytes = _excelService.GenerateRawDataExcel(analytics);
+
+
+                // 3. Determinar Destinatario
+                // Prioridad: 1. Email del body, 2. Email del usuario autenticado (admin), 3. Email corporativo
+                string recipient = req.Email;
+                if (string.IsNullOrWhiteSpace(recipient))
+                {
+                    var userEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value 
+                                    ?? User.FindFirst("email")?.Value;
+                    recipient = userEmail ?? "gerencia@softcoinp.com";
+                }
+
+                // 4. Contraseña de cifrado (ID del gerente - Simulado)
+                string encryptionKey = "1020304050"; 
+                var reportDate = new DateTime(year, month, 1);
+
+                // 5. Envío
+                await _emailService.SendSecureReportAsync(
+                    recipient,
+                    $"[MANUAL] SOFTCOINP Reporte Analítico - {reportDate:MMMM yyyy}",
+                    $"Este es un envío manual solicitado desde el panel de mantenimiento para el mes de {reportDate:MMMM}.<br>Adjunto encontrará el informe PDF y el detalle Excel.",
+                    pdfBytes,
+                    excelBytes,
+                    encryptionKey
+                );
+
+
+                return Ok(new { message = $"Reporte generado y enviado con éxito a {recipient}." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Fallo al generar/enviar reporte manual.", detail = ex.Message });
+            }
+        }
     }
+
+    public class ManualReportRequest
+    {
+        public string? Email { get; set; }
+    }
+
 
     // DTO para estructurar el archivo JSON
     public class BackupDataDto

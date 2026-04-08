@@ -124,6 +124,13 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuditService, AuditService>();
 
+// Servicios de Inteligencia de Datos y Reportes
+builder.Services.AddScoped<Softcoinp.Backend.Services.Reporting.IReportDataService, Softcoinp.Backend.Services.Reporting.ReportDataService>();
+builder.Services.AddScoped<Softcoinp.Backend.Services.Reporting.IPdfReportService, Softcoinp.Backend.Services.Reporting.PdfReportService>();
+builder.Services.AddScoped<Softcoinp.Backend.Services.Reporting.IExcelReportService, Softcoinp.Backend.Services.Reporting.ExcelReportService>();
+builder.Services.AddScoped<Softcoinp.Backend.Services.Reporting.IEmailService, Softcoinp.Backend.Services.Reporting.EmailService>();
+
+
 // Configurar CORS
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() 
     ?? new[] { "http://localhost:3000" };

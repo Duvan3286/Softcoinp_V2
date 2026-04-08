@@ -17,6 +17,8 @@ export default function MantenimientoHubPage() {
   const [clientName, setClientName] = useState("");
   
   const [saving, setSaving] = useState(false);
+  const [smtpEmail, setSmtpEmail] = useState("");
+  const [smtpPassword, setSmtpPassword] = useState("");
   const [modal, setModal] = useState({ 
     isOpen: false, 
     title: "", 
@@ -34,7 +36,34 @@ export default function MantenimientoHubPage() {
     setUsuario(user);
     settingsService.getSystemVersion().then(setSystemVersion);
     settingsService.getClientName().then(setClientName);
+
+    // Cargar config SMTP
+    api.get("/Settings").then(res => {
+        const settings = (res.data as any).data || [];
+        const email = settings.find((s:any) => s.key === "SmtpEmail")?.value || "";
+        const pass = settings.find((s:any) => s.key === "SmtpPassword")?.value || "";
+        setSmtpEmail(email);
+        setSmtpPassword(pass);
+    });
   }, [router]);
+
+  const handleUpdateSmtpConfig = async () => {
+    if (!smtpEmail.trim() || !smtpPassword.trim()) {
+      showModal("Correo y Contraseña son obligatorios.", "warning");
+      return;
+    }
+    setSaving(true);
+    try {
+      await settingsService.update({ key: "SmtpEmail", value: smtpEmail });
+      await settingsService.update({ key: "SmtpPassword", value: smtpPassword });
+      showModal("✅ Configuración de Gmail guardada con éxito.", "success");
+    } catch (err: any) {
+      showModal("❌ Error al guardar configuración SMTP.", "error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
 
   const handleUpdateClientName = async () => {
     if (!clientName.trim()) {
@@ -156,6 +185,21 @@ export default function MantenimientoHubPage() {
     });
   };
 
+  const [targetEmail, setTargetEmail] = useState("");
+
+  const handleSendManualReport = async () => {
+    setLoading(true);
+    try {
+      await api.post("/Maintenance/enviar-reporte-analitico", { email: targetEmail });
+      showModal(`✅ Reporte enviado con éxito${targetEmail ? ` a ${targetEmail}` : " al administrador"}.`, "success", "Inteligencia Enviada");
+      setTargetEmail("");
+    } catch (err: any) {
+      showModal("❌ Error al enviar reporte: " + (err.response?.data?.error || err.message), "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleConfirmClear = async (options: any) => {
     setLoading(true);
     try {
@@ -165,6 +209,7 @@ export default function MantenimientoHubPage() {
     } catch (err: any) { showModal("❌ Error: " + (err.response?.data?.error || err.message), "error"); }
     finally { setLoading(false); }
   };
+
 
   return (
     <div className="h-full bg-background p-4 lg:p-12 flex flex-col items-center justify-start overflow-hidden gap-8">
@@ -229,7 +274,81 @@ export default function MantenimientoHubPage() {
             </div>
         </div>
 
+        <section className="bg-card border border-border rounded-3xl p-6 lg:p-8 shadow-sm">
+            <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 rounded-2xl flex items-center justify-center text-2xl">📊</div>
+                <h2 className="text-sm font-black text-foreground uppercase tracking-tight">Inteligencia de Datos</h2>
+            </div>
+            <div className="space-y-4">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-tight">Generar informe analítico del mes anterior a demanda.</p>
+                <div className="flex flex-col md:flex-row gap-4">
+                    <div className="flex-1 space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Correo Electrónico Opcional</label>
+                        <input 
+                            type="email" 
+                            placeholder="Dejar vacío para el Admin"
+                            value={targetEmail} 
+                            onChange={(e) => setTargetEmail(e.target.value)} 
+                            className="w-full px-4 py-3 bg-input border border-border rounded-xl text-xs font-black" 
+                        />
+                    </div>
+                    <div className="flex items-end">
+                        <button 
+                            onClick={handleSendManualReport} 
+                            disabled={loading} 
+                            className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-indigo-500/20 transition-all disabled:opacity-50"
+                        >
+                            {loading ? "Enviando..." : "Enviar Reporte Ahora"}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section className="bg-card border border-border rounded-3xl p-6 lg:p-8 shadow-sm border-indigo-500/30">
+            <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 rounded-2xl flex items-center justify-center text-2xl">📧</div>
+                <h2 className="text-sm font-black text-foreground uppercase tracking-tight">Configuración de Mensajería (Gmail)</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Correo Emisor</label>
+                    <input 
+                        type="email" 
+                        placeholder="tu-cuenta@gmail.com"
+                        value={smtpEmail} 
+                        onChange={(e) => setSmtpEmail(e.target.value)} 
+                        className="w-full px-4 py-3 bg-input border border-border rounded-xl text-xs font-black" 
+                    />
+                </div>
+                <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Contraseña de Aplicación</label>
+                    <div className="flex gap-2">
+                        <input 
+                            type="password" 
+                            placeholder="•••• •••• •••• ••••"
+                            value={smtpPassword} 
+                            onChange={(e) => setSmtpPassword(e.target.value)} 
+                            className="w-full px-4 py-3 bg-input border border-border rounded-xl text-xs font-black" 
+                        />
+                        <button 
+                            onClick={handleUpdateSmtpConfig} 
+                            disabled={saving} 
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all disabled:opacity-50"
+                        >
+                            {saving ? "..." : "Guardar"}
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <p className="mt-4 text-[9px] font-bold text-slate-400 uppercase leading-relaxed opacity-70">
+                ⚠️ IMPORTANTE: Utiliza una "Contraseña de Aplicación" generada en tu cuenta de Google. No uses tu contraseña personal.
+            </p>
+        </section>
+
+
         <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-2 mt-4">Gestión de Respaldos</h2>
+
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div onClick={handleExportConfig} className="bg-card rounded-3xl p-5 border border-border shadow-sm flex flex-col items-center gap-3 cursor-pointer group hover:bg-indigo-50/20">

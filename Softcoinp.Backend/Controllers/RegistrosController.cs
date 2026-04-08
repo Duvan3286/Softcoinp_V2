@@ -99,6 +99,8 @@ namespace Softcoinp.Backend.Controllers
                     
                     if (!string.IsNullOrWhiteSpace(fotoUrlVehiculo))
                         vehiculo.FotoUrl = fotoUrlVehiculo;
+                    else
+                        fotoUrlVehiculo = vehiculo.FotoUrl; // Heredar la foto maestra para el historial
                 }
                 else
                 {
@@ -505,31 +507,34 @@ namespace Softcoinp.Backend.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ApiResponse<RegistroDto>.Fail(null, "Error de validación", ModelState));
 
-            if (string.IsNullOrWhiteSpace(input.Foto))
-                return BadRequest(ApiResponse<RegistroDto>.Fail(null, "🛑 La fotografía de la persona es obligatoria."));
+            // Foto obligatoria solo si la persona es nueva o no tiene foto previa (se valida más abajo)
+
 
             var nowUtc = DateTime.UtcNow;
 
             // ---------- Procesar foto (guardar en /uploads/personal) ----------
             string? fotoUrlPersonal = null;
-            try
+            if (!string.IsNullOrWhiteSpace(input.Foto))
             {
-                var base64 = input.Foto.StartsWith("data:") ? input.Foto.Substring(input.Foto.IndexOf(',') + 1) : input.Foto;
-                var bytes = Convert.FromBase64String(base64);
-                var fileName = $"{input.Documento}_{DateTime.Now:yyyyMMddHHmmss}.jpeg";
-                var folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "personal");
-                if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
-                var path = Path.Combine(folder, fileName);
-                await System.IO.File.WriteAllBytesAsync(path, bytes);
-                fotoUrlPersonal = $"/uploads/personal/{fileName}";
-            }
-            catch (FormatException)
-            {
-                return BadRequest(ApiResponse<RegistroDto>.Fail(null, "Formato de imagen Base64 inválido."));
-            }
-            catch (IOException ex)
-            {
-                return StatusCode(500, ApiResponse<RegistroDto>.Fail(null, $"Error al guardar la foto: {ex.Message}"));
+                try
+                {
+                    var base64 = input.Foto.StartsWith("data:") ? input.Foto.Substring(input.Foto.IndexOf(',') + 1) : input.Foto;
+                    var bytes = Convert.FromBase64String(base64);
+                    var fileName = $"{input.Documento}_{DateTime.Now:yyyyMMddHHmmss}.jpeg";
+                    var folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "personal");
+                    if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+                    var path = Path.Combine(folder, fileName);
+                    await System.IO.File.WriteAllBytesAsync(path, bytes);
+                    fotoUrlPersonal = $"/uploads/personal/{fileName}";
+                }
+                catch (FormatException)
+                {
+                    return BadRequest(ApiResponse<RegistroDto>.Fail(null, "Formato de imagen Base64 inválido."));
+                }
+                catch (IOException ex)
+                {
+                    return StatusCode(500, ApiResponse<RegistroDto>.Fail(null, $"Error al guardar la foto: {ex.Message}"));
+                }
             }
 
             // ---------- Procesar foto vehículo (opcional) ----------
@@ -554,6 +559,10 @@ namespace Softcoinp.Backend.Controllers
             var persona = await _db.Personal.FirstOrDefaultAsync(p => p.Documento == input.Documento);
             if (persona == null)
             {
+                // Si es nuevo, la foto ES OBLIGATORIA
+                if (string.IsNullOrWhiteSpace(fotoUrlPersonal))
+                    return BadRequest(ApiResponse<RegistroDto>.Fail(null, "🛑 La fotografía es obligatoria para registrar personas nuevas."));
+
                 persona = new Personal
                 {
                     Id = Guid.NewGuid(),
@@ -570,12 +579,20 @@ namespace Softcoinp.Backend.Controllers
             }
             else
             {
+                // Si ya existe, validar que al menos tenga una foto previa si no mandó nueva
+                if (string.IsNullOrWhiteSpace(persona.FotoUrl) && string.IsNullOrWhiteSpace(fotoUrlPersonal))
+                    return BadRequest(ApiResponse<RegistroDto>.Fail(null, "🛑 Esta persona no tiene foto. Debe capturar una para continuar."));
+
                 persona.Nombre = string.IsNullOrWhiteSpace(input.Nombre) ? persona.Nombre : input.Nombre;
                 persona.Apellido = string.IsNullOrWhiteSpace(input.Apellido) ? persona.Apellido : input.Apellido;
                 persona.Tipo = string.IsNullOrWhiteSpace(input.Tipo) ? persona.Tipo : input.Tipo;
                 persona.Telefono = input.Telefono ?? persona.Telefono;
+                
                 if (!string.IsNullOrWhiteSpace(fotoUrlPersonal))
                     persona.FotoUrl = fotoUrlPersonal;
+                else
+                    fotoUrlPersonal = persona.FotoUrl; // Heredar la foto existente para el registro de entrada
+                
                 await _db.SaveChangesAsync();
             }
 

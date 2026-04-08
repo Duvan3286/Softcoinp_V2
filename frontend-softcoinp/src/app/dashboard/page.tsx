@@ -259,7 +259,7 @@ export default function DashboardPage() {
           return;
         }
 
-        if (!fotoBase64) {
+        if (!fotoBase64 && !fotoUrl) {
           showModal("🛑 Debe tomar una fotografía de la persona a registrar.", "error");
           return;
         }
@@ -366,7 +366,7 @@ export default function DashboardPage() {
           return;
         }
 
-        if (!fotoVehiculoBase64) {
+        if (!fotoVehiculoBase64 && !fotoVehiculoUrl) {
           showModal("🛑 Debe tomar una fotografía del vehículo para el registro.", "error");
           return;
         }
@@ -550,39 +550,44 @@ export default function DashboardPage() {
         ]);
 
         // — Entrada activa de la PERSONA
-        if (activoRes.status === "fulfilled" && (activoRes.value as any)?.data?.data) {
-          setRegistroActivo({ id: (activoRes.value as any).data.data.id });
+        // api.get devuelve el objeto de axios, por lo que el cuerpo es .data y el objeto es .data.data
+        const personActive = (activoRes.status === "fulfilled" ? activoRes.value : null) as any;
+        if (personActive && personActive.data && personActive.data.data) {
+          setRegistroActivo({ id: personActive.data.data.id });
         } else {
           setRegistroActivo(null);
         }
 
         // — Datos actualizados del VEHÍCULO (foto, bloqueo)
-        if (vehiculoData.status === "fulfilled" && vehiculoData.value) {
-          const vData = (vehiculoData.value as any)?.data?.data;
-          if (vData) {
-            // Sobreescribir con datos más frescos del vehículo
-            if (!persona.marcaVehiculo && vData.marca) setMarca(vData.marca);
-            if (!persona.modeloVehiculo && vData.modelo) setModelo(vData.modelo);
-            if (!persona.colorVehiculo && vData.color) setColor(vData.color);
-            if (!persona.tipoVehiculo && vData.tipoVehiculo) setTipoVehiculo(vData.tipoVehiculo);
-            // Foto actual del vehículo (puede ser más reciente que la del registro)
-            if (vData.fotoUrl) setFotoVehiculoUrl(vData.fotoUrl);
+        const masterVehRes = (vehiculoData.status === "fulfilled" ? vehiculoData.value : null) as any;
+        const vData = masterVehRes?.data?.data ? masterVehRes.data.data : masterVehRes?.data;
 
-            if (vData.isBloqueado) {
-              setIsVehiculoBloqueado(true);
-              setMotivoBloqueoVehiculo(vData.motivoBloqueo || "Motivo no especificado");
-              showModal(`🚫 El vehículo ${persona.placaVehiculo} está BLOQUEADO. Motivo: ${vData.motivoBloqueo}`, "error");
-            } else {
-              setIsVehiculoBloqueado(false);
-              setMotivoBloqueoVehiculo("");
-            }
+        if (vData) {
+          // Sobreescribir con datos más frescos del vehículo
+          if (vData.marca) setMarca(vData.marca);
+          if (vData.modelo) setModelo(vData.modelo);
+          if (vData.color) setColor(vData.color);
+          if (vData.tipoVehiculo) setTipoVehiculo(vData.tipoVehiculo);
+          if (vData.fotoUrl) setFotoVehiculoUrl(vData.fotoUrl);
+
+          if (vData.isBloqueado) {
+            setIsVehiculoBloqueado(true);
+            setMotivoBloqueoVehiculo(vData.motivoBloqueo || "Motivo no especificado");
+          } else {
+            setIsVehiculoBloqueado(false);
+            setMotivoBloqueoVehiculo("");
           }
         }
 
         // — Entrada activa del VEHÍCULO
-        if (activoVehRes.status === "fulfilled" && (activoVehRes.value as any)?.data?.data) {
-          setRegistroVehiculoActivo({ id: (activoVehRes.value as any).data.data.id });
+        const activeVehResData = (activoVehRes.status === "fulfilled" ? activoVehRes.value : null) as any;
+        const activeVehRecord = activeVehResData?.data; // El servicio ya devuelve .data, así que buscamos el objeto ahí
+
+        if (activeVehRecord && activeVehRecord.id) {
+          console.log("🚗 Vehículo detectado EN SITIO:", activeVehRecord.id);
+          setRegistroVehiculoActivo({ id: activeVehRecord.id });
         } else {
+          console.log("🚗 Vehículo detectado FUERA");
           setRegistroVehiculoActivo(null);
         }
 
@@ -663,7 +668,7 @@ export default function DashboardPage() {
         // Lanzar peticiones secundarias EN PARALELO
         const [vAlertas, activoVeh, alertasPropietario] = await Promise.allSettled([
           anotacionService.getAnotacionesPorVehiculo(vehiculo.id),
-          registroVehiculoService.getActivo(placa),
+          registroVehiculoService.getActivo(placa.trim()),
           vehiculo.propietarioId
             ? anotacionService.getAnotacionesPorPersonal(vehiculo.propietarioId)
             : Promise.resolve([]),
@@ -671,8 +676,10 @@ export default function DashboardPage() {
 
         if (vAlertas.status === "fulfilled") setAnotacionesVehiculoAlerta(vAlertas.value as AnotacionDto[]);
 
-        if (activoVeh.status === "fulfilled" && (activoVeh.value as any)?.data) {
-          setRegistroVehiculoActivo({ id: (activoVeh.value as any).data.id });
+        const activoVehResult = (activoVeh.status === "fulfilled" ? activoVeh.value : null) as any;
+        if (activoVehResult && activoVehResult.data) {
+          console.log("🚗 Placa detectada EN SITIO:", activoVehResult.data.id);
+          setRegistroVehiculoActivo({ id: activoVehResult.data.id });
         } else {
           setRegistroVehiculoActivo(null);
         }
@@ -823,7 +830,7 @@ export default function DashboardPage() {
                     Vehículo
                   </h3>
                   <p className="text-[9px] font-bold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-tighter hidden lg:block">
-                    {fotoVehiculoBase64 ? 'Capturado' : 'Pendiente'}
+                    {(fotoVehiculoBase64 || fotoVehiculoUrl) ? 'Capturado' : 'Pendiente'}
                   </p>
                 </div>
 
@@ -1031,7 +1038,7 @@ export default function DashboardPage() {
                   Registro de Persona
                 </h2>
                 <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-2 uppercase tracking-[0.3em] hidden lg:block">
-                  {fotoBase64 ? 'Fotografía capturada con éxito' : 'Diligencie la información básica'}
+                  {(fotoBase64 || fotoUrl) ? 'Fotografía vinculada con éxito' : 'Diligencie la información básica'}
                 </p>
               </div>
 

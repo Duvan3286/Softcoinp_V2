@@ -22,8 +22,7 @@ namespace Softcoinp.Backend.Dtos
 
         public string? Tipo { get; set; }  // visitante por defecto
 
-        // 📸 Foto en base64 → obligatoria para registrar
-        [Required(ErrorMessage = "La fotografía es obligatoria para el registro.")]
+        // 📸 Foto en base64 → obligatoria solo si es nuevo (se valida en controlador)
         public string? Foto { get; set; }
 
         // 🚗 Datos opcionales del vehículo

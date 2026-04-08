@@ -13,7 +13,7 @@ namespace Softcoinp.Backend.Services.Reporting
 {
     public interface IEmailService
     {
-        Task SendSecureReportAsync(string recipientEmail, string subject, string body, byte[] pdf, byte[] excel, string password);
+        Task SendSecureReportAsync(string recipientEmail, string subject, string body, byte[] pdf, string password);
     }
 
     public class EmailService : IEmailService
@@ -28,7 +28,7 @@ namespace Softcoinp.Backend.Services.Reporting
         }
 
 
-        public async Task SendSecureReportAsync(string recipientEmail, string subject, string body, byte[] pdf, byte[] excel, string password)
+        public async Task SendSecureReportAsync(string recipientEmail, string subject, string body, byte[] pdf, string password)
         {
             var settings = _db.SystemSettings
                 .Where(s => s.Key == "SmtpEmail" || s.Key == "SmtpPassword")
@@ -55,8 +55,7 @@ namespace Softcoinp.Backend.Services.Reporting
                 message.Subject = subject;
 
                 var bodyBuilder = new BodyBuilder { HtmlBody = body };
-                bodyBuilder.Attachments.Add("Reporte_Analitico.pdf", pdf, new ContentType("application", "pdf"));
-                bodyBuilder.Attachments.Add("Datos_Detallados.xlsx", excel, new ContentType("application", "vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+                bodyBuilder.Attachments.Add("Reporte_Mensual.pdf", pdf, new ContentType("application", "pdf"));
 
                 message.Body = bodyBuilder.ToMessageBody();
 

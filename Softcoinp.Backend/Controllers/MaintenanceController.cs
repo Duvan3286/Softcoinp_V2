@@ -542,7 +542,6 @@ namespace Softcoinp.Backend.Controllers
 
                 // 2. Generar Documentos
                 var pdfBytes = _pdfService.GenerateMonthlyReport(analytics);
-                var excelBytes = _excelService.GenerateRawDataExcel(analytics);
 
 
                 // 3. Determinar Destinatario
@@ -560,12 +559,15 @@ namespace Softcoinp.Backend.Controllers
                 var reportDate = new DateTime(year, month, 1);
 
                 // 5. Envío
+                var culture = new System.Globalization.CultureInfo("es-ES");
+                string nombreMesEmail = culture.DateTimeFormat.GetMonthName(reportDate.Month);
+                nombreMesEmail = char.ToUpper(nombreMesEmail[0]) + nombreMesEmail.Substring(1);
+
                 await _emailService.SendSecureReportAsync(
                     recipient,
                     $"[MANUAL] SOFTCOINP Reporte Analítico - {reportDate:MMMM yyyy}",
-                    $"Este es un envío manual solicitado desde el panel de mantenimiento para el mes de {reportDate:MMMM}.<br>Adjunto encontrará el informe PDF y el detalle Excel.",
+                    $"Este es el Reporte Ejecutivo de Inteligencia Operativa consolidado para el mes de {nombreMesEmail}.<br>Adjunto encontrará el documento PDF con todas las métricas de flujo, seguridad y logística detalladas.",
                     pdfBytes,
-                    excelBytes,
                     encryptionKey
                 );
 

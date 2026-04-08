@@ -13,7 +13,6 @@ namespace Softcoinp.Worker.Jobs
         ILogger<MonthlyReportJob> logger,
         IReportDataService dataService,
         IPdfReportService pdfService,
-        IExcelReportService excelService,
         IEmailService emailService) : IJob
     {
         public async Task Execute(IJobExecutionContext context)
@@ -28,19 +27,22 @@ namespace Softcoinp.Worker.Jobs
 
                 // 2. Generar Documentos
                 var pdfBytes = pdfService.GenerateMonthlyReport(analytics);
-                var excelBytes = excelService.GenerateRawDataExcel(analytics);
 
                 // 3. Recuperar ID del gerente para cifrado (Ejemplo: desde configuración o DB)
                 string managerId = "1020304050"; 
 
                 // 4. Enviar Correo Seguro
+                var culture = new System.Globalization.CultureInfo("es-ES");
+                string nombreMesEmail = culture.DateTimeFormat.GetMonthName(lastMonth.Month);
+                nombreMesEmail = char.ToUpper(nombreMesEmail[0]) + nombreMesEmail.Substring(1);
+
                 await emailService.SendSecureReportAsync(
                     "gerencia@softcoinp.com",
                     $"[SOFTCOINP] Reporte Analítico Mensual - {lastMonth:MMMM yyyy}",
-                    $"Hola,<br><br>Adjunto encontrará el análisis de inteligencia de datos del mes de {lastMonth:MMMM}.<br>La contraseña de apertura es su número de documento físico.",
+                    $"Buen día,<br><br>Se ha generado de forma automática el Reporte Ejecutivo de Inteligencia Operativa consolidado para el mes de {nombreMesEmail}.<br>Adjunto encontrará el documento PDF protegido con todas las métricas de flujo, seguridad y logística detalladas.",
                     pdfBytes,
-                    excelBytes,
                     managerId);
+
 
                 logger.LogInformation("✅ Reporte mensual enviado exitosamente a gerencia.");
             }

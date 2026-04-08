@@ -184,7 +184,7 @@ export default function NovedadesVehicularesPage() {
         
         <div className="flex-col lg:flex-row lg:items-center justify-between gap-2 mb-3 shrink-0 flex">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-indigo-600 rounded-xl text-white shadow-md shadow-indigo-100 dark:shadow-none">
+            <div className="p-2 bg-emerald-600 rounded-xl text-white shadow-sm dark:shadow-none">
                <span className="text-xl">🚗</span>
             </div>
             <h1 className="text-lg lg:text-xl font-black text-foreground uppercase tracking-tight">Novedades Vehiculares</h1>
@@ -213,7 +213,7 @@ export default function NovedadesVehicularesPage() {
               value={placa}
               onChange={(e) => setPlaca(e.target.value.toUpperCase())}
               placeholder="ABC-123"
-              className={`w-full pl-14 pr-12 py-2.5 border rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none shadow-sm text-sm font-bold transition-all uppercase tracking-widest ${
+              className={`w-full pl-14 pr-12 py-2.5 border rounded-xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none shadow-sm text-sm font-bold transition-all uppercase tracking-widest ${
                 anotaciones.length > 0 
                 ? 'border-red-400 bg-red-50 dark:bg-red-950/10 ring-2 ring-red-50 dark:ring-red-900/10 text-foreground' 
                 : 'border-border bg-card text-foreground'
@@ -234,7 +234,7 @@ export default function NovedadesVehicularesPage() {
           <button
             type="submit"
             disabled={buscando || !placa.trim()}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-black shadow-lg shadow-indigo-100 dark:shadow-none transition-all active:scale-95 text-[10px] uppercase disabled:opacity-50"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl font-black shadow-sm dark:shadow-none transition-all active:scale-95 text-[10px] uppercase disabled:opacity-50"
           >
             {buscando ? "..." : "Buscar"}
           </button>
@@ -247,16 +247,16 @@ export default function NovedadesVehicularesPage() {
         )}
 
         {!vehiculo && !buscando && !errorBusqueda && (
-          <div className="flex-1 flex flex-col items-center justify-center p-8 bg-card rounded-3xl border-2 border-dashed border-border animate-in fade-in zoom-in duration-500">
+          <div className="flex-1 flex flex-col items-center justify-center p-8 bg-card rounded-xl border-2 border-dashed border-border animate-in fade-in zoom-in duration-500">
             <div className="relative mb-6">
-                <div className="absolute inset-0 bg-indigo-500 blur-3xl opacity-10 animate-pulse"></div>
-                <div className="relative w-32 h-32 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-full flex items-center justify-center text-white shadow-2xl shadow-indigo-200 dark:shadow-none">
+                <div className="absolute inset-0 bg-emerald-500 blur-3xl opacity-10 animate-pulse"></div>
+                <div className="relative w-32 h-32 bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-full flex items-center justify-center text-white shadow-2xl shadow-sm dark:shadow-none">
                     <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1-1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
                     </svg>
                 </div>
-                <div className="absolute -bottom-2 -right-2 bg-card p-2 rounded-2xl shadow-lg border border-border">
+                <div className="absolute -bottom-2 -right-2 bg-card p-2 rounded-xl shadow-lg border border-border">
                     <span className="text-2xl">🔍</span>
                 </div>
             </div>
@@ -283,9 +283,9 @@ export default function NovedadesVehicularesPage() {
             
             {/* 🚗 LEFT COLUMN: Perfil (3 Cols) */}
             <div className="lg:col-span-3 flex flex-col min-h-0">
-              <div className="bg-card rounded-2xl shadow-sm border border-border p-3 flex flex-col items-center text-center overflow-hidden flex-1 lg:overflow-y-auto custom-scrollbar">
+              <div className="bg-card rounded-xl shadow-sm border border-border p-3 flex flex-col items-center text-center overflow-hidden flex-1 lg:overflow-y-auto custom-scrollbar">
                 <div className="relative mb-2 group">
-                  <div className="absolute inset-0 bg-indigo-400 blur-lg opacity-10 rounded-full group-hover:opacity-20 transition-opacity"></div>
+                  <div className="absolute inset-0 bg-emerald-400 blur-lg opacity-10 rounded-full group-hover:opacity-20 transition-opacity"></div>
                   <div 
                     className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-border shadow-sm bg-background flex items-center justify-center cursor-pointer hover:scale-105 transition-transform group/img"
                     onClick={() => fotoSrc && setFotoZoomUrl(fotoSrc)}
@@ -306,7 +306,7 @@ export default function NovedadesVehicularesPage() {
                 <p className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">MARCA: <span className="text-foreground">{vehiculo.marca || 'N/A'}</span></p>
                 
                 <div className="flex flex-wrap justify-center gap-2 mt-2">
-                  <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-sm border bg-indigo-50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400 border-indigo-100 dark:border-indigo-900/30">
+                  <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-sm border bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/30">
                     {vehiculo.tipoVehiculo || 'N/A'}
                   </span>
                   <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-sm border bg-background text-slate-600 dark:text-slate-400 border-border flex items-center gap-1">
@@ -359,13 +359,13 @@ export default function NovedadesVehicularesPage() {
             </div>
 
             {/* 📋 CENTER COLUMN: Historial (5 Cols) */}
-            <div className="lg:col-span-5 flex flex-col min-h-0 bg-card rounded-2xl shadow-sm border border-border overflow-hidden">
+            <div className="lg:col-span-5 flex flex-col min-h-0 bg-card rounded-xl shadow-sm border border-border overflow-hidden">
                 <div className="px-4 py-3 border-b border-border flex items-center justify-between bg-card shrink-0">
                   <h3 className="text-xs font-black text-foreground flex items-center gap-1.5 uppercase tracking-tight leading-none">
                     <span className="text-lg">🕓</span> Historial de Novedades Vehiculares
                   </h3>
                   <div className="flex items-center gap-2">
-                    <span className="text-[9px] font-black text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/20 px-2 py-1 rounded-full border border-indigo-100 dark:border-indigo-900/30 uppercase tracking-tighter">
+                    <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 px-2 py-1 rounded-full border border-emerald-100 dark:border-emerald-900/30 uppercase tracking-tighter">
                       {anotaciones.length} Eventos
                     </span>
                   </div>
@@ -381,7 +381,7 @@ export default function NovedadesVehicularesPage() {
                     <div className="space-y-4 relative before:content-[''] before:absolute before:left-[11px] before:top-0 before:bottom-0 before:w-0.5 before:bg-border before:rounded-full">
                       {anotaciones.map((a) => (
                         <div key={a.id} className="relative pl-8">
-                          <div className={`absolute left-0 top-1.5 w-6 h-6 rounded-full bg-card border-[3px] shadow-sm z-10 transition-colors flex items-center justify-center ${a.texto.toUpperCase().includes('BLOQUEO') || a.texto.toUpperCase().includes('ROBO') ? 'border-rose-500' : 'border-indigo-500'}`} />
+                          <div className={`absolute left-0 top-1.5 w-6 h-6 rounded-full bg-card border-[3px] shadow-sm z-10 transition-colors flex items-center justify-center ${a.texto.toUpperCase().includes('BLOQUEO') || a.texto.toUpperCase().includes('ROBO') ? 'border-rose-500' : 'border-emerald-500'}`} />
                           
                           <div className={`bg-card rounded-xl p-3 border shadow-sm hover:shadow-md transition-all duration-300 ${a.texto.toUpperCase().includes('BLOQUEO') || a.texto.toUpperCase().includes('ROBO') ? 'border-rose-100 dark:border-rose-900/30' : 'border-border'}`}>
                             <div className="flex items-center justify-between mb-2">
@@ -395,7 +395,7 @@ export default function NovedadesVehicularesPage() {
                               <div className="flex gap-1.5">
                                 {editingId !== a.id && (usuario?.role === "admin" || usuario?.role === "superadmin") && (
                                   <>
-                                    <button onClick={() => handleStartEdit(a)} className="p-1.5 bg-indigo-50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors" title="Editar">
+                                    <button onClick={() => handleStartEdit(a)} className="p-1.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors" title="Editar">
                                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                     </button>
                                     <button onClick={() => handleDelete(a.id)} className="p-1.5 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors" title="Eliminar">
@@ -412,11 +412,11 @@ export default function NovedadesVehicularesPage() {
                                   value={editText}
                                   onChange={(e) => setEditText(e.target.value)}
                                   rows={3}
-                                  className="w-full px-3 py-2 bg-background border-2 border-indigo-100 dark:border-indigo-900/50 rounded-lg text-[13px] font-medium focus:border-indigo-500 outline-none resize-none transition-all text-foreground"
+                                  className="w-full px-3 py-2 bg-background border-2 border-emerald-100 dark:border-emerald-900/50 rounded-lg text-[13px] font-medium focus:border-emerald-500 outline-none resize-none transition-all text-foreground"
                                 />
                                 <div className="flex justify-end gap-2">
                                   <button onClick={handleCancelEdit} className="px-3 py-1 text-[9px] font-black text-slate-500 bg-background rounded-lg uppercase tracking-tight hover:bg-slate-200 dark:hover:bg-slate-800 border border-border">Canc</button>
-                                  <button onClick={() => handleSaveEdit(a.id)} className="px-5 py-1 text-[9px] font-black text-white bg-indigo-600 rounded-lg uppercase tracking-tight hover:bg-indigo-700 shadow-sm">Guardar</button>
+                                  <button onClick={() => handleSaveEdit(a.id)} className="px-5 py-1 text-[9px] font-black text-white bg-emerald-600 rounded-lg uppercase tracking-tight hover:bg-emerald-700 shadow-sm">Guardar</button>
                                 </div>
                               </div>
                             ) : (
@@ -425,10 +425,10 @@ export default function NovedadesVehicularesPage() {
                                 {a.registradoPorEmail && (
                                   <div className="pt-2 border-t border-border flex items-center justify-between">
                                     <div className="flex items-center gap-1">
-                                      <div className="w-1 h-1 rounded-full bg-indigo-300"></div>
+                                      <div className="w-1 h-1 rounded-full bg-emerald-300"></div>
                                       <span className="text-[8px] text-slate-400 font-black uppercase tracking-widest leading-none">Autor:</span>
                                     </div>
-                                    <span className="text-[9px] text-indigo-600 dark:text-indigo-400 font-black bg-indigo-50 dark:bg-indigo-950/20 px-1.5 py-0.5 rounded uppercase leading-none">{a.registradoPorEmail.split('@')[0]}</span>
+                                    <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-black bg-emerald-50 dark:bg-emerald-950/20 px-1.5 py-0.5 rounded uppercase leading-none">{a.registradoPorEmail.split('@')[0]}</span>
                                   </div>
                                 )}
                               </>
@@ -443,7 +443,7 @@ export default function NovedadesVehicularesPage() {
 
             {/* ✍️ RIGHT COLUMN: Formulario (4 Cols) */}
             <div className="lg:col-span-4 flex flex-col gap-4 min-h-0 lg:overflow-y-auto custom-scrollbar">
-              <div className="bg-card rounded-2xl shadow-sm border-2 border-border flex flex-col overflow-hidden">
+              <div className="bg-card rounded-xl shadow-sm border-2 border-border flex flex-col overflow-hidden">
                 <div className="bg-slate-800 dark:bg-slate-950 px-4 py-3 flex items-center gap-2.5 shrink-0">
                   <div className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center text-white">
                     <span className="text-lg">✍️</span>
@@ -459,7 +459,7 @@ export default function NovedadesVehicularesPage() {
                       onChange={(e) => setTextoAnotacion(e.target.value)}
                       placeholder="Escriba aqui los detalles de la novedad..."
                       rows={4}
-                      className="w-full px-3 py-2 bg-background border border-border rounded-xl text-xs font-bold focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-400 outline-none transition-all resize-none placeholder-slate-300 dark:placeholder-slate-700 text-foreground"
+                      className="w-full px-3 py-2 bg-background border border-border rounded-xl text-xs font-bold focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 outline-none transition-all resize-none placeholder-slate-300 dark:placeholder-slate-700 text-foreground"
                     />
                   </div>
 
@@ -477,7 +477,7 @@ export default function NovedadesVehicularesPage() {
                   <button
                     onClick={handleGuardarAnotacion}
                     disabled={guardando || !textoAnotacion.trim()}
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white p-3 rounded-xl font-black shadow-lg shadow-indigo-100 dark:shadow-none transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2 text-xs tracking-widest uppercase"
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white p-3 rounded-xl font-black shadow-sm dark:shadow-none transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2 text-xs tracking-widest uppercase"
                   >
                     {guardando ? (
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -494,7 +494,7 @@ export default function NovedadesVehicularesPage() {
         {/* Modal de Antecedentes (Timeline global) */}
         {isTimelineOpen && vehiculo && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div className="bg-card rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden animate-in fade-in zoom-in duration-300 border-t-8 border-red-600">
+            <div className="bg-card rounded-xl shadow-2xl w-full max-w-xl overflow-hidden animate-in fade-in zoom-in duration-300 border-t-8 border-red-600">
               <div className="bg-card p-4 text-red-700 dark:text-red-400 border-b border-border flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-2xl">⚠️</span>
@@ -534,7 +534,7 @@ export default function NovedadesVehicularesPage() {
         {/* Modal de Bloqueo */}
         {showBlockModal && vehiculo && (
           <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-300">
+            <div className="bg-card rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-300">
               <div className="bg-red-600 p-5 text-white">
                 <h3 className="text-xl font-bold flex items-center gap-2 uppercase tracking-tight">
                     🚫 Confirmar Bloqueo
@@ -595,7 +595,7 @@ export default function NovedadesVehicularesPage() {
         {/* Modal de Desbloqueo */}
         {showUnblockModal && vehiculo && (
           <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-300">
+            <div className="bg-card rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-300">
               <div className="bg-emerald-600 p-5 text-white">
                 <h3 className="text-xl font-bold flex items-center gap-2 uppercase tracking-tight">
                     🔓 Desbloquear Vehículo

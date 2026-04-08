@@ -41,10 +41,10 @@ const LiveClock = memo(function LiveClock() {
         {now.toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "short", year: "numeric" })}
       </p>
       <div className="flex items-baseline gap-1 mt-1 relative z-10">
-        <p className="text-5xl font-black text-indigo-600 dark:text-indigo-400 tracking-tighter leading-none drop-shadow-sm">
+        <p className="text-5xl font-black text-emerald-600 dark:text-emerald-400 tracking-tighter leading-none drop-shadow-sm">
           {now.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit", hour12: false })}
         </p>
-        <span className="text-2xl font-black text-indigo-300 dark:text-indigo-800 animate-pulse">
+        <span className="text-2xl font-black text-emerald-500 dark:text-emerald-500/50 animate-pulse">
           :{now.getSeconds().toString().padStart(2, "0")}
         </span>
       </div>
@@ -810,8 +810,6 @@ export default function DashboardPage() {
 
       <div className="flex-1 w-full flex flex-col relative z-0 lg:overflow-hidden bg-background transition-colors duration-300">
         
-        <div className="fixed top-0 left-0 w-full h-96 bg-gradient-to-b from-indigo-100/40 dark:from-indigo-900/10 to-transparent -z-10 pointer-events-none"></div>
-
         <div className="flex flex-col-reverse lg:flex-row-reverse gap-4 flex-1 min-h-0 w-full max-w-[1700px] mx-auto p-3 lg:p-4 overflow-y-auto lg:overflow-hidden">
 
           {/* ══════════════════════════════════════════
@@ -820,11 +818,11 @@ export default function DashboardPage() {
           <div className="w-full lg:w-96 xl:w-[26rem] flex flex-col gap-3 flex-shrink-0">
 
             {/* ── Bloque Vehículo ── */}
-            <div className="flex-1 bg-card rounded-3xl border border-border shadow-[0_8px_30px_rgb(0,0,0,0.03)] p-4 lg:p-5 flex flex-col gap-3 lg:overflow-hidden relative transition-colors duration-300">
+            <div className="flex-1 bg-card rounded-xl border border-border shadow-sm p-4 lg:p-5 flex flex-col gap-3 lg:overflow-hidden relative transition-colors duration-300">
               <div className="flex items-center gap-3 mb-2 flex-shrink-0">
                 <div className="flex flex-col justify-center flex-1 min-w-0">
                   <h3 className="text-sm lg:text-base font-black text-foreground flex items-center gap-2 tracking-tight uppercase">
-                    <div className="p-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl flex-shrink-0 shadow-sm">
+                    <div className="p-2 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 rounded-xl flex-shrink-0 shadow-sm">
                       <span className="text-lg">🚗</span>
                     </div>
                     Vehículo
@@ -844,14 +842,14 @@ export default function DashboardPage() {
                     }}
                   >
                     <div className="relative w-20 h-20 lg:w-24 lg:h-24 transition-all duration-500 group-hover:scale-105">
-                      <div className={`absolute inset-0 rounded-3xl blur-2xl opacity-10 transition-all duration-500 ${(fotoVehiculoBase64 || fotoVehiculoUrl) ? 'bg-indigo-500' : 'bg-slate-400 group-hover:bg-indigo-400'}`}></div>
-                      <div className={`relative w-full h-full border-2 rounded-3xl flex items-center justify-center overflow-hidden bg-input transition-all duration-300 ${(fotoVehiculoBase64 || fotoVehiculoUrl) ? 'border-indigo-400 rotate-2' : 'border-border dark:border-slate-800 group-hover:border-indigo-200 dark:group-hover:border-indigo-800 group-hover:-rotate-1'}`}>
+                      <div className={`absolute inset-0 rounded-xl blur-2xl opacity-10 transition-all duration-500 ${(fotoVehiculoBase64 || fotoVehiculoUrl) ? 'bg-emerald-500' : 'bg-slate-400 group-hover:bg-emerald-400'}`}></div>
+                      <div className={`relative w-full h-full border border-border rounded-xl flex items-center justify-center overflow-hidden bg-background transition-all duration-300 ${(fotoVehiculoBase64 || fotoVehiculoUrl) ? 'border-emerald-500' : 'border-border dark:border-zinc-800 group-hover:border-emerald-300 dark:group-hover:border-emerald-700'}`}>
                         {fotoVehiculoBase64 ? (
                           <img src={fotoVehiculoBase64} alt="Vehículo" className="w-full h-full object-cover" />
                         ) : fotoVehiculoUrl ? (
                           <img src={resolveImageUrl(fotoVehiculoUrl)} alt="Vehículo" className="w-full h-full object-cover" />
                         ) : (
-                          <svg className="w-10 lg:w-12 h-10 lg:h-12 text-slate-200 dark:text-slate-700 group-hover:text-indigo-300 transition duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.218A2 2 0 0110.125 4h3.75a2 2 0 011.664.89l.812 1.218A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                          <svg className="w-10 lg:w-12 h-10 lg:h-12 text-slate-300 dark:text-zinc-700 group-hover:text-emerald-300 transition duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.218A2 2 0 0110.125 4h3.75a2 2 0 011.664.89l.812 1.218A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         )}
                       </div>
                     </div>
@@ -863,7 +861,7 @@ export default function DashboardPage() {
                       <>
                         <button
                           onClick={() => setIsVehiculoCameraOpen(true)}
-                          className="p-2 bg-card border border-border rounded-xl shadow-sm hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all active:scale-90"
+                          className="p-2 bg-card border border-border rounded-xl shadow-sm hover:bg-emerald-50 dark:hover:bg-emerald-950/20 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all active:scale-90"
                           title="Cambiar foto de vehículo"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.218A2 2 0 0110.125 4h3.75a2 2 0 011.664.89l.812 1.218A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
@@ -882,7 +880,7 @@ export default function DashboardPage() {
               </div>
               
               {isVehiculoBloqueado && (
-                <div className="bg-rose-50 dark:bg-rose-950/30 text-rose-800 dark:text-rose-200 p-3 rounded-2xl shadow-sm border border-rose-100 dark:border-rose-900/50 animate-in slide-in-from-top duration-300 mb-1 flex-shrink-0 relative overflow-hidden transition-colors">
+                <div className="bg-rose-50 dark:bg-rose-950/30 text-rose-800 dark:text-rose-200 p-3 rounded-xl shadow-sm border border-rose-100 dark:border-rose-900/50 animate-in slide-in-from-top duration-300 mb-1 flex-shrink-0 relative overflow-hidden transition-colors">
                   <div className="flex items-center gap-3">
                     <div className="text-2xl animate-pulse">🛑</div>
                     <div>
@@ -942,7 +940,7 @@ export default function DashboardPage() {
                     <option value="bicicleta">Bicicleta</option>
                     <option value="otro">Otro</option>
                   </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-400 group-hover/select:text-indigo-500 transition-colors">
+                  <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-400 group-hover/select:text-emerald-500 transition-colors">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" /></svg>
                   </div>
                 </div>
@@ -989,7 +987,7 @@ export default function DashboardPage() {
                     onClick={() => handleRegistrarVehiculo("entrada")}
                     disabled={!!registroVehiculoActivo || isVehiculoBloqueado || isVehiculoNuevo}
                     className={`btn-success !py-3 !text-[9px] ${
-                      (registroVehiculoActivo || isVehiculoBloqueado || isVehiculoNuevo) && '!bg-slate-100 dark:!bg-slate-800 !text-slate-300 dark:!text-slate-600 !border-border dark:!border-slate-800 !shadow-none'
+                      (registroVehiculoActivo || isVehiculoBloqueado || isVehiculoNuevo) && '!bg-slate-100 dark:!bg-zinc-800 !text-slate-300 dark:!text-zinc-600 !border-border dark:!border-zinc-800 !shadow-none'
                     }`}
                   >
                     {isVehiculoBloqueado ? "🚫 BLOQUEO" : !!isVehiculoNuevo ? "⚠️ NUEVO" : "📥 ENTRADA"}
@@ -998,7 +996,7 @@ export default function DashboardPage() {
                     onClick={() => handleRegistrarVehiculo("salida")}
                     disabled={!registroVehiculoActivo}
                     className={`btn-danger !py-3 !text-[9px] ${
-                      !registroVehiculoActivo && '!bg-slate-100 dark:!bg-slate-800 !text-slate-300 dark:!text-slate-600 !border-border dark:!border-slate-800 !shadow-none'
+                      !registroVehiculoActivo && '!bg-slate-100 dark:!bg-zinc-800 !text-slate-300 dark:!text-zinc-600 !border-border dark:!border-zinc-800 !shadow-none'
                     }`}
                   >
                     📤 SALIDA
@@ -1015,8 +1013,8 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="bg-card rounded-3xl border border-border shadow-[0_8px_30px_rgb(0,0,0,0.02)] p-5 flex flex-col items-center justify-center gap-1.5 text-center relative overflow-hidden group transition-colors duration-300">
-              <div className="absolute inset-0 bg-indigo-50/30 dark:bg-indigo-900/10 -translate-y-full group-hover:translate-y-0 transition-transform duration-700"></div>
+            <div className="bg-card rounded-xl border border-border shadow-sm p-5 flex flex-col items-center justify-center gap-1.5 text-center relative overflow-hidden group transition-colors duration-300">
+              <div className="absolute inset-0 bg-emerald-50/10 dark:bg-emerald-950/5 -translate-y-full group-hover:translate-y-0 transition-transform duration-700"></div>
               {/* LiveClock es un componente separado — su setInterval no re-renderiza el formulario */}
               <LiveClock />
             </div>
@@ -1026,13 +1024,12 @@ export default function DashboardPage() {
           {/* ══════════════════════════════════════════
               SECCIÓN IZQUIERDA: Formulario Persona + Acciones
           ══════════════════════════════════════════ */}
-          <div className="flex-1 flex flex-col bg-card rounded-[2.5rem] border border-border shadow-[0_8px_40px_rgb(0,0,0,0.04)] p-5 lg:p-7 lg:overflow-hidden min-h-0 relative transition-colors duration-300">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50 dark:bg-indigo-900/10 rounded-full -mr-32 -mt-32 blur-3xl opacity-40"></div>
+          <div className="flex-1 flex flex-col bg-card rounded-xl border border-border shadow-sm p-5 lg:p-7 lg:overflow-hidden min-h-0 relative transition-colors duration-300">
             
             <div className="flex items-center gap-4 mb-4 flex-shrink-0 relative z-10">
               <div className="flex flex-col justify-center flex-1 min-w-0">
                 <h2 className="text-base lg:text-lg font-black text-foreground flex items-center gap-3 tracking-tight uppercase">
-                  <div className="p-2.5 bg-indigo-600 rounded-2xl text-white flex-shrink-0 shadow-lg shadow-indigo-200 dark:shadow-none rotate-3">
+                  <div className="p-2.5 bg-emerald-600 rounded-xl text-white flex-shrink-0 shadow-none">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                   </div>
                   Registro de Persona
@@ -1052,14 +1049,14 @@ export default function DashboardPage() {
                   }}
                 >
                   <div className="relative w-24 h-24 lg:w-28 lg:h-28 transition-all duration-500 group-hover:scale-105">
-                    <div className={`absolute inset-0 rounded-[2.5rem] blur-2xl opacity-10 transition-all duration-500 ${(fotoBase64 || fotoUrl) ? 'bg-emerald-500' : 'bg-indigo-400 group-hover:bg-indigo-600'}`}></div>
-                    <div className={`relative w-full h-full border-2 rounded-[2.5rem] flex items-center justify-center overflow-hidden bg-input transition-all duration-300 ${(fotoBase64 || fotoUrl) ? 'border-emerald-400 rotate-3 shadow-xl' : 'border-border dark:border-slate-800 group-hover:border-indigo-300 dark:group-hover:border-indigo-700'}`}>
+                    <div className={`absolute inset-0 rounded-xl blur-2xl opacity-10 transition-all duration-500 ${(fotoBase64 || fotoUrl) ? 'bg-emerald-500' : 'bg-emerald-400 group-hover:bg-emerald-600'}`}></div>
+                    <div className={`relative w-full h-full border border-border rounded-xl flex items-center justify-center overflow-hidden bg-background transition-all duration-300 ${(fotoBase64 || fotoUrl) ? 'border-emerald-500 shadow-none' : 'border-border dark:border-zinc-800 group-hover:border-emerald-300 dark:group-hover:border-emerald-700'}`}>
                       {fotoBase64 ? (
                         <img src={fotoBase64} alt="Foto" className="w-full h-full object-cover" />
                       ) : fotoUrl ? (
                         <img src={resolveImageUrl(fotoUrl)} alt="Foto" className="w-full h-full object-cover" />
                       ) : (
-                        <svg className="w-12 lg:w-14 h-12 lg:h-14 text-slate-200 dark:text-slate-700 group-hover:text-indigo-300 transition duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                        <svg className="w-12 lg:w-14 h-12 lg:h-14 text-slate-300 dark:text-zinc-700 group-hover:text-emerald-300 transition duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                       )}
                     </div>
                   </div>
@@ -1070,14 +1067,14 @@ export default function DashboardPage() {
                     <>
                       <button
                         onClick={() => setIsCameraOpen(true)}
-                        className="p-2.5 bg-card border border-border rounded-2xl shadow-sm hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all active:scale-90"
+                        className="p-2.5 bg-card border border-border rounded-xl shadow-sm hover:bg-emerald-50 dark:hover:bg-emerald-950/20 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all active:scale-90"
                         title="Cambiar foto"
                       >
                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.218A2 2 0 0110.125 4h3.75a2 2 0 011.664.89l.812 1.218A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                       </button>
                       <button
                         onClick={() => { setFotoBase64(null); setFotoUrl(null); }}
-                        className="p-2.5 bg-card border border-border rounded-2xl shadow-sm hover:bg-rose-50 dark:hover:bg-rose-900/30 hover:text-rose-600 dark:hover:text-rose-400 transition-all active:scale-90"
+                        className="p-2.5 bg-card border border-border rounded-xl shadow-sm hover:bg-rose-50 dark:hover:bg-rose-900/30 hover:text-rose-600 dark:hover:text-rose-400 transition-all active:scale-90"
                         title="Eliminar foto"
                       >
                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
@@ -1089,7 +1086,7 @@ export default function DashboardPage() {
             </div>
 
             {isBloqueado && (
-              <div className="bg-rose-50 dark:bg-rose-950/30 text-rose-800 dark:text-rose-200 p-4 rounded-3xl shadow-sm border border-rose-100 dark:border-rose-900/50 animate-in slide-in-from-top duration-300 mb-4 flex-shrink-0 relative overflow-hidden transition-colors">
+              <div className="bg-rose-50 dark:bg-rose-950/30 text-rose-800 dark:text-rose-200 p-4 rounded-xl shadow-sm border border-rose-100 dark:border-rose-900/50 animate-in slide-in-from-top duration-300 mb-4 flex-shrink-0 relative overflow-hidden transition-colors">
                 <div className="flex items-center gap-4 relative z-10">
                   <div className="text-3xl animate-pulse">🛑</div>
                   <div>
@@ -1097,14 +1094,13 @@ export default function DashboardPage() {
                     <p className="text-sm font-black mt-1">Persona Bloqueada: "{motivoBloqueo}"</p>
                   </div>
                 </div>
-                <div className="absolute -right-4 -bottom-4 text-7xl opacity-[0.03] text-rose-900 font-black rotate-[-10deg]">BLOCK</div>
               </div>
             )}
 
             <div className="flex-1 overflow-y-auto lg:overflow-visible custom-scrollbar min-h-0 pr-1 relative z-10">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 pb-2 transition-colors">
                 <div className="relative sm:col-span-2 lg:col-span-1">
-                  <span className="absolute left-3.5 top-2.5 text-[9px] text-indigo-500 dark:text-indigo-400 font-black uppercase tracking-widest z-10">Documento</span>
+                  <span className="absolute left-3.5 top-2.5 text-[9px] text-emerald-500 dark:text-emerald-400 font-black uppercase tracking-widest z-10">Documento</span>
                   <input
                     ref={identificacionRef}
                     type="text"
@@ -1192,7 +1188,7 @@ export default function DashboardPage() {
                     className="input-standard appearance-none cursor-pointer">
                     {tipos.length > 0 ? tipos.map(t => <option key={t.id} value={t.nombre.toLowerCase()}>{t.nombre}</option>) : <option value="">{loadingTipos ? "Cargando..." : "Sin tipos"}</option>}
                   </select>
-                  <div className="pointer-events-none absolute bottom-3.5 right-4 flex items-center text-slate-400 group-hover/select:text-indigo-500 transition-colors">
+                  <div className="pointer-events-none absolute bottom-3.5 right-4 flex items-center text-slate-400 group-hover/select:text-emerald-500 transition-colors">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" /></svg>
                   </div>
                 </div>
@@ -1211,7 +1207,7 @@ export default function DashboardPage() {
                     className="input-standard resize-none min-h-[48px]"
                     rows={1} 
                   />
-                  <div className="absolute right-3 bottom-2 text-[8px] font-black text-slate-400 dark:text-slate-700 pointer-events-none uppercase">
+                  <div className="absolute right-3 bottom-2 text-[8px] font-black text-slate-400 dark:text-zinc-700 pointer-events-none uppercase">
                     {motivo.length}/250
                   </div>
                 </div>
@@ -1224,7 +1220,7 @@ export default function DashboardPage() {
                   onClick={() => handleRegistrar("entrada")}
                   disabled={isBloqueado || isVehiculoBloqueado || !!registroActivo}
                   className={`btn-success !py-4 !text-xs ${
-                    (isBloqueado || isVehiculoBloqueado || !!registroActivo) && '!bg-slate-100 dark:!bg-slate-800 !text-slate-300 dark:!text-slate-600 !border-border dark:!border-slate-800 !shadow-none'
+                    (isBloqueado || isVehiculoBloqueado || !!registroActivo) && '!bg-slate-100 dark:!bg-zinc-800 !text-slate-300 dark:!text-zinc-600 !border-border dark:!border-zinc-800 !shadow-none'
                   }`}
                 >
                   {isBloqueado ? "🚫 BLOQUEADO" : "✅ REGISTRAR ENTRADA"}
@@ -1233,7 +1229,7 @@ export default function DashboardPage() {
                   onClick={() => handleRegistrar("salida")}
                   disabled={!registroActivo}
                   className={`btn-danger !py-4 !text-xs ${
-                    !registroActivo && '!bg-slate-100 dark:!bg-slate-800 !text-slate-300 dark:!text-slate-600 !border-border dark:!border-slate-800 !shadow-none'
+                    !registroActivo && '!bg-slate-100 dark:!bg-zinc-800 !text-slate-300 dark:!text-zinc-600 !border-border dark:!border-zinc-800 !shadow-none'
                   }`}
                 >
                   🚪 REGISTRAR SALIDA
@@ -1242,7 +1238,7 @@ export default function DashboardPage() {
               <div className="flex gap-3">
                 <button
                   onClick={handleActualizarDatos}
-                  className="btn-primary flex-1 !py-3 !bg-indigo-50 dark:!bg-indigo-900/20 !text-indigo-600 dark:!text-indigo-400 !shadow-none !border-indigo-100 dark:!border-indigo-900/50 hover:!bg-indigo-600 hover:!text-white !text-[9px] !tracking-[0.2em]"
+                  className="btn-primary flex-1 !py-3 !bg-emerald-50 dark:!bg-emerald-950/20 !text-emerald-600 dark:!text-emerald-400 !shadow-none !border-emerald-100 dark:!border-emerald-900/50 hover:!bg-emerald-600 hover:!text-white !text-[9px] !tracking-[0.2em]"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                   Sincronizar Información

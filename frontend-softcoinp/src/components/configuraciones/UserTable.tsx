@@ -16,7 +16,7 @@ export default function UserTable({ users, onEdit, onDelete, onResetPassword }: 
 
   if (users.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 bg-card rounded-3xl border border-dashed border-border transition-colors">
+      <div className="flex flex-col items-center justify-center py-20 bg-card rounded-xl border border-dashed border-border transition-colors">
         <span className="text-4xl mb-4 opacity-20">👥</span>
         <p className="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest text-xs">No hay usuarios registrados</p>
       </div>
@@ -28,7 +28,7 @@ export default function UserTable({ users, onEdit, onDelete, onResetPassword }: 
       {users.map((user) => (
         <div 
           key={user.id} 
-          className="w-full bg-card rounded-2xl p-4 lg:px-8 lg:py-4 border border-border shadow-sm flex items-center gap-4 lg:gap-8 transition-all hover:bg-emerald-50/40 dark:hover:bg-emerald-900/10 hover:border-emerald-100 dark:hover:border-emerald-900 hover:shadow-md group"
+          className="w-full bg-card rounded-xl p-4 lg:px-8 lg:py-4 border border-border shadow-sm flex items-center gap-4 lg:gap-8 transition-all hover:bg-emerald-50/40 dark:hover:bg-emerald-900/10 hover:border-emerald-100 dark:hover:border-emerald-900 hover:shadow-md group"
         >
           {/* Avatar / Icono */}
           <div className={`w-12 h-12 shrink-0 ${user.role === 'superadmin' ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400' : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'} rounded-xl flex items-center justify-center text-sm font-black shadow-inner transition-all group-hover:scale-110 uppercase`}>
@@ -56,7 +56,7 @@ export default function UserTable({ users, onEdit, onDelete, onResetPassword }: 
             <span className={`px-3 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg border ${
                 user.role === "superadmin" ? "bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 border-rose-100 dark:border-rose-800" :
                 user.role === "admin" ? "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800" : 
-                "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border-indigo-100 dark:border-indigo-800"
+                "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800"
             }`}>
                 {user.role}
             </span>

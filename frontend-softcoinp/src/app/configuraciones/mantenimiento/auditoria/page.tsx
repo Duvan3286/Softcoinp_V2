@@ -99,11 +99,11 @@ export default function AuditoriaPage() {
   };
 
   const getActionBadge = (action: string) => {
-    const commonStyles = "px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm";
+    const commonStyles = "px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm transition-colors";
     if (action.includes("Created")) return `${commonStyles} bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800`;
     if (action.includes("Deleted")) return `${commonStyles} bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400 border-rose-100 dark:border-rose-800`;
-    if (action.includes("Updated")) return `${commonStyles} bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 border-indigo-100 dark:border-indigo-800`;
-    if (action.includes("Login")) return `${commonStyles} bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-400 border-violet-100 dark:border-violet-800`;
+    if (action.includes("Updated")) return `${commonStyles} bg-cyan-50 dark:bg-cyan-900/20 text-cyan-700 dark:text-cyan-400 border-cyan-100 dark:border-cyan-800`;
+    if (action.includes("Login")) return `${commonStyles} bg-cyan-50 dark:bg-cyan-900/20 text-cyan-700 dark:text-cyan-400 border-cyan-100 dark:border-cyan-800`;
     return `${commonStyles} bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-border`;
   };
 
@@ -112,7 +112,7 @@ export default function AuditoriaPage() {
       <div className="w-full max-w-5xl flex flex-col items-start shrink-0">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between w-full gap-4">
             <div className="flex items-center gap-4">
-                <div className="p-2.5 bg-amber-500 rounded-xl text-white shadow-lg shadow-amber-100 dark:shadow-none transition-transform hover:scale-110">
+                <div className="p-2.5 bg-amber-500 rounded-xl text-white shadow-sm transition-transform hover:scale-110">
                     <span className="text-xl">📋</span>
                 </div>
                 <div>
@@ -124,7 +124,7 @@ export default function AuditoriaPage() {
             <div className="flex items-center gap-3">
                 <button 
                   onClick={() => router.push("/configuraciones")}
-                  className="bg-card text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 py-2 px-4 rounded-xl font-black border border-border shadow-sm transition-all active:scale-95 flex items-center gap-2 text-[10px] uppercase tracking-widest"
+                  className="bg-card text-slate-500 dark:text-slate-400 hover:text-cyan-600 dark:hover:text-cyan-400 py-2 px-4 rounded-xl font-black border border-border shadow-sm transition-all active:scale-95 flex items-center gap-2 text-[10px] uppercase tracking-widest"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                   Volver
@@ -136,7 +136,7 @@ export default function AuditoriaPage() {
         {/* Filtros */}
         <div className="flex flex-wrap items-center gap-3 w-full animate-in fade-in slide-in-from-top duration-300">
              <select 
-                className="px-4 py-3 bg-card border border-border rounded-xl text-[10px] font-bold uppercase tracking-tight focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none min-w-[200px] shadow-sm flex-1 lg:flex-none transition-all text-foreground"
+                className="px-4 py-3 bg-card border border-border rounded-xl text-[10px] font-bold uppercase tracking-tight focus:ring-4 focus:ring-cyan-500/10 focus:border-cyan-500 outline-none min-w-[200px] shadow-sm flex-1 lg:flex-none transition-all text-foreground"
                 value={actionFilter}
                 onChange={(e) => setActionFilter(e.target.value)}
               >
@@ -147,13 +147,13 @@ export default function AuditoriaPage() {
               </select>
               <input 
                 type="date" 
-                className="px-4 py-3 bg-card border border-border rounded-xl text-[10px] font-bold uppercase focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none shadow-sm flex-1 lg:flex-none transition-all text-foreground"
+                className="px-4 py-3 bg-card border border-border rounded-xl text-[10px] font-bold uppercase focus:ring-4 focus:ring-cyan-500/10 focus:border-cyan-500 outline-none shadow-sm flex-1 lg:flex-none transition-all text-foreground"
                 value={desdeFilter}
                 onChange={(e) => setDesdeFilter(e.target.value)}
               />
               <button 
                 onClick={loadLogs}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-indigo-100 dark:shadow-none transition-all active:scale-95 flex items-center gap-2"
+                className="bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-sm transition-all active:scale-95 flex items-center gap-2"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                 Buscar
@@ -164,11 +164,11 @@ export default function AuditoriaPage() {
       <main className="w-full max-w-5xl flex flex-col min-h-0 overflow-y-auto pr-1 pb-10 custom-scrollbar">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 text-slate-300 dark:text-slate-700 gap-4">
-            <div className="w-10 h-10 border-4 border-border border-t-indigo-600 rounded-full animate-spin"></div>
+            <div className="w-10 h-10 border-4 border-border border-t-cyan-600 rounded-full animate-spin"></div>
             <p className="text-[10px] font-black uppercase tracking-[0.2em]">Cargando logs...</p>
           </div>
         ) : logs.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 bg-card rounded-3xl border border-dashed border-border text-slate-400 dark:text-slate-600 transition-colors">
+          <div className="flex flex-col items-center justify-center py-20 bg-card rounded-xl border border-dashed border-border text-slate-400 dark:text-slate-600 transition-colors">
             <span className="text-4xl mb-4 opacity-20">🔎</span>
             <p className="text-[10px] font-black uppercase tracking-widest">No hay registros que coincidan</p>
           </div>
@@ -177,7 +177,7 @@ export default function AuditoriaPage() {
             {logs.map((log) => (
               <div 
                 key={log.id} 
-                className="w-full bg-card rounded-2xl p-4 lg:px-6 lg:py-3 border border-border shadow-sm flex items-center gap-4 transition-all hover:bg-indigo-50/40 dark:hover:bg-indigo-900/10 hover:border-indigo-100 dark:hover:border-indigo-900 group"
+                className="w-full bg-card rounded-xl p-4 lg:px-6 lg:py-3 border border-border shadow-sm flex items-center gap-4 transition-all hover:bg-cyan-50/40 dark:hover:bg-cyan-900/10 hover:border-cyan-100 dark:hover:border-cyan-900 group"
               >
                 {/* Hora mini */}
                 <div className="w-16 shrink-0 flex flex-col items-center justify-center border-r border-border pr-4 transition-colors">
@@ -195,7 +195,7 @@ export default function AuditoriaPage() {
                         <span className={getActionBadge(log.action)}>
                           {getFriendlyAction(log.action)}
                         </span>
-                        <h2 className="text-[11px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-tight truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                        <h2 className="text-[11px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-tight truncate group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
                             {getLogDetail(log)}
                         </h2>
                     </div>
@@ -229,7 +229,7 @@ export default function AuditoriaPage() {
                 setHastaFilter("");
                 loadLogs();
               }}
-              className="text-[9px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest hover:underline"
+              className="text-[9px] font-black text-cyan-600 dark:text-cyan-400 uppercase tracking-widest hover:underline"
             >
               Limpiar filtros
             </button>

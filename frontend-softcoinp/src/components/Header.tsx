@@ -71,7 +71,7 @@ export default function Header() {
 
       {/* ── IZQUIERDA: Avatar + Nombre usuario ── */}
       <div className="flex items-center gap-3 min-w-0">
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+        <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0 shadow-sm">
           <span className="text-[11px] font-black text-white tracking-tight">{initials}</span>
         </div>
 
@@ -85,7 +85,7 @@ export default function Header() {
 
       {/* ── CENTRO: Logo / Nombre del Sistema ── */}
       <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2.5 select-none hidden sm:flex">
-        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-600 to-violet-700 flex items-center justify-center shadow-md shadow-indigo-200 dark:shadow-none">
+        <div className="w-7 h-7 rounded-lg bg-emerald-700 flex items-center justify-center shadow-md dark:shadow-none">
           <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5"
               d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -106,11 +106,11 @@ export default function Header() {
           <button
             onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
             title={`Cambiar a modo ${resolvedTheme === 'dark' ? 'claro' : 'oscuro'}`}
-            className="group relative flex items-center justify-center w-9 h-9 rounded-xl bg-background border border-border hover:border-indigo-300 dark:hover:border-indigo-500 transition-all active:scale-90"
+            className="group relative flex items-center justify-center w-9 h-9 rounded-xl bg-background border border-border hover:border-emerald-500 dark:hover:border-emerald-500 transition-all active:scale-90"
           >
             <div className="relative w-5 h-5 flex items-center justify-center">
               {resolvedTheme === 'dark' ? (
-                <svg className="w-5 h-5 text-indigo-400 animate-in zoom-in duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                <svg className="w-5 h-5 text-emerald-400 animate-in zoom-in duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
               ) : (
                 <svg className="w-5 h-5 text-amber-500 animate-in zoom-in duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 9H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
               )}

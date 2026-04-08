@@ -78,7 +78,7 @@ export default function UserModal({ user, onClose, onSave }: UserModalProps) {
       ></div>
 
       {/* Modal Content */}
-      <div className="bg-card rounded-2xl shadow-2xl w-full max-w-sm relative z-10 overflow-hidden flex flex-col max-h-[85vh] transform transition-all animate-in zoom-in slide-in-from-bottom border border-border transition-colors">
+      <div className="bg-card rounded-xl shadow-2xl w-full max-w-sm relative z-10 overflow-hidden flex flex-col max-h-[85vh] transform transition-all animate-in zoom-in slide-in-from-bottom border border-border transition-colors">
         <div className="bg-card px-5 py-3 border-b border-border flex justify-between items-center bg-gradient-to-r from-emerald-50/50 dark:from-emerald-900/20 to-transparent">
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-4 bg-emerald-600 rounded-full"></div>
@@ -111,7 +111,7 @@ export default function UserModal({ user, onClose, onSave }: UserModalProps) {
                 onChange={handleChange}
                 required
                 autoComplete="off"
-                className="w-full px-3 py-2 bg-input border border-border rounded-lg focus:ring-2 focus:ring-purple-100 dark:focus:ring-purple-900/30 focus:border-purple-500 outline-none transition-all placeholder-slate-300 dark:placeholder-slate-600 font-bold text-foreground uppercase text-[10px]"
+                className="w-full px-3 py-2 bg-input border border-border rounded-lg focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900/30 focus:border-emerald-500 outline-none transition-all placeholder-slate-300 dark:placeholder-slate-600 font-bold text-foreground uppercase text-[10px]"
                 placeholder="Nombre (Ej: Juan Pérez)"
               />
             </div>
@@ -125,14 +125,14 @@ export default function UserModal({ user, onClose, onSave }: UserModalProps) {
                 onChange={handleChange}
                 required
                 autoComplete="off"
-                className="w-full px-3 py-2 bg-input border border-border rounded-lg focus:ring-2 focus:ring-purple-100 dark:focus:ring-purple-900/30 focus:border-purple-500 outline-none transition-all placeholder-slate-300 dark:placeholder-slate-600 font-bold text-foreground text-[10px]"
+                className="w-full px-3 py-2 bg-input border border-border rounded-lg focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900/30 focus:border-emerald-500 outline-none transition-all placeholder-slate-300 dark:placeholder-slate-600 font-bold text-foreground text-[10px]"
                 placeholder="Correo (Ej: j.perez@empresa.com)"
               />
             </div>
 
             <div>
               <label className="block text-[9px] font-black text-slate-400 dark:text-slate-500 mb-1 uppercase tracking-widest">
-                Contraseña {isEditing && <span className="text-purple-400 opacity-60 ml-1">(OPCIONAL)</span>}
+                Contraseña {isEditing && <span className="text-emerald-400 opacity-60 ml-1">(OPCIONAL)</span>}
               </label>
               <input
                 type="password"
@@ -141,7 +141,7 @@ export default function UserModal({ user, onClose, onSave }: UserModalProps) {
                 onChange={handleChange}
                 required={!isEditing}
                 autoComplete="new-password"
-                className="w-full px-3 py-2 bg-input border border-border rounded-lg focus:ring-2 focus:ring-purple-100 dark:focus:ring-purple-900/30 focus:border-purple-500 outline-none transition-all placeholder-slate-300 dark:placeholder-slate-600 font-bold text-foreground text-[10px]"
+                className="w-full px-3 py-2 bg-input border border-border rounded-lg focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900/30 focus:border-emerald-500 outline-none transition-all placeholder-slate-300 dark:placeholder-slate-600 font-bold text-foreground text-[10px]"
                 placeholder={isEditing ? "••••••••" : "Mínimo 6 caracteres"}
                 minLength={6}
               />
@@ -153,7 +153,7 @@ export default function UserModal({ user, onClose, onSave }: UserModalProps) {
                 name="role"
                 value={formData.role}
                 onChange={handleChange}
-                className="w-full px-3 py-2 bg-input border border-border rounded-lg focus:ring-2 focus:ring-purple-100 dark:focus:ring-purple-900/30 focus:border-purple-500 outline-none transition-all font-black text-slate-600 dark:text-slate-400 uppercase text-[10px] tracking-tight cursor-pointer"
+                className="w-full px-3 py-2 bg-input border border-border rounded-lg focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900/30 focus:border-emerald-500 outline-none transition-all font-black text-slate-600 dark:text-slate-400 uppercase text-[10px] tracking-tight cursor-pointer"
               >
                 <option value="user">Usuario Básico</option>
                 {currentUser?.role === "superadmin" && (
@@ -179,7 +179,7 @@ export default function UserModal({ user, onClose, onSave }: UserModalProps) {
             type="submit"
             form="user-form"
             disabled={loading}
-            className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg font-black text-[9px] uppercase tracking-widest shadow-md shadow-emerald-100 dark:shadow-none hover:bg-emerald-700 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg font-black text-[9px] uppercase tracking-widest shadow-sm hover:bg-emerald-700 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "Procesando..." : isEditing ? "Guardar" : "Crear Usuario"}
           </button>

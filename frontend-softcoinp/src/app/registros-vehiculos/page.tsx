@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { registroVehiculoService, RegistroVehiculoDto } from "@/services/registroVehiculoService";
@@ -122,7 +122,7 @@ export default function RegistrosVehiculosPage() {
         {/* 📋 Header Section */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-4 shrink-0">
           <div className="flex items-center gap-3">
-             <div className="p-2 bg-indigo-600 rounded-xl text-white shadow-md shadow-indigo-100 dark:shadow-none">
+             <div className="p-2 bg-emerald-600 rounded-xl text-white shadow-none border border-emerald-500/20">
                <span className="text-xl">🚗</span>
             </div>
             <div>
@@ -134,7 +134,7 @@ export default function RegistrosVehiculosPage() {
           <div className="flex gap-2">
             <button
                onClick={() => router.push('/registros')}
-               className="bg-card hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 px-5 py-2.5 rounded-xl font-black border border-border shadow-sm transition-all active:scale-95 flex items-center justify-center gap-2 text-xs uppercase"
+               className="btn-secondary"
             >
                📜 Ver Personas
             </button>
@@ -142,7 +142,7 @@ export default function RegistrosVehiculosPage() {
               <button
                 onClick={handleExportExcel}
                 disabled={exporting}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-black shadow-lg shadow-emerald-100 dark:shadow-none transition-all active:scale-95 flex items-center justify-center gap-2 text-xs uppercase disabled:opacity-50"
+                className="btn-success px-8"
               >
                 {exporting ? (
                   <>
@@ -161,7 +161,7 @@ export default function RegistrosVehiculosPage() {
         </div>
 
         {/* 🕵️‍♂️ Filtros Section */}
-        <div className="bg-card rounded-2xl shadow-sm border border-border p-4 mb-4 flex-shrink-0 transition-colors">
+        <div className="bg-card rounded-xl border border-border p-4 mb-4 flex-shrink-0 transition-colors">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
             <div className="space-y-1">
               <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider px-1">Placa</label>
@@ -170,7 +170,7 @@ export default function RegistrosVehiculosPage() {
                 placeholder="ABC-123"
                 value={placa}
                 onChange={(e) => setPlaca(e.target.value.toUpperCase())}
-                className="w-full p-2.5 bg-input border border-border rounded-xl text-xs font-black focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all uppercase placeholder:normal-case text-foreground"
+                className="w-full p-2.5 bg-background border border-border rounded-xl text-xs font-black focus:ring-1 focus:ring-emerald-500 outline-none transition-all uppercase placeholder:normal-case text-foreground"
               />
             </div>
             <div className="space-y-1">
@@ -201,13 +201,13 @@ export default function RegistrosVehiculosPage() {
                   setPage(1);
                   fetchRegistros(1, { placa: "", desde: "", hasta: "" });
                 }}
-                className="px-4 py-3 bg-background text-slate-600 dark:text-slate-400 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all font-black text-[11px] uppercase flex items-center justify-center gap-2 border border-border"
+                className="btn-secondary px-8"
               >
                 🧹 Limpiar
               </button>
               <button
                 onClick={handleBuscar}
-                className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-black shadow-lg shadow-indigo-100 dark:shadow-none transition-all active:scale-95 flex items-center justify-center gap-2 text-xs uppercase"
+                className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-xl font-black shadow-none transition-all active:scale-95 flex items-center justify-center gap-2 text-xs uppercase"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                 Filtrar Vehículos
@@ -254,9 +254,9 @@ export default function RegistrosVehiculosPage() {
                         const isSalidaPending = !r.horaSalidaLocal;
 
                         return (
-                          <tr key={r.id} className="hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 transition-all group">
+                          <tr key={r.id} className="hover:bg-cyan-500/5 transition-all group">
                             <td className="px-5 py-3 whitespace-nowrap">
-                              <div className="relative w-14 h-10 rounded-lg overflow-hidden border border-border bg-input shadow-sm group-hover:scale-110 transition-transform cursor-zoom-in">
+                              <div className="relative w-14 h-10 rounded-lg overflow-hidden border border-border bg-background group-hover:scale-110 transition-transform cursor-zoom-in">
                                 {r.fotoVehiculoUrl ? (
                                   <img 
                                     src={r.fotoVehiculoUrl.startsWith('http') ? r.fotoVehiculoUrl : `${BACKEND_BASE_URL}${r.fotoVehiculoUrl}`} 
@@ -269,7 +269,7 @@ export default function RegistrosVehiculosPage() {
                               </div>
                             </td>
                             <td className="px-5 py-4 whitespace-nowrap">
-                              <span className="text-[14px] font-black text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-2.5 py-1 rounded shadow-sm border border-indigo-100 dark:border-indigo-800 tracking-wider">
+                              <span className="text-[14px] font-black text-cyan-600 dark:text-[#22D3EE] bg-cyan-500/10 px-2.5 py-1 rounded border border-cyan-500/20 tracking-wider">
                                 {r.placa}
                               </span>
                             </td>
@@ -280,19 +280,19 @@ export default function RegistrosVehiculosPage() {
                               </div>
                             </td>
                             <td className="px-5 py-4 whitespace-nowrap">
-                               <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 bg-background px-2 py-1 rounded border border-border uppercase tracking-widest shadow-sm">
+                               <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 bg-background px-2 py-1 rounded border border-border uppercase tracking-widest">
                                  {r.tipoVehiculo || "Otro"}
                                </span>
                             </td>
                             <td className="px-5 py-4 whitespace-nowrap">
                                <div className="flex flex-col">
                                  <span className="text-[12px] font-black text-foreground leading-none">{ingreso.fecha}</span>
-                                 <span className="text-[10px] font-bold text-indigo-500 dark:text-indigo-400 mt-0.5 tracking-widest">{ingreso.hora}</span>
+                                 <span className="text-[10px] font-bold text-cyan-600 dark:text-[#22D3EE] mt-0.5 tracking-widest">{ingreso.hora}</span>
                                </div>
                             </td>
                             <td className="px-5 py-4 whitespace-nowrap">
                                {isSalidaPending ? (
-                                 <span className="text-emerald-500 dark:text-emerald-400 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg border border-emerald-100 dark:border-emerald-800 animate-pulse shadow-sm shadow-emerald-100 dark:shadow-none">EN SITIO</span>
+                                 <span className="text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 bg-emerald-500/10 rounded-lg border border-emerald-500/20 animate-pulse">EN SITIO</span>
                                ) : (
                                  <div className="flex flex-col">
                                    <span className="text-[12px] font-black text-foreground leading-none">{salida.fecha}</span>
@@ -319,10 +319,10 @@ export default function RegistrosVehiculosPage() {
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 19l-7-7 7-7" /></svg>
                   </button>
                   
-                  <div className="flex items-center bg-card px-4 py-1.5 rounded-xl border border-border shadow-sm">
-                    <span className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mr-2">Pág.</span>
-                    <span className="text-sm font-black text-indigo-600 dark:text-indigo-400">{page}</span>
-                    <span className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mx-2">/</span>
+                  <div className="flex items-center bg-background px-4 py-1.5 rounded-xl border border-border">
+                    <span className="text-xs font-black text-slate-400 dark:text-[#94A3B8] uppercase tracking-widest mr-2">Pág.</span>
+                    <span className="text-sm font-black text-emerald-600 dark:text-emerald-500">{page}</span>
+                    <span className="text-xs font-black text-slate-400 dark:text-[#94A3B8] uppercase tracking-widest mx-2">/</span>
                     <span className="text-sm font-black text-foreground">{totalPages || 1}</span>
                   </div>
 
@@ -335,9 +335,9 @@ export default function RegistrosVehiculosPage() {
                   </button>
                 </div>
 
-                <div className="hidden md:flex items-center bg-card px-4 py-1.5 rounded-xl border border-border shadow-sm">
-                  <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mr-2">Vehículos Registrados:</span>
-                  <span className="text-sm font-black text-indigo-700 dark:text-indigo-400">{totalCount}</span>
+                <div className="hidden md:flex items-center bg-background px-4 py-1.5 rounded-xl border border-border">
+                  <span className="text-[10px] font-black text-slate-400 dark:text-[#94A3B8] uppercase tracking-widest mr-2">Vehículos Registrados:</span>
+                  <span className="text-sm font-black text-emerald-600 dark:text-emerald-500">{totalCount}</span>
                 </div>
               </div>
             </>

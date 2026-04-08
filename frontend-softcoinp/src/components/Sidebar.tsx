@@ -41,7 +41,7 @@ export default function Sidebar() {
       {/* 🌑 BACKDROP (Solo móvil) */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[115] lg:hidden animate-in fade-in duration-300"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[115] lg:hidden animate-in fade-in duration-300"
           onClick={() => setIsOpen(false)}
         />
       )}
@@ -129,7 +129,7 @@ export default function Sidebar() {
             )}
 
            {user?.role === "superadmin" && (
-              <div className="mt-2 text-[10px] uppercase font-black text-slate-300 dark:text-slate-600 px-4 mb-1">Super Admin</div>
+              <div className="mt-2 text-[10px] uppercase font-black text-slate-400 dark:text-slate-500 px-4 mb-1">Super Admin</div>
            )}
            {user?.role === "superadmin" && (
               <NavItem icon="🛠️" text="Mantenimiento" path="/configuraciones/mantenimiento" currentPath={pathname} isExpanded={isExpanded} router={router} highlightRed />
@@ -153,10 +153,10 @@ function NavGroup({ icon, text, isOpen, isExpanded, onToggle, children }: any) {
         <div className="flex flex-col gap-1">
             <button 
                 onClick={onToggle}
-                className={`flex items-center p-3 rounded-2xl transition-all duration-200 font-semibold border whitespace-nowrap overflow-hidden group relative w-full
+                className={`flex items-center p-3 rounded-xl transition-all duration-200 font-semibold border whitespace-nowrap overflow-hidden group relative w-full
                     ${isOpen 
-                        ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 border-indigo-100 dark:border-indigo-900/50' 
-                        : 'text-slate-500 dark:text-slate-400 border-transparent hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200'}
+                        ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/50' 
+                        : 'text-slate-500 dark:text-slate-400 border-transparent hover:bg-slate-50 dark:hover:bg-zinc-900 hover:text-slate-800 dark:hover:text-slate-200'}
                 `}
                 title={text}
             >
@@ -173,7 +173,7 @@ function NavGroup({ icon, text, isOpen, isExpanded, onToggle, children }: any) {
                 )}
             </button>
             {isOpen && (
-                <div className="flex flex-col gap-1 ml-4 border-l-2 border-slate-100 dark:border-slate-800 pl-2 animate-in slide-in-from-top-2 duration-200">
+                <div className="flex flex-col gap-1 ml-4 border-l-2 border-slate-100 dark:border-zinc-800 pl-2 animate-in slide-in-from-top-2 duration-200">
                     {children}
                 </div>
             )}
@@ -184,16 +184,16 @@ function NavGroup({ icon, text, isOpen, isExpanded, onToggle, children }: any) {
 function NavItem({ icon, text, path, currentPath, isExpanded, alert, highlightRed, router, isSubItem }: any) {
   const isActive = currentPath === path || (currentPath !== '/dashboard' && currentPath.startsWith(path) && path !== '/dashboard');
   
-  let baseClass = `flex items-center ${isSubItem ? 'p-2' : 'p-3'} rounded-2xl transition-all duration-200 font-semibold border whitespace-nowrap overflow-hidden group relative `;
+  let baseClass = `flex items-center ${isSubItem ? 'p-2' : 'p-3'} rounded-xl transition-all duration-200 font-semibold border whitespace-nowrap overflow-hidden group relative `;
   
   if (highlightRed) {
      baseClass += `bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-900/50 hover:bg-rose-100 dark:hover:bg-rose-900/40 animate-pulse-red `;
   } else if (alert) {
      baseClass += `bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-900/50 hover:bg-rose-100 dark:hover:bg-rose-900/40 animate-pulse shadow-[0_0_15px_rgba(225,29,72,0.1)] `;
   } else if (isActive) {
-     baseClass += `bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800 shadow-[0_4px_20px_rgba(79,70,229,0.08)] `;
+     baseClass += `bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 shadow-sm `;
   } else {
-     baseClass += `text-slate-500 dark:text-slate-400 border-transparent hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200 `;
+     baseClass += `text-slate-500 dark:text-slate-400 border-transparent hover:bg-slate-50 dark:hover:bg-zinc-900 hover:text-slate-800 dark:hover:text-slate-200 `;
   }
 
   return (
@@ -206,7 +206,7 @@ function NavItem({ icon, text, path, currentPath, isExpanded, alert, highlightRe
        </span>
        {/* Pill indicator for active state when collapsed */}
        {!isExpanded && isActive && (
-         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-1/2 bg-indigo-600 dark:bg-indigo-500 rounded-r-full shadow-sm"></div>
+         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-1/2 bg-emerald-600 dark:bg-emerald-500 rounded-r-full shadow-sm"></div>
        )}
     </button>
   );

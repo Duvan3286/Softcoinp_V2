@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -192,7 +192,7 @@ export default function HistorialVehicularesPage() {
         {/* Header Section */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-3 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-indigo-600 rounded-xl text-white shadow-md shadow-indigo-100 dark:shadow-none">
+            <div className="p-2 bg-emerald-600 rounded-xl text-white shadow-sm dark:shadow-none">
                <span className="text-xl">📋</span>
             </div>
             <div>
@@ -206,7 +206,7 @@ export default function HistorialVehicularesPage() {
               <button
                 onClick={handleExportExcel}
                 disabled={exporting}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-4 rounded-xl shadow-lg shadow-emerald-200 dark:shadow-none transition-all duration-300 flex items-center justify-center gap-2 text-sm font-bold active:scale-95 whitespace-nowrap disabled:opacity-50"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-4 rounded-xl shadow-sm dark:shadow-none transition-all duration-300 flex items-center justify-center gap-2 text-sm font-bold active:scale-95 whitespace-nowrap disabled:opacity-50"
               >
                 {exporting ? (
                   <>
@@ -223,16 +223,16 @@ export default function HistorialVehicularesPage() {
             )}
             <button
               onClick={() => router.push("/novedades-vehiculares")}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-xl shadow-lg shadow-indigo-100 dark:shadow-none transition-all duration-300 flex items-center justify-center gap-2 text-sm font-bold active:scale-95 whitespace-nowrap"
+              className="bg-card text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 py-2 px-4 rounded-xl font-black border border-border shadow-sm transition-all active:scale-95 flex items-center gap-2 text-[10px] uppercase tracking-widest"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-              Panel de Novedades
+              Volver
             </button>
           </div>
         </div>
 
         {/* 🔍 Barra de Filtros (Compacta) */}
-        <div className="bg-card rounded-2xl shadow-sm border border-border p-3 mb-3 flex flex-wrap items-end gap-2 shrink-0">
+        <div className="bg-card rounded-xl shadow-sm border border-border p-3 mb-3 flex flex-wrap items-end gap-2 shrink-0">
           {/* Búsqueda por Texto */}
           <div className="flex flex-col gap-1 flex-1 min-w-[180px]">
             <label className="text-[9px] uppercase font-black text-slate-400 dark:text-slate-500 px-1 tracking-widest">Búsqueda Libre</label>
@@ -243,7 +243,7 @@ export default function HistorialVehicularesPage() {
                 value={filtroBusqueda}
                 onChange={e => setFiltroBusqueda(e.target.value)}
                 placeholder="Placa o detalle..."
-                className="w-full pl-8 pr-3 py-2 bg-background border border-border rounded-xl text-[13px] font-bold focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-400 outline-none transition-all placeholder-slate-300 dark:placeholder-slate-700 text-foreground uppercase tracking-widest"
+                className="w-full pl-8 pr-3 py-2 bg-background border border-border rounded-xl text-[13px] font-bold focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 outline-none transition-all placeholder-slate-300 dark:placeholder-slate-700 text-foreground uppercase tracking-widest"
               />
             </div>
           </div>
@@ -255,7 +255,7 @@ export default function HistorialVehicularesPage() {
                 type="date"
                 value={desdeFilter}
                 onChange={e => setDesdeFilter(e.target.value)}
-                className="px-3 py-2 bg-background border border-border rounded-xl text-[13px] font-bold focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-400 outline-none transition-all text-foreground [color-scheme:light] dark:[color-scheme:dark]"
+                className="px-3 py-2 bg-background border border-border rounded-xl text-[13px] font-bold focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 outline-none transition-all text-foreground [color-scheme:light] dark:[color-scheme:dark]"
               />
             </div>
 
@@ -265,7 +265,7 @@ export default function HistorialVehicularesPage() {
                 type="date"
                 value={hastaFilter}
                 onChange={e => setHastaFilter(e.target.value)}
-                className="px-3 py-2 bg-background border border-border rounded-xl text-[13px] font-bold focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-400 outline-none transition-all text-foreground [color-scheme:light] dark:[color-scheme:dark]"
+                className="px-3 py-2 bg-background border border-border rounded-xl text-[13px] font-bold focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 outline-none transition-all text-foreground [color-scheme:light] dark:[color-scheme:dark]"
               />
             </div>
           </div>
@@ -275,7 +275,7 @@ export default function HistorialVehicularesPage() {
             <select
               value={reporterFilter}
               onChange={e => setReporterFilter(e.target.value)}
-              className="px-3 py-2 bg-background border border-border rounded-xl text-[13px] font-bold focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-400 outline-none transition-all text-foreground"
+              className="px-3 py-2 bg-background border border-border rounded-xl text-[13px] font-bold focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 outline-none transition-all text-foreground"
             >
               <option value="">Cualquier Usuario</option>
               {uniqueReporters.map(email => (
@@ -289,7 +289,7 @@ export default function HistorialVehicularesPage() {
             <select
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value)}
-              className="px-3 py-2 bg-background border border-border rounded-xl text-[13px] font-bold focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-400 outline-none transition-all shadow-sm text-foreground"
+              className="px-3 py-2 bg-background border border-border rounded-xl text-[13px] font-bold focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 outline-none transition-all shadow-sm text-foreground"
             >
               <option value="">Todos los Eventos</option>
               <option value="bloqueado">🚫 Bloqueados</option>
@@ -300,7 +300,7 @@ export default function HistorialVehicularesPage() {
           <div className="flex gap-2 ml-auto">
             <button
               onClick={fetchAllNovedades}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-[10px] font-black transition-all shadow-lg shadow-indigo-100 dark:shadow-none active:scale-95 flex items-center gap-2 uppercase tracking-widest"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-[10px] font-black transition-all shadow-sm dark:shadow-none active:scale-95 flex items-center gap-2 uppercase tracking-widest"
             >
               <span>Filtrar</span>
             </button>
@@ -327,19 +327,19 @@ export default function HistorialVehicularesPage() {
         {/* 📋 Lista de vehículos agrupados (Con Scroll Interno) */}
         <div className="flex-1 overflow-y-auto pr-1 min-h-0 custom-scrollbar pb-4 space-y-2">
           {loading ? (
-            <div className="bg-card rounded-2xl p-20 flex flex-col items-center justify-center text-slate-400 gap-4 border border-border">
-               <div className="w-10 h-10 border-4 border-slate-200 border-t-indigo-500 rounded-full animate-spin"></div>
+            <div className="bg-card rounded-xl p-20 flex flex-col items-center justify-center text-slate-400 gap-4 border border-border">
+               <div className="w-10 h-10 border-4 border-slate-200 border-t-emerald-500 rounded-full animate-spin"></div>
                <p className="text-xs font-black uppercase tracking-widest">Sincronizando Historial...</p>
             </div>
           ) : vehiculosAgrupados.length === 0 ? (
-            <div className="bg-card rounded-2xl py-20 text-center text-slate-300 dark:text-slate-700 border-2 border-dashed border-border flex flex-col items-center gap-3">
+            <div className="bg-card rounded-xl py-20 text-center text-slate-300 dark:text-slate-700 border-2 border-dashed border-border flex flex-col items-center gap-3">
                <span className="text-5xl grayscale opacity-20">📭</span>
                <p className="text-xs font-black uppercase tracking-widest">No se encontraron resultados para los filtros aplicados</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-2">
               {vehiculosPaginados.map(v => (
-                <div key={v.vehiculoId} className="bg-card rounded-xl shadow-sm border border-border p-2.5 px-4 hover:border-indigo-200 dark:hover:border-indigo-800 hover:shadow-md transition-all group">
+                <div key={v.vehiculoId} className="bg-card rounded-xl shadow-sm border border-border p-2.5 px-4 hover:border-emerald-200 dark:hover:border-emerald-800 hover:shadow-md transition-all group">
                   <div className="flex items-center justify-between gap-4">
                     {/* Info del Vehículo */}
                     <div className="flex items-center gap-3 min-w-0">
@@ -356,7 +356,7 @@ export default function HistorialVehicularesPage() {
                       </div>
                        <div className="min-w-0">
                          <p className="text-[13px] font-black text-foreground truncate uppercase leading-none mb-1 flex items-center gap-2">
-                           PLACA: <span className="text-indigo-600 dark:text-indigo-400">{v.placa}</span>
+                           PLACA: <span className="text-emerald-600 dark:text-emerald-400">{v.placa}</span>
                            {v.isBloqueado && (
                              <span className="bg-red-100 dark:bg-red-950/20 text-red-600 dark:text-red-400 text-[8px] px-1.5 py-0.5 rounded-md border border-red-200 dark:border-red-900/30 animate-pulse">
                                BLOQUEADO
@@ -388,7 +388,7 @@ export default function HistorialVehicularesPage() {
                     <div className="flex items-center gap-2 shrink-0">
                       <button
                         onClick={() => setSelectedVehiculo(v)}
-                        className="bg-background hover:bg-indigo-600 dark:hover:bg-indigo-700 hover:text-white text-indigo-600 dark:text-indigo-400 px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase tracking-widest border border-border shadow-sm active:scale-95"
+                        className="bg-background hover:bg-emerald-600 dark:hover:bg-emerald-700 hover:text-white text-emerald-600 dark:text-emerald-400 px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase tracking-widest border border-border shadow-sm active:scale-95"
                       >
                         Ver Detalle
                       </button>
@@ -431,7 +431,7 @@ export default function HistorialVehicularesPage() {
                         onClick={() => setCurrentPage(page)}
                         className={`w-8 h-8 rounded-lg text-[10px] font-black transition-all ${
                           currentPage === page 
-                            ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100 dark:shadow-none scale-110" 
+                            ? "bg-emerald-600 text-white shadow-sm dark:shadow-none scale-110" 
                             : "bg-background text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-border"
                         }`}
                       >
@@ -456,11 +456,11 @@ export default function HistorialVehicularesPage() {
       {/* MODAL DE DETALLE (Línea de Tiempo por Vehículo) */}
       {selectedVehiculo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="bg-card rounded-2xl shadow-2xl w-full max-w-lg max-h-[75vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200 border border-border">
+          <div className="bg-card rounded-xl shadow-2xl w-full max-w-lg max-h-[75vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200 border border-border">
             {/* Header Modal */}
             <div className="bg-slate-900 dark:bg-slate-950 p-4 flex items-center justify-between shrink-0 border-b border-white/10">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-10 rounded-lg bg-indigo-600 flex items-center justify-center text-white text-xl font-black shadow-lg shadow-indigo-500/20 overflow-hidden border-2 border-white/20">
+                <div className="w-14 h-10 rounded-lg bg-emerald-600 flex items-center justify-center text-white text-xl font-black shadow-sm overflow-hidden border-2 border-white/20">
                   {selectedVehiculo.fotoUrl ? (
                     <img 
                       src={selectedVehiculo.fotoUrl.startsWith('http') ? selectedVehiculo.fotoUrl : `${BACKEND_BASE_URL}${selectedVehiculo.fotoUrl}`} 
@@ -503,11 +503,11 @@ export default function HistorialVehicularesPage() {
                   .map((anot) => (
                   <div key={anot.id} className="relative pl-9 group">
                     {/* Punto del timeline */}
-                    <div className="absolute left-0 top-1.5 w-[28px] h-[28px] rounded-full bg-card border-2 border-indigo-500 shadow-sm flex items-center justify-center z-10 transition-transform group-hover:scale-110">
+                    <div className="absolute left-0 top-1.5 w-[28px] h-[28px] rounded-full bg-card border-2 border-emerald-500 shadow-sm flex items-center justify-center z-10 transition-transform group-hover:scale-110">
                       <span className="text-[12px]">📝</span>
                     </div>
                     
-                    <div className="bg-card rounded-2xl p-4 border border-border shadow-sm transition-all hover:shadow-md hover:border-indigo-100 dark:hover:border-indigo-900/50">
+                    <div className="bg-card rounded-xl p-4 border border-border shadow-sm transition-all hover:shadow-md hover:border-emerald-100 dark:hover:border-emerald-900/50">
                       <div className="flex items-center justify-between mb-2">
                         <div className="p-0.5 px-2 bg-background rounded border border-border">
                           <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-tighter">
@@ -517,7 +517,7 @@ export default function HistorialVehicularesPage() {
                           </span>
                         </div>
                         {anot.registradoPorEmail && (
-                          <span className="text-[9px] text-indigo-600 dark:text-indigo-400 font-black bg-indigo-50 dark:bg-indigo-950/20 px-2 py-0.5 rounded tracking-widest uppercase italic border border-indigo-100/50 dark:border-indigo-900/30">
+                          <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-black bg-emerald-50 dark:bg-emerald-950/20 px-2 py-0.5 rounded tracking-widest uppercase italic border border-emerald-100/50 dark:border-emerald-900/30">
                              {anot.registradoPorEmail.split('@')[0]}
                           </span>
                         )}

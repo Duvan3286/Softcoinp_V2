@@ -66,12 +66,12 @@ const formatDateTime = (isoString?: string) => {
 const getTypeColorClasses = (tipo: string) => {
   const lowerCaseTipo = tipo.toLowerCase();
   const colorMap: { [key: string]: string } = {
-    'empleado': 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800',
-    'visitante': 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 border-indigo-100 dark:border-indigo-800',
-    'contratista': 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-100 dark:border-amber-800',
-    'proveedor': 'bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400 border-rose-100 dark:border-rose-800',
+    'empleado': 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+    'visitante': 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20',
+    'contratista': 'bg-zinc-500/10 text-zinc-600 dark:text-zinc-400 border-zinc-500/20',
+    'proveedor': 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20',
   };
-  return colorMap[lowerCaseTipo] || 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-400 border-slate-200 dark:border-slate-700';
+  return colorMap[lowerCaseTipo] || 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 border-slate-200 dark:border-zinc-700';
 };
 
 export default function RegistrosPage() {
@@ -176,7 +176,7 @@ export default function RegistrosPage() {
           {/* 📋 Header Section */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6 shrink-0">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-indigo-600 rounded-2xl text-white shadow-xl shadow-indigo-100 dark:shadow-none rotate-3">
+              <div className="p-3 bg-emerald-600 rounded-xl text-white shadow-none border border-emerald-500/20">
                 <span className="text-2xl">📜</span>
               </div>
               <div>
@@ -214,10 +214,10 @@ export default function RegistrosPage() {
           </div>
 
           {/* 🕵️‍♂️ Filtros Section */}
-          <div className="bg-card rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-border p-6 mb-6 flex-shrink-0 transition-colors">
+          <div className="bg-card rounded-xl border border-border p-6 mb-6 flex-shrink-0 transition-colors">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.2em] px-1">Nombre</label>
+                <label className="text-[10px] font-black text-cyan-600 dark:text-[#22D3EE] uppercase tracking-[0.2em] px-1">Nombre</label>
                 <input
                   type="text"
                   placeholder="Ej: Juan Pérez"
@@ -227,7 +227,7 @@ export default function RegistrosPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.2em] px-1">Documento</label>
+                <label className="text-[10px] font-black text-cyan-600 dark:text-[#22D3EE] uppercase tracking-[0.2em] px-1">Documento</label>
                 <input
                   type="text"
                   placeholder="Ej: 12345678"
@@ -237,7 +237,7 @@ export default function RegistrosPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.2em] px-1">Desde</label>
+                <label className="text-[10px] font-black text-cyan-600 dark:text-[#22D3EE] uppercase tracking-[0.2em] px-1">Desde</label>
                 <input
                   type="date"
                   value={desde}
@@ -246,7 +246,7 @@ export default function RegistrosPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.2em] px-1">Hasta</label>
+                <label className="text-[10px] font-black text-cyan-600 dark:text-[#22D3EE] uppercase tracking-[0.2em] px-1">Hasta</label>
                 <input
                   type="date"
                   value={hasta}
@@ -313,7 +313,7 @@ export default function RegistrosPage() {
                           const tagClasses = getTypeColorClasses(r.personal?.tipo || 'desconocido');
 
                           return (
-                            <tr key={r.id} className="hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 transition-all group">
+                            <tr key={r.id} className="hover:bg-cyan-500/5 transition-all group">
                               <td className="px-5 py-4 whitespace-nowrap">
                                 <div className="flex items-center gap-3">
                                   <div className="w-9 h-9 rounded-full overflow-hidden border border-border bg-input flex items-center justify-center shadow-sm group-hover:border-indigo-300 transition-all">
@@ -354,7 +354,7 @@ export default function RegistrosPage() {
                               <td className="px-5 py-4 whitespace-nowrap">
                                 <div className="flex flex-col">
                                   <span className="text-[12px] font-black text-foreground leading-none">{ingreso.fecha}</span>
-                                  <span className="text-[10px] font-bold text-indigo-500 dark:text-indigo-400 mt-0.5 tracking-widest">{ingreso.hora}</span>
+                                  <span className="text-[10px] font-bold text-cyan-600 dark:text-[#22D3EE] mt-0.5 tracking-widest">{ingreso.hora}</span>
                                 </div>
                               </td>
 
@@ -387,9 +387,9 @@ export default function RegistrosPage() {
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 19l-7-7 7-7" /></svg>
                     </button>
                     
-                    <div className="flex items-center bg-card px-4 py-1.5 rounded-xl border border-border shadow-sm">
-                      <span className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mr-2">Página</span>
-                      <span className="text-sm font-black text-indigo-600 dark:text-indigo-400">{page}</span>
+                    <div className="flex items-center bg-background px-4 py-1.5 rounded-xl border border-border">
+                      <span className="text-xs font-black text-slate-400 dark:text-[#94A3B8] uppercase tracking-widest mr-2">Página</span>
+                      <span className="text-sm font-black text-emerald-600 dark:text-emerald-500">{page}</span>
                       <span className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mx-2">de</span>
                       <span className="text-sm font-black text-foreground">{totalPages || 1}</span>
                     </div>

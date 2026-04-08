@@ -114,7 +114,7 @@ export default function TiposConfigPage() {
       <div className="w-full max-w-4xl flex flex-col items-start shrink-0">
         <div className="flex items-center justify-between w-full mb-2">
             <div className="flex items-center gap-4">
-                <div className="p-2.5 bg-indigo-600 rounded-xl text-white shadow-lg shadow-indigo-100 dark:shadow-none transition-transform hover:scale-110">
+                <div className="p-2.5 bg-emerald-600 rounded-xl text-white shadow-sm transition-transform hover:scale-110">
                     <span className="text-xl">🏷️</span>
                 </div>
                 <div>
@@ -125,14 +125,14 @@ export default function TiposConfigPage() {
             <div className="flex items-center gap-3">
                 <button 
                   onClick={() => router.push("/configuraciones")}
-                  className="bg-card text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 py-2 px-4 rounded-xl font-black border border-border shadow-sm transition-all active:scale-95 flex items-center gap-2 text-[10px] uppercase tracking-widest"
+                  className="bg-card text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 py-2 px-4 rounded-xl font-black border border-border shadow-sm transition-all active:scale-95 flex items-center gap-2 text-[10px] uppercase tracking-widest"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                   Volver
                 </button>
                 <button
                   onClick={() => handleOpenModal()}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-100 dark:shadow-none transition-all active:scale-95"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-sm transition-all active:scale-95"
                 >
                   + Nuevo Tipo
                 </button>
@@ -143,14 +143,14 @@ export default function TiposConfigPage() {
 
       <main className="w-full max-w-4xl flex flex-col min-h-0 overflow-y-auto pr-1 pb-10 custom-scrollbar">
         {error && (
-          <div className="bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/50 text-rose-700 dark:text-rose-400 p-4 rounded-2xl mb-6 text-[11px] font-bold uppercase tracking-tight flex items-center gap-3 animate-in fade-in slide-in-from-top">
+          <div className="bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/50 text-rose-700 dark:text-rose-400 p-4 rounded-xl mb-6 text-[11px] font-bold uppercase tracking-tight flex items-center gap-3 animate-in fade-in slide-in-from-top">
             <span>❌</span> {error}
           </div>
         )}
 
         {loading && (
           <div className="flex flex-col items-center justify-center py-20 text-slate-300 dark:text-slate-700 gap-4">
-            <div className="w-10 h-10 border-4 border-border border-t-indigo-600 rounded-full animate-spin"></div>
+            <div className="w-10 h-10 border-4 border-border border-t-emerald-600 rounded-full animate-spin"></div>
             <p className="text-[10px] font-black uppercase tracking-[0.2em]">Cargando tipos...</p>
           </div>
         )}
@@ -160,7 +160,7 @@ export default function TiposConfigPage() {
             {tipos.map((t) => (
               <div 
                 key={t.id} 
-                className="w-full bg-card rounded-2xl p-4 lg:px-8 lg:py-4 border border-border shadow-sm flex items-center gap-4 lg:gap-8 transition-all hover:bg-indigo-50/40 dark:hover:bg-indigo-900/10 hover:border-indigo-100 dark:hover:border-indigo-900 hover:shadow-md group"
+                className="w-full bg-card rounded-xl p-4 lg:px-8 lg:py-4 border border-border shadow-sm flex items-center gap-4 lg:gap-8 transition-all hover:bg-emerald-50/40 dark:hover:bg-emerald-900/10 hover:border-emerald-100 dark:hover:border-emerald-900 hover:shadow-md group"
               >
                 {/* Indicador de Estado */}
                 <div className={`w-12 h-12 shrink-0 ${t.activo ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500'} rounded-xl flex items-center justify-center text-xl shadow-inner transition-all group-hover:scale-110`}>
@@ -170,7 +170,7 @@ export default function TiposConfigPage() {
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3">
-                        <h2 className="text-sm font-black text-foreground uppercase tracking-tight group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{t.nombre}</h2>
+                        <h2 className="text-sm font-black text-foreground uppercase tracking-tight group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{t.nombre}</h2>
                         <span className={`text-[8px] uppercase font-black px-2 py-0.5 rounded-md tracking-widest ${t.activo ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800' : 'bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-border'}`}>
                         {t.activo ? 'Activo' : 'Inactivo'}
                         </span>
@@ -191,7 +191,7 @@ export default function TiposConfigPage() {
                     </button>
                     <button 
                         onClick={() => handleOpenModal(t)}
-                        className="p-2 bg-background text-slate-500 dark:text-slate-400 hover:bg-indigo-600 dark:hover:bg-indigo-500 hover:text-white rounded-lg transition-all shadow-sm"
+                        className="p-2 bg-background text-slate-500 dark:text-slate-400 hover:bg-emerald-600 dark:hover:bg-emerald-500 hover:text-white rounded-lg transition-all shadow-sm"
                         title="Editar"
                     >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
@@ -223,11 +223,11 @@ export default function TiposConfigPage() {
           ></div>
 
           {/* Modal Content */}
-          <div className="bg-card rounded-2xl shadow-2xl w-full max-w-sm relative z-10 overflow-hidden flex flex-col max-h-[85vh] transform transition-all animate-in zoom-in slide-in-from-bottom border border-border transition-colors">
-            {/* Cabecera Exacta a UserModal */}
-            <div className="bg-card px-5 py-3 border-b border-border flex justify-between items-center bg-gradient-to-r from-indigo-50/50 dark:from-indigo-900/20 to-transparent transition-colors">
+          <div className="bg-card rounded-xl shadow-2xl w-full max-w-sm relative z-10 overflow-hidden flex flex-col max-h-[85vh] transform transition-all animate-in zoom-in slide-in-from-bottom border border-border transition-colors">
+            {/* Cabecera */}
+            <div className="bg-card px-5 py-3 border-b border-border flex justify-between items-center bg-gradient-to-r from-emerald-50/50 dark:from-emerald-900/20 to-transparent transition-colors">
               <div className="flex items-center gap-2">
-                <div className="w-1.5 h-4 bg-indigo-600 rounded-full"></div>
+                <div className="w-1.5 h-4 bg-emerald-600 rounded-full"></div>
                 <h2 className="text-xs font-black uppercase tracking-widest text-foreground">
                     {editingTipo ? 'Editar Tipo' : 'Nuevo Tipo'}
                 </h2>
@@ -249,7 +249,7 @@ export default function TiposConfigPage() {
                     autoFocus
                     value={nombre}
                     onChange={(e) => setNombre(e.target.value)}
-                    className="w-full px-3 py-2 bg-input border border-border rounded-lg focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900/30 focus:border-indigo-500 outline-none transition-all placeholder-slate-300 dark:placeholder-slate-600 font-bold text-foreground uppercase text-[10px]"
+                    className="w-full px-3 py-2 bg-input border border-border rounded-lg focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900/30 focus:border-emerald-500 outline-none transition-all placeholder-slate-300 dark:placeholder-slate-600 font-bold text-foreground uppercase text-[10px]"
                     placeholder="Ej: Empleado, Visitante..."
                     required
                   />
@@ -268,7 +268,7 @@ export default function TiposConfigPage() {
               <button
                 type="submit"
                 form="tipo-form"
-                className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg font-black text-[9px] uppercase tracking-widest shadow-md shadow-indigo-100 dark:shadow-none hover:bg-indigo-700 transition-all active:scale-[0.98]"
+                className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg font-black text-[9px] uppercase tracking-widest shadow-sm hover:bg-emerald-700 transition-all active:scale-[0.98]"
               >
                 {editingTipo ? 'Guardar Cambios' : 'Crear Tipo'}
               </button>

@@ -168,10 +168,10 @@ export default function CorrespondenciaPage() {
         {entregarPaqueteModal.isOpen && (
           <div className="fixed inset-0 z-[160] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setEntregarPaqueteModal({ isOpen: false, id: null })}></div>
-            <div className="bg-card rounded-2xl shadow-2xl w-full max-w-sm relative z-10 overflow-hidden flex flex-col max-h-[85vh] border border-border animate-in zoom-in-95">
-              <div className="bg-card px-5 py-3 border-b border-border flex justify-between items-center bg-gradient-to-r from-indigo-50/50 dark:from-indigo-900/20 to-transparent">
+            <div className="bg-card rounded-xl shadow-2xl w-full max-w-sm relative z-10 overflow-hidden flex flex-col max-h-[85vh] border border-border animate-in zoom-in-95">
+              <div className="bg-card px-5 py-3 border-b border-border flex justify-between items-center bg-gradient-to-r from-emerald-50/50 dark:from-emerald-900/20 to-transparent">
                 <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-4 bg-indigo-600 rounded-full"></div>
+                  <div className="w-1.5 h-4 bg-emerald-600 rounded-full"></div>
                   <h2 className="text-xs font-black uppercase tracking-widest text-foreground">Entregar Paquete</h2>
                 </div>
                 <button onClick={() => setEntregarPaqueteModal({ isOpen: false, id: null })} className="text-slate-400 hover:text-rose-600 p-1">
@@ -190,7 +190,7 @@ export default function CorrespondenciaPage() {
               </div>
               <div className="p-4 px-5 flex gap-2 border-t border-border bg-background">
                 <button onClick={() => setEntregarPaqueteModal({ isOpen: false, id: null })} className="px-4 py-2 bg-card border border-border text-slate-400 rounded-lg font-black text-[9px] uppercase tracking-widest">Cancelar</button>
-                <button onClick={handleConfirmEntregarPaquete} className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg font-black text-[9px] uppercase tracking-widest shadow-md shadow-indigo-100">Confirmar Entrega</button>
+                <button onClick={handleConfirmEntregarPaquete} className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg font-black text-[9px] uppercase tracking-widest shadow-md shadow-emerald-100">Confirmar Entrega</button>
               </div>
             </div>
           </div>
@@ -200,7 +200,7 @@ export default function CorrespondenciaPage() {
         {entregaReciboModal.isOpen && (
           <div className="fixed inset-0 z-[160] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setEntregaReciboModal({ isOpen: false, id: null, servicio: "" })}></div>
-            <div className="bg-card rounded-2xl shadow-2xl w-full max-w-sm relative z-10 overflow-hidden flex flex-col max-h-[85vh] border border-border animate-in zoom-in-95">
+            <div className="bg-card rounded-xl shadow-2xl w-full max-w-sm relative z-10 overflow-hidden flex flex-col max-h-[85vh] border border-border animate-in zoom-in-95">
               <div className="bg-card px-5 py-3 border-b border-border flex justify-between items-center bg-gradient-to-r from-emerald-50/50 dark:from-emerald-900/20 to-transparent">
                 <div className="flex items-center gap-2">
                   <div className="w-1.5 h-4 bg-emerald-600 rounded-full"></div>
@@ -232,10 +232,10 @@ export default function CorrespondenciaPage() {
         {verEntregasModal.isOpen && (
           <div className="fixed inset-0 z-[160] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setVerEntregasModal({ isOpen: false, id: null, servicio: "" })}></div>
-            <div className="bg-card rounded-3xl shadow-2xl w-full max-w-2xl relative z-10 overflow-hidden flex flex-col max-h-[85vh] border border-border animate-in zoom-in-95">
-              <div className="bg-card px-6 py-4 border-b border-border flex justify-between items-center bg-gradient-to-r from-indigo-50/50 dark:from-indigo-900/20 to-transparent">
+            <div className="bg-card rounded-xl shadow-2xl w-full max-w-2xl relative z-10 overflow-hidden flex flex-col max-h-[85vh] border border-border animate-in zoom-in-95">
+              <div className="bg-card px-6 py-4 border-b border-border flex justify-between items-center bg-gradient-to-r from-emerald-50/50 dark:from-emerald-900/20 to-transparent">
                 <div className="flex items-center gap-3">
-                  <div className="w-1.5 h-5 bg-indigo-600 rounded-full"></div>
+                  <div className="w-1.5 h-5 bg-emerald-600 rounded-full"></div>
                   <h2 className="text-sm font-black uppercase tracking-widest text-foreground">Relación de Entregas: {verEntregasModal.servicio}</h2>
                 </div>
                 <button onClick={() => setVerEntregasModal({ isOpen: false, id: null, servicio: "" })} className="text-slate-400 hover:text-rose-600 p-1 transition-all hover:rotate-90">
@@ -256,17 +256,17 @@ export default function CorrespondenciaPage() {
                       <tr><td colSpan={3} className="text-center p-10 text-slate-400 dark:text-slate-600 font-bold uppercase tracking-widest text-[10px]">No se han registrado entregas en este lote</td></tr>
                     ) : (
                       entregasDetalle.map(e => (
-                        <tr key={e.id} className="hover:bg-indigo-50/20 dark:hover:bg-indigo-900/10 transition-colors">
+                        <tr key={e.id} className="hover:bg-emerald-50/20 dark:hover:bg-emerald-900/10 transition-colors">
                           <td className="px-6 py-4">
                             <p className="text-[11px] font-black text-foreground uppercase tracking-tight">{e.residenteNombre}</p>
-                            <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">{e.apartamento}</p>
+                            <p className="text-[10px] font-bold text-cyan-500 uppercase tracking-widest">{e.apartamento}</p>
                           </td>
                           <td className="px-6 py-4">
                             <p className="text-[11px] font-black text-foreground">{dayjs(e.fechaEntregaUtc).format("DD MMM YYYY")}</p>
                             <p className="text-[10px] font-bold text-slate-400">{dayjs(e.fechaEntregaUtc).format("HH:mm:ss")}</p>
                           </td>
                           <td className="px-6 py-4">
-                            <span className="text-[9px] font-black text-indigo-600 dark:text-indigo-400 uppercase bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800 px-2 py-1 rounded shadow-sm">
+                            <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-100 dark:border-emerald-800 px-2 py-1 rounded shadow-sm">
                               {e.registradoPor}
                             </span>
                           </td>
@@ -277,29 +277,41 @@ export default function CorrespondenciaPage() {
                 </table>
               </div>
               <div className="p-4 px-6 border-t border-border bg-card flex justify-end">
-                <button onClick={() => setVerEntregasModal({ isOpen: false, id: null, servicio: "" })} className="px-6 py-2 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest">Entendido</button>
+                <button onClick={() => setVerEntregasModal({ isOpen: false, id: null, servicio: "" })} className="px-6 py-2 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest">Entendido</button>
               </div>
             </div>
           </div>
         )}
 
         {/* HEADER & TABS PRINCIPALES */}
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-4 bg-card p-4 rounded-3xl border border-border shadow-sm transition-colors shrink-0">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-4 bg-card p-4 rounded-xl border border-border shadow-sm transition-colors shrink-0">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-indigo-600 rounded-2xl shadow-xl shadow-indigo-100 dark:shadow-none transition-transform hover:rotate-3">
-              <span className="text-2xl text-white">📦</span>
-            </div>
-            <div>
-              <h1 className="text-xl font-black text-foreground tracking-tight leading-none uppercase">Gestión de Correspondencia</h1>
-              <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase mt-1.5 tracking-[0.2em]">Sincronizado con Vigilancia</p>
+            <button 
+                onClick={() => router.back()}
+                className="group flex items-center gap-2 px-3 py-1.5 bg-background border border-border rounded-xl text-slate-500 hover:text-emerald-500 transition-all shadow-sm"
+            >
+                <svg className="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" />
+                </svg>
+                <span className="text-[11px] font-black uppercase tracking-widest">Volver</span>
+            </button>
+
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-emerald-600 rounded-xl shadow-xl shadow-emerald-100 dark:shadow-none transition-transform hover:rotate-3">
+                <span className="text-2xl text-white">📦</span>
+              </div>
+              <div>
+                <h1 className="text-xl font-black text-foreground tracking-tight leading-none uppercase">Gestión de Correspondencia</h1>
+                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase mt-1.5 tracking-[0.2em]">Sincronizado con Vigilancia</p>
+              </div>
             </div>
           </div>
 
-          <nav className="flex gap-1.5 bg-background p-1.5 rounded-2xl border border-border transition-colors">
-            <button onClick={() => setActiveTab("paquetes")} className={`px-5 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${activeTab === "paquetes" ? "bg-card text-indigo-600 dark:text-indigo-400 shadow-sm border border-border" : "text-slate-400 hover:text-indigo-500"}`}>📦 Paquetes</button>
-            <button onClick={() => setActiveTab("recibos")} className={`px-5 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${activeTab === "recibos" ? "bg-card text-indigo-600 dark:text-indigo-400 shadow-sm border border-border" : "text-slate-400 hover:text-indigo-500"}`}>📄 Recibos Públicos</button>
+          <nav className="flex gap-1.5 bg-background p-1.5 rounded-xl border border-border transition-colors">
+            <button onClick={() => setActiveTab("paquetes")} className={`px-5 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${activeTab === "paquetes" ? "bg-card text-emerald-600 dark:text-emerald-400 shadow-sm border border-border" : "text-slate-400 hover:text-emerald-500"}`}>📦 Paquetes</button>
+            <button onClick={() => setActiveTab("recibos")} className={`px-5 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${activeTab === "recibos" ? "bg-card text-emerald-600 dark:text-emerald-400 shadow-sm border border-border" : "text-slate-400 hover:text-emerald-500"}`}>📄 Recibos Públicos</button>
             <div className="w-px bg-border h-6 my-auto mx-1"></div>
-            <button onClick={() => setActiveTab(activeTab.includes("recibo") ? "nuevo_recibo" : "nuevo_paquete")} className="px-5 py-2 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-indigo-100 dark:shadow-none hover:bg-indigo-700 active:scale-95 transition-all">
+            <button onClick={() => setActiveTab(activeTab.includes("recibo") ? "nuevo_recibo" : "nuevo_paquete")} className="px-5 py-2 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-100 dark:shadow-none hover:bg-emerald-700 active:scale-95 transition-all">
               {activeTab.includes("recibo") ? "+ Nuevo Lote" : "+ Registrar Paquete"}
             </button>
           </nav>
@@ -311,7 +323,7 @@ export default function CorrespondenciaPage() {
           {/* TAB: PAQUETES (LISTADO) */}
           {activeTab === "paquetes" && (
             <div className="flex flex-col h-full gap-4 animate-in fade-in duration-500">
-               <div className="bg-card p-4 rounded-3xl border border-border flex flex-wrap gap-4 items-end shadow-sm">
+               <div className="bg-card p-4 rounded-xl border border-border flex flex-wrap gap-4 items-end shadow-sm">
                   <div className="flex-1 min-w-[200px]">
                     <label className="text-[9px] font-black text-slate-400 uppercase ml-1 tracking-widest">Estado de Paquete</label>
                     <select value={filtroEstadoPaquete} onChange={e => setFiltroEstadoPaquete(e.target.value)} className="input-standard !p-2 !text-xs !font-black uppercase mt-1 cursor-pointer">
@@ -324,10 +336,10 @@ export default function CorrespondenciaPage() {
                     <label className="text-[9px] font-black text-slate-400 uppercase ml-1 tracking-widest">Buscar Remitente</label>
                     <input type="text" value={filtroRemitente} onChange={e => setFiltroRemitente(e.target.value)} placeholder="Ej: Amazon, DHL..." className="input-standard !p-2 !text-xs mt-1 uppercase" />
                   </div>
-                  <button onClick={loadAllData} className="bg-indigo-600 text-white px-8 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-indigo-100 active:scale-95 transition-all">Buscar</button>
+                  <button onClick={loadAllData} className="bg-emerald-600 text-white px-8 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-100 active:scale-95 transition-all">Buscar</button>
                </div>
 
-               <div className="flex-1 bg-card rounded-[2.5rem] border border-border shadow-sm overflow-hidden flex flex-col transition-colors">
+               <div className="flex-1 bg-card rounded-xl border border-border shadow-sm overflow-hidden flex flex-col transition-colors">
                   <div className="overflow-y-auto flex-1 custom-scrollbar">
                     <table className="w-full text-left border-collapse">
                       <thead className="bg-background sticky top-0 z-10 border-b border-border transition-colors">
@@ -340,7 +352,7 @@ export default function CorrespondenciaPage() {
                       </thead>
                       <tbody className="divide-y divide-border transition-colors">
                         {listaPaquetes.map(p => (
-                          <tr key={p.id} className="hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 transition-colors group">
+                          <tr key={p.id} className="hover:bg-emerald-50/30 dark:hover:bg-emerald-900/10 transition-colors group">
                             <td className="px-6 py-4">
                                <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[9px] font-black border uppercase tracking-tighter ${p.estado === 'entregado' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 border-emerald-100 dark:border-emerald-800' : 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 border-amber-100 dark:border-amber-800'}`}>
                                  {p.estado === 'entregado' ? '✓ Entregado' : '🕒 En Espera'}
@@ -349,15 +361,15 @@ export default function CorrespondenciaPage() {
                             </td>
                             <td className="px-6 py-4">
                                <p className="text-[13px] font-black text-foreground uppercase tracking-tight leading-none">{p.destinatario}</p>
-                               <p className="text-[10px] font-bold text-indigo-500 mt-1 uppercase italic tracking-tighter">Remitente: {p.remitente}</p>
+                               <p className="text-[10px] font-bold text-cyan-600 mt-1 uppercase italic tracking-tighter">Remitente: {p.remitente}</p>
                             </td>
                             <td className="px-6 py-4">
                                <span className="px-2 py-1 bg-background border border-border rounded text-[9px] font-black text-slate-500 uppercase">{p.tipoDocumento || 'Paquete'}</span>
-                               {p.numeroGuia && <p className="text-[10px] font-mono text-indigo-400 mt-1"># {p.numeroGuia}</p>}
+                               {p.numeroGuia && <p className="text-[10px] font-mono text-cyan-500 mt-1"># {p.numeroGuia}</p>}
                             </td>
                             <td className="px-6 py-4 text-center">
                                {p.estado === 'en_espera' ? (
-                                 <button onClick={() => setEntregarPaqueteModal({ isOpen: true, id: p.id })} className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100 dark:shadow-none">Entregar</button>
+                                 <button onClick={() => setEntregarPaqueteModal({ isOpen: true, id: p.id })} className="bg-emerald-600 text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-md shadow-emerald-100 dark:shadow-none">Entregar</button>
                                ) : (
                                  <div className="flex flex-col items-center">
                                    <span className="text-[10px] text-emerald-600 font-black">ENTREGADO A:</span>
@@ -378,7 +390,7 @@ export default function CorrespondenciaPage() {
           {activeTab === "recibos" && (
             <div className="flex flex-col h-full gap-4 animate-in fade-in duration-500">
                {/* FILTRO HISTORIAL RECIBOS */}
-               <div className="flex items-center justify-between bg-card p-3 rounded-2xl border border-border shadow-sm transition-colors">
+               <div className="flex items-center justify-between bg-card p-3 rounded-xl border border-border shadow-sm transition-colors">
                   <div className="flex items-center gap-2 px-2">
                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                      <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">
@@ -387,7 +399,7 @@ export default function CorrespondenciaPage() {
                   </div>
                   <button 
                     onClick={() => setMostrarArchivados(!mostrarArchivados)}
-                    className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all border ${mostrarArchivados ? "bg-indigo-600 text-white border-indigo-600" : "bg-background text-indigo-600 border-indigo-100 dark:border-indigo-900/50 hover:bg-indigo-50 dark:hover:bg-indigo-900/30"}`}
+                    className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all border ${mostrarArchivados ? "bg-emerald-600 text-white border-emerald-600" : "bg-background text-emerald-600 border-emerald-100 dark:border-emerald-900/50 hover:bg-emerald-50 dark:hover:bg-emerald-900/30"}`}
                   >
                     {mostrarArchivados ? "Ver Activos" : "Ver Archivados"}
                   </button>
@@ -398,7 +410,7 @@ export default function CorrespondenciaPage() {
                     /* VISTA COMPACTA (TABLA) PARA ARCHIVADOS */
                     <div className="flex flex-col h-full gap-4">
                        {/* BARRA DE FILTROS HISTORIAL - SIEMPRE VISIBLE */}
-                       <div className="bg-card p-4 rounded-3xl border border-border flex flex-wrap gap-4 items-end shadow-sm">
+                       <div className="bg-card p-4 rounded-xl border border-border flex flex-wrap gap-4 items-end shadow-sm">
                           <div className="flex-1 min-w-[150px]">
                              <label className="text-[9px] font-black text-slate-400 uppercase ml-1 tracking-widest">Servicio</label>
                              <select value={filtroHServicio} onChange={e => setFiltroHServicio(e.target.value)} className="input-standard !p-2 !text-xs mt-1 uppercase cursor-pointer">
@@ -424,15 +436,15 @@ export default function CorrespondenciaPage() {
                              <label className="text-[9px] font-black text-slate-400 uppercase ml-1 tracking-widest">Año</label>
                              <input type="number" value={filtroHAnio} onChange={e => setFiltroHAnio(e.target.value)} placeholder="2026" className="input-standard !p-2 !text-xs mt-1 font-black" />
                           </div>
-                          <button onClick={loadAllData} className="bg-indigo-600 text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-indigo-100 active:scale-95 transition-all">Filtrar</button>
+                          <button onClick={loadAllData} className="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-100 active:scale-95 transition-all">Filtrar</button>
                        </div>
 
-                       <div className="bg-card rounded-[2.5rem] border border-border shadow-sm overflow-hidden flex flex-col transition-colors flex-1">
+                       <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden flex flex-col transition-colors flex-1">
                           {listaRecibos.length === 0 ? (
                             <div className="py-20 text-center">
                                <span className="text-5xl opacity-20 grayscale">📂</span>
                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-4">No se hallaron registros con esos filtros</p>
-                               <button onClick={() => { setFiltroHServicio(""); setFiltroHMes(""); setFiltroHAnio(""); loadAllData(); }} className="mt-4 text-[10px] font-black text-indigo-600 uppercase underline decoration-2 underline-offset-4">Limpiar Filtros</button>
+                               <button onClick={() => { setFiltroHServicio(""); setFiltroHMes(""); setFiltroHAnio(""); loadAllData(); }} className="mt-4 text-[10px] font-black text-emerald-600 uppercase underline decoration-2 underline-offset-4">Limpiar Filtros</button>
                             </div>
                           ) : (
                             <div className="overflow-y-auto flex-1 custom-scrollbar">
@@ -473,7 +485,7 @@ export default function CorrespondenciaPage() {
                                           <td className="px-6 py-4 text-center">
                                               <button 
                                                   onClick={() => handleVerEntregas(r.id, r.servicio)}
-                                                  className="p-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 rounded-xl hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
+                                                  className="p-2 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 rounded-xl hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
                                                   title="Ver detalle de entregas"
                                               >
                                                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" /></svg>
@@ -490,19 +502,19 @@ export default function CorrespondenciaPage() {
                   ) : (
                     /* VISTA DE TARJETAS (CARDS) PARA LOTES ACTIVOS */
                     listaRecibos.length === 0 ? (
-                      <div className="py-20 text-center bg-card rounded-3xl border border-dashed border-border transition-colors">
+                      <div className="py-20 text-center bg-card rounded-xl border border-dashed border-border transition-colors">
                          <span className="text-5xl opacity-20 grayscale">📂</span>
                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-4">No hay lotes de recibos activos actualmente</p>
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-auto custom-scrollbar pr-1 flex-1">
                         {listaRecibos.map(r => (
-                          <div key={r.id} className="bg-card rounded-3xl border-2 border-border p-6 flex flex-col gap-5 hover:border-indigo-400 transition-all duration-300 shadow-sm relative overflow-hidden group">
+                          <div key={r.id} className="bg-card rounded-xl border-2 border-border p-6 flex flex-col gap-5 hover:border-emerald-400 transition-all duration-300 shadow-sm relative overflow-hidden group">
                             {/* Progreso Visual Fondo */}
-                            <div className={`absolute bottom-0 left-0 h-1 transition-all duration-1000 ${r.activo ? 'bg-indigo-600' : 'bg-emerald-500'}`} style={{ width: `${(r.totalEntregados / r.totalRecibidos) * 100}%` }}></div>
+                            <div className={`absolute bottom-0 left-0 h-1 transition-all duration-1000 ${r.activo ? 'bg-emerald-600' : 'bg-emerald-500'}`} style={{ width: `${(r.totalEntregados / r.totalRecibidos) * 100}%` }}></div>
                             
                             <div className="flex justify-between items-start">
-                                <div className={`p-3 rounded-2xl text-xl shadow-inner group-hover:scale-110 transition-transform ${r.activo ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' : 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'}`}>
+                                <div className={`p-3 rounded-xl text-xl shadow-inner group-hover:scale-110 transition-transform ${r.activo ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'}`}>
                                     {r.activo ? "📄" : "✅"}
                                 </div>
                                 <div className="text-right">
@@ -514,21 +526,21 @@ export default function CorrespondenciaPage() {
                             <div>
                                 <h3 className="text-lg font-black text-foreground uppercase tracking-tighter leading-none">{r.servicio}</h3>
                                 <div className="flex items-center gap-2 mt-2">
-                                  <div className="flex-1 bg-background h-2 rounded-full overflow-hidden border border-border">
-                                      <div className={`h-full bg-gradient-to-r ${r.activo ? 'from-indigo-500 to-indigo-600' : 'from-emerald-500 to-emerald-600'}`} style={{ width: `${(r.totalEntregados / r.totalRecibidos) * 100}%` }}></div>
+                                  <div className="flex-1 bg-background h-2 rounded-full overflow-hidden border border-border transition-colors">
+                                      <div className={`h-full bg-gradient-to-r from-emerald-500 to-emerald-600`} style={{ width: `${(r.totalEntregados / r.totalRecibidos) * 100}%` }}></div>
                                   </div>
-                                  <span className={`text-[10px] font-black ${r.activo ? 'text-indigo-600 dark:text-indigo-400' : 'text-emerald-600 dark:text-emerald-400'}`}>{Math.round((r.totalEntregados / r.totalRecibidos) * 100)}%</span>
+                                  <span className={`text-[10px] font-black text-emerald-600 dark:text-emerald-400`}>{Math.round((r.totalEntregados / r.totalRecibidos) * 100)}%</span>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-2 bg-background p-3 rounded-2xl border border-border">
+                            <div className="grid grid-cols-2 gap-2 bg-background p-3 rounded-xl border border-border transition-colors">
                                 <div className="text-center">
                                   <p className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">Pendientes</p>
                                   <p className="text-xl font-black text-foreground">{r.pendientes}</p>
                                 </div>
-                                <div className="text-center border-l border-border">
+                                <div className="text-center border-l border-border transition-colors">
                                   <p className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">Entregados</p>
-                                  <p className={`text-xl font-black ${r.activo ? 'text-indigo-600 dark:text-indigo-400' : 'text-emerald-600 dark:text-emerald-400'}`}>{r.totalEntregados}</p>
+                                  <p className={`text-xl font-black text-emerald-600 dark:text-emerald-400`}>{r.totalEntregados}</p>
                                 </div>
                             </div>
 
@@ -536,14 +548,14 @@ export default function CorrespondenciaPage() {
                                 {r.activo && (
                                     <button 
                                         onClick={() => setEntregaReciboModal({ isOpen: true, id: r.id, servicio: r.servicio })}
-                                        className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-100 dark:shadow-none transition-all active:scale-95"
+                                        className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-100 dark:shadow-none transition-all active:scale-95"
                                     >
                                         Entregar
                                     </button>
                                 )}
                                 <button 
                                     onClick={() => handleVerEntregas(r.id, r.servicio)}
-                                    className={`py-3 px-4 bg-card border border-border rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all hover:bg-slate-50 dark:hover:bg-slate-800 ${!r.activo && 'w-full'}`}
+                                    className={`py-3 px-4 bg-card border border-border rounded-xl text-[9px] font-black uppercase tracking-widest transition-all hover:bg-slate-50 dark:hover:bg-slate-800 ${!r.activo && 'w-full'}`}
                                     title="Ver detalles de entregas"
                                 >
                                     {r.activo ? "🔍" : "🔍 Ver Verificación"}
@@ -560,10 +572,10 @@ export default function CorrespondenciaPage() {
 
           {/* TAB: NUEVO PAQUETE */}
           {activeTab === "nuevo_paquete" && (
-            <div className="bg-card p-6 md:p-10 rounded-[2.5rem] border border-border shadow-sm flex flex-col flex-grow min-h-0 animate-in slide-in-from-right duration-500 transition-colors">
+            <div className="bg-card p-6 md:p-10 rounded-xl border border-border shadow-sm flex flex-col flex-grow min-h-0 animate-in slide-in-from-right duration-500 transition-colors">
                <div className="max-w-3xl mx-auto w-full space-y-8">
                   <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center text-2xl shadow-xl shadow-indigo-100 text-white">📦</div>
+                    <div className="w-14 h-14 bg-emerald-600 rounded-xl flex items-center justify-center text-2xl shadow-xl shadow-emerald-100 text-white">📦</div>
                     <div>
                       <h2 className="text-xl font-black text-foreground uppercase tracking-tight">Recepción de Paquetería</h2>
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1">Registra el ingreso de mensajería y domicilios</p>
@@ -600,7 +612,7 @@ export default function CorrespondenciaPage() {
 
                   <div className="flex gap-3 justify-end pt-4">
                     <button onClick={() => setActiveTab("paquetes")} className="px-8 py-3 bg-background border border-border text-slate-400 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-colors">Cancelar</button>
-                    <button onClick={handleCreatePaquete} className="px-10 py-3 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-95">Guardar Registro</button>
+                    <button onClick={handleCreatePaquete} className="px-10 py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-emerald-100 hover:bg-emerald-700 transition-all active:scale-95">Guardar Registro</button>
                   </div>
                </div>
             </div>
@@ -608,10 +620,10 @@ export default function CorrespondenciaPage() {
 
           {/* TAB: NUEVO LOTE DE RECIBOS */}
           {activeTab === "nuevo_recibo" && (
-            <div className="bg-card p-6 md:p-10 rounded-[2.5rem] border border-border shadow-sm flex flex-col flex-grow min-h-0 animate-in slide-in-from-right duration-500 transition-colors">
+            <div className="bg-card p-6 md:p-10 rounded-xl border border-border shadow-sm flex flex-col flex-grow min-h-0 animate-in slide-in-from-right duration-500 transition-colors">
                <div className="max-w-3xl mx-auto w-full space-y-8">
                   <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-emerald-600 rounded-2xl flex items-center justify-center text-2xl shadow-xl shadow-emerald-100 text-white">📄</div>
+                    <div className="w-14 h-14 bg-emerald-600 rounded-xl flex items-center justify-center text-2xl shadow-xl shadow-emerald-100 text-white">📄</div>
                     <div>
                       <h2 className="text-xl font-black text-foreground uppercase tracking-tight">Carga Masiva de Recibos</h2>
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1">Registra la llegada de facturas de servicios públicos</p>

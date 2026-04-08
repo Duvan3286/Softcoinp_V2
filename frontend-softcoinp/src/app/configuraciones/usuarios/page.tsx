@@ -112,7 +112,7 @@ export default function UsuariosConfigPage() {
       <div className="w-full max-w-4xl flex flex-col items-start shrink-0">
         <div className="flex items-center justify-between w-full mb-2">
             <div className="flex items-center gap-4">
-                <div className="p-2.5 bg-emerald-600 rounded-xl text-white shadow-lg shadow-emerald-100 dark:shadow-none transition-transform hover:scale-110">
+                <div className="p-2.5 bg-emerald-600 rounded-xl text-white shadow-sm transition-transform hover:scale-110">
                     <span className="text-xl">👥</span>
                 </div>
                 <div>
@@ -123,14 +123,14 @@ export default function UsuariosConfigPage() {
             <div className="flex items-center gap-3">
                 <button 
                   onClick={() => router.push("/configuraciones")}
-                  className="bg-card text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 py-2 px-4 rounded-xl font-black border border-border shadow-sm transition-all active:scale-95 flex items-center gap-2 text-[10px] uppercase tracking-widest"
+                  className="bg-card text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 py-2 px-4 rounded-xl font-black border border-border shadow-sm transition-all active:scale-95 flex items-center gap-2 text-[10px] uppercase tracking-widest"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                   Volver
                 </button>
                 <button
                   onClick={() => handleOpenModal()}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-100 dark:shadow-none transition-all active:scale-95"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-sm transition-all active:scale-95"
                 >
                   + Nuevo Usuario
                 </button>
@@ -140,13 +140,13 @@ export default function UsuariosConfigPage() {
       </div>
 
       <main className="w-full max-w-4xl flex flex-col min-h-0 overflow-y-auto pr-1 pb-10 custom-scrollbar">
-        {error && <div className="bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/50 text-rose-700 dark:text-rose-400 p-4 rounded-2xl mb-6 text-[11px] font-bold uppercase tracking-tight flex items-center gap-3 animate-in fade-in slide-in-from-top">
+        {error && <div className="bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/50 text-rose-700 dark:text-rose-400 p-4 rounded-xl mb-6 text-[11px] font-bold uppercase tracking-tight flex items-center gap-3 animate-in fade-in slide-in-from-top">
           <span className="text-lg">❌</span> {error}
         </div>}
 
         {loading && (
           <div className="flex flex-col items-center justify-center py-20 text-slate-300 dark:text-slate-700 gap-4">
-            <div className="w-10 h-10 border-4 border-border border-t-purple-600 rounded-full animate-spin"></div>
+            <div className="w-10 h-10 border-4 border-border border-t-emerald-600 rounded-full animate-spin"></div>
             <p className="text-[10px] font-black uppercase tracking-[0.2em]">Cargando usuarios...</p>
           </div>
         )}

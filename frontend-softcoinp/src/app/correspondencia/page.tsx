@@ -42,6 +42,7 @@ export default function CorrespondenciaPage() {
   const [mostrarArchivados, setMostrarArchivados] = useState(false);
   const [formServicio, setFormServicio] = useState("");
   const [formMes, setFormMes] = useState("");
+  const [formAnio, setFormAnio] = useState(String(new Date().getFullYear()));
   const [formCantidad, setFormCantidad] = useState("");
   
   // Filtros Historial Recibos
@@ -126,18 +127,37 @@ export default function CorrespondenciaPage() {
   // --- LÓGICA RECIBOS ---
   const handleCreateLoteRecibos = async () => {
     const cant = parseInt(formCantidad);
-    if (!formServicio || !formMes || isNaN(cant) || cant <= 0) {
+    const anio = parseInt(formAnio);
+    if (!formServicio || !formMes || isNaN(anio) || anio < 2000 || isNaN(cant) || cant <= 0) {
       showModal("Diligencie todos los campos correctamente.", "warning");
       return;
     }
     try {
       setLoading(true);
-      await recibosPublicosService.create({ servicio: formServicio, mes: formMes, totalRecibidos: cant });
+      
+      // Primera verificación local rápida (solo activos) — incluye año
+      const activos = await recibosPublicosService.getActivos();
+      const duplicadoActivo = activos.some(r => r.servicio === formServicio && r.mes === formMes && r.anio === anio);
+      
+      if (duplicadoActivo) {
+        showModal(`Ya existe un lote activo de ${formServicio} para ${formMes} de ${anio}. Por favor verifique en el listado.`, "warning", "Lote Existente");
+        return;
+      }
+
+      await recibosPublicosService.create({ servicio: formServicio, mes: formMes, anio, totalRecibidos: cant });
       showModal("Lote de recibos creado exitosamente.", "success");
-      setFormServicio(""); setFormMes(""); setFormCantidad("");
+      setFormServicio(""); setFormMes(""); setFormAnio(String(new Date().getFullYear())); setFormCantidad("");
       setActiveTab("recibos");
       loadAllData();
-    } catch (err: any) { showModal("Error al crear lote.", "error"); } finally { setLoading(false); }
+    } catch (err: any) { 
+      if (err.response?.status === 409) {
+        showModal(err.response.data || "Este lote ya fue registrado anteriormente (puede estar en el historial).", "warning", "Lote Duplicado");
+      } else {
+        showModal("Error al crear lote.", "error"); 
+      }
+    } finally { 
+      setLoading(false); 
+    }
   };
 
   const handleConfirmEntregaRecibo = async () => {
@@ -406,7 +426,7 @@ export default function CorrespondenciaPage() {
                   </button>
                </div>
 
-               <div className="flex-1 overflow-hidden flex flex-col min-h-0">
+               <div className="flex-1 min-h-0 flex flex-col">
                   {mostrarArchivados ? (
                     /* VISTA COMPACTA (TABLA) PARA ARCHIVADOS */
                     <div className="flex flex-col h-full gap-4">
@@ -508,9 +528,10 @@ export default function CorrespondenciaPage() {
                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-4">No hay lotes de recibos activos actualmente</p>
                       </div>
                     ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-auto custom-scrollbar pr-1 flex-1">
+                      <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
+                        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-4 content-start" style={{ gridAutoRows: 'minmax(280px, auto)' }}>
                         {listaRecibos.map(r => (
-                          <div key={r.id} className="bg-card rounded-xl border-2 border-border p-6 flex flex-col gap-5 hover:border-emerald-400 transition-all duration-300 shadow-sm relative overflow-hidden group">
+                          <div key={r.id} className="bg-card rounded-xl border-2 border-border p-6 flex flex-col gap-5 hover:border-emerald-400 transition-all duration-300 shadow-sm relative overflow-hidden group min-h-[280px]">
                             {/* Progreso Visual Fondo */}
                             <div className={`absolute bottom-0 left-0 h-1 transition-all duration-1000 ${r.activo ? 'bg-emerald-600' : 'bg-emerald-500'}`} style={{ width: `${(r.totalEntregados / r.totalRecibidos) * 100}%` }}></div>
                             
@@ -564,6 +585,7 @@ export default function CorrespondenciaPage() {
                             </div>
                           </div>
                         ))}
+                        </div>
                       </div>
                     )
                   )}
@@ -657,11 +679,24 @@ export default function CorrespondenciaPage() {
                         ))}
                       </select>
                     </div>
-                    <div className="space-y-2 md:col-span-2">
-                      <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Cantidad Total Recibida *</label>
-                      <input type="number" value={formCantidad} onChange={e => setFormCantidad(e.target.value)} className="input-standard !py-3 font-black text-lg" placeholder="Ej: 300" />
-                      <p className="text-[9px] text-slate-400 italic px-1 uppercase tracking-tighter mt-1">El sistema creará un inventario de {formCantidad || '0'} facturas para entregar individualmente.</p>
-                    </div>
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Año del Lote *</label>
+                       <input
+                         type="number"
+                         value={formAnio}
+                         onChange={e => setFormAnio(e.target.value)}
+                         className="input-standard !py-3 font-black"
+                         placeholder="Ej: 2026"
+                         min="2000"
+                         max="2100"
+                       />
+                       <p className="text-[9px] text-slate-400 italic px-1 uppercase tracking-tighter">Año al que corresponde la facturación.</p>
+                     </div>
+                     <div className="space-y-2">
+                       <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Cantidad Total Recibida *</label>
+                       <input type="number" value={formCantidad} onChange={e => setFormCantidad(e.target.value)} className="input-standard !py-3 font-black text-lg" placeholder="Ej: 300" />
+                       <p className="text-[9px] text-slate-400 italic px-1 uppercase tracking-tighter mt-1">El sistema creará un inventario de {formCantidad || '0'} facturas para entregar individualmente.</p>
+                     </div>
                   </div>
 
                   <div className="flex gap-3 justify-end pt-4">

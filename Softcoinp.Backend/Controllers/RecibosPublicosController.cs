@@ -45,12 +45,21 @@ namespace Softcoinp.Backend.Controllers
         [HttpPost]
         public async Task<ActionResult<ReciboPublicoDto>> Create(CreateReciboPublicoDto dto)
         {
+            // Verificar duplicados para el mismo servicio, mes y año
+            var existe = await _context.RecibosPublicos
+                .AnyAsync(r => r.Servicio == dto.Servicio && r.Mes == dto.Mes && r.Anio == dto.Anio);
+
+            if (existe)
+            {
+                return Conflict($"Ya existe un lote de recibos para {dto.Servicio} en el mes de {dto.Mes} de {dto.Anio}.");
+            }
+
             var recibo = new ReciboPublico
             {
                 Servicio = dto.Servicio,
                 Mes = dto.Mes,
                 TotalRecibidos = dto.TotalRecibidos,
-                Anio = DateTime.UtcNow.Year,
+                Anio = dto.Anio,
                 Activo = true
             };
 

@@ -19,6 +19,7 @@ namespace Softcoinp.Backend.Dtos
     {
         public string Servicio { get; set; } = string.Empty;
         public string Mes { get; set; } = string.Empty;
+        public int Anio { get; set; }
         public int TotalRecibidos { get; set; }
     }
 

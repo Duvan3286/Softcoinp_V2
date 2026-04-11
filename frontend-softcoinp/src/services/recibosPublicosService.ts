@@ -15,6 +15,7 @@ export interface ReciboPublicoDto {
 export interface CreateReciboPublicoDto {
     servicio: string;
     mes: string;
+    anio: number;
     totalRecibidos: number;
 }
 

@@ -13,7 +13,11 @@ namespace Softcoinp.Backend.Dtos
         [Required(ErrorMessage = "El documento es obligatorio")]
         public string Documento { get; set; } = string.Empty;
 
+        [RegularExpression(@"^\d{10}$", ErrorMessage = "El teléfono debe tener exactamente 10 dígitos numéricos")]
         public string? Telefono { get; set; }
+
+        [EmailAddress(ErrorMessage = "El formato del correo electrónico no es válido")]
+        public string? Email { get; set; }
 
         [Required(ErrorMessage = "El destino es obligatorio")]
         public string Destino { get; set; } = string.Empty;

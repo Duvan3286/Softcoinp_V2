@@ -23,6 +23,8 @@ interface Personal {
   nombre: string;
   apellido: string;
   documento: string;
+  telefono?: string;
+  email?: string;
   tipo: string;
 }
 interface Registro {

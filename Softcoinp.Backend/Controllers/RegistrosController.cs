@@ -78,6 +78,7 @@ namespace Softcoinp.Backend.Controllers
             persona.Apellido = string.IsNullOrWhiteSpace(input.Apellido) ? persona.Apellido : input.Apellido;
             persona.Tipo = string.IsNullOrWhiteSpace(input.Tipo) ? persona.Tipo : input.Tipo;
             persona.Telefono = input.Telefono ?? persona.Telefono;
+            persona.Email = input.Email ?? persona.Email;
             if (!string.IsNullOrWhiteSpace(fotoUrlPersonal))
                 persona.FotoUrl = fotoUrlPersonal;
 
@@ -177,6 +178,7 @@ namespace Softcoinp.Backend.Controllers
                         Apellido = r.Apellido,
                         Documento = r.Documento,
                         Telefono = r.TelefonoPersona,
+                        Email = r.EmailPersona,
                         Tipo = r.Tipo,
                         IsBloqueado = r.Personal!.IsBloqueado,
                         MotivoBloqueo = r.Personal!.MotivoBloqueo
@@ -222,6 +224,7 @@ namespace Softcoinp.Backend.Controllers
                     Apellido        = r.Personal!.Apellido,
                     Documento       = r.Personal!.Documento,
                     Telefono        = r.Personal!.Telefono,
+                    Email           = r.Personal!.Email,
                     r.Motivo,
                     r.Destino,
                     Tipo            = r.Personal!.Tipo,
@@ -253,6 +256,7 @@ namespace Softcoinp.Backend.Controllers
                 Apellido        = result.Apellido,
                 Documento       = result.Documento,
                 Telefono        = result.Telefono,
+                Email           = result.Email,
                 Motivo          = result.Motivo,
                 Destino         = result.Destino,
                 Tipo            = result.Tipo,
@@ -299,6 +303,7 @@ namespace Softcoinp.Backend.Controllers
                     Apellido      = r.Personal!.Apellido,
                     Documento     = r.Personal!.Documento,
                     Telefono      = r.Personal!.Telefono,
+                    Email         = r.Personal!.Email,
                     r.Motivo,
                     r.Destino,
                     Tipo          = r.Personal!.Tipo,
@@ -331,6 +336,7 @@ namespace Softcoinp.Backend.Controllers
                 Apellido        = result.Apellido,
                 Documento       = result.Documento,
                 Telefono        = result.Telefono,
+                Email           = result.Email,
                 Motivo          = result.Motivo,
                 Destino         = result.Destino,
                 Tipo            = result.Tipo,
@@ -571,6 +577,7 @@ namespace Softcoinp.Backend.Controllers
                     Documento = input.Documento,
                     Tipo = input.Tipo ?? "visitante",
                     Telefono = input.Telefono,
+                    Email = input.Email,
                     FotoUrl = fotoUrlPersonal,
                     FechaCreacionUtc = DateTime.UtcNow
                 };
@@ -587,6 +594,7 @@ namespace Softcoinp.Backend.Controllers
                 persona.Apellido = string.IsNullOrWhiteSpace(input.Apellido) ? persona.Apellido : input.Apellido;
                 persona.Tipo = string.IsNullOrWhiteSpace(input.Tipo) ? persona.Tipo : input.Tipo;
                 persona.Telefono = input.Telefono ?? persona.Telefono;
+                persona.Email = input.Email ?? persona.Email;
                 
                 if (!string.IsNullOrWhiteSpace(fotoUrlPersonal))
                     persona.FotoUrl = fotoUrlPersonal;
@@ -639,6 +647,7 @@ namespace Softcoinp.Backend.Controllers
                 Apellido = persona.Apellido,
                 Documento = persona.Documento,
                 TelefonoPersona = persona.Telefono,
+                EmailPersona = persona.Email,
                 Destino = input.Destino,
                 Motivo = input.Motivo,
                 Tipo = persona.Tipo,
@@ -682,6 +691,7 @@ namespace Softcoinp.Backend.Controllers
                 Apellido = registro.Apellido,
                 Documento = registro.Documento,
                 Telefono = registro.TelefonoPersona,
+                Email = registro.EmailPersona,
                 Motivo = registro.Motivo,
                 Destino = registro.Destino,
                 Tipo = registro.Tipo,
@@ -733,6 +743,7 @@ namespace Softcoinp.Backend.Controllers
                 Apellido = registro.Apellido,
                 Documento = registro.Documento,
                 Telefono = registro.TelefonoPersona,
+                Email = registro.EmailPersona,
                 Motivo = registro.Motivo,
                 Destino = registro.Destino,
                 Tipo = registro.Tipo,
@@ -781,6 +792,7 @@ namespace Softcoinp.Backend.Controllers
                 Apellido = registro.Apellido,
                 Documento = registro.Documento,
                 Telefono = registro.TelefonoPersona,
+                Email = registro.EmailPersona,
                 Motivo = registro.Motivo,
                 Destino = registro.Destino,
                 Tipo = registro.Tipo,
@@ -812,6 +824,7 @@ namespace Softcoinp.Backend.Controllers
                     Nombre = r.Nombre,
                     Apellido = r.Apellido,
                     Documento = r.Documento,
+                    Email = r.EmailPersona,
                     Motivo = r.Motivo,
                     Destino = r.Destino,
                     Tipo = r.Tipo,
@@ -847,6 +860,7 @@ namespace Softcoinp.Backend.Controllers
                     Apellido = r.Apellido,
                     Documento = r.Documento,
                     Telefono = r.TelefonoPersona,
+                    Email = r.EmailPersona,
                     Motivo = r.Motivo,
                     Destino = r.Destino,
                     Tipo = r.Tipo,

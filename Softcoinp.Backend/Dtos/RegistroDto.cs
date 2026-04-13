@@ -9,6 +9,7 @@ namespace Softcoinp.Backend.Dtos
         public string Apellido { get; set; } = string.Empty;
         public string Documento { get; set; } = string.Empty;
         public string? Telefono { get; set; }
+        public string? Email { get; set; }
         public string? Motivo { get; set; }
         public string Destino { get; set; } = string.Empty;
         public string Tipo { get; set; } = "visitante";

@@ -40,6 +40,7 @@ namespace Softcoinp.Backend.Controllers
                     p.Documento,
                     p.Tipo,
                     p.Telefono,
+                    p.Email,
                     p.FechaCreacionUtc,
                     p.IsBloqueado,
                     TieneEntradaActiva = p.Registros.Any(r => r.HoraSalidaUtc == null),

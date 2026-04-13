@@ -21,6 +21,7 @@ namespace Softcoinp.Backend.Models
         public string Apellido { get; set; } = string.Empty;
         public string Documento { get; set; } = string.Empty;
         public string? TelefonoPersona { get; set; }
+        public string? EmailPersona { get; set; }
 
         public string Motivo { get; set; } = string.Empty;
         public string Destino { get; set; } = string.Empty;

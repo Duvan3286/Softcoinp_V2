@@ -95,11 +95,13 @@ export default function DashboardPage() {
   const modeloRef = useRef<HTMLInputElement>(null);
   const colorRef = useRef<HTMLInputElement>(null);
   const tipoVehiculoRef = useRef<HTMLSelectElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
 
   const [identificacion, setIdentificacion] = useState("");
   const [nombres, setNombres] = useState("");
   const [apellidos, setApellidos] = useState("");
   const [telefono, setTelefono] = useState("");
+  const [email, setEmail] = useState("");
   const [tipo, setTipo] = useState("visitante");
   const [cargo, setCargo] = useState("");
   const [destino, setDestino] = useState("");
@@ -211,6 +213,8 @@ export default function DashboardPage() {
     setIdentificacion("");
     setNombres("");
     setApellidos("");
+    setTelefono("");
+    setEmail("");
     setCargo("");
     setDestino("");
     setMotivo("");
@@ -250,6 +254,11 @@ export default function DashboardPage() {
     setCamposErrores([]);
   };
 
+  const validateEmail = (email: string) => {
+    if (!email) return true;
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
   const handleRegistrar = async (accion: "entrada" | "salida") => {
     try {
       if (accion === "entrada") {
@@ -261,6 +270,20 @@ export default function DashboardPage() {
           { value: destino, name: "Destino", ref: destinoRef, id: "destino" },
           { value: motivo, name: "Motivo de ingreso", ref: motivoRef, id: "motivo" },
         ];
+
+        // Validaciones específicas
+        if (telefono && telefono.length !== 10) {
+          setCamposErrores(["telefono"]);
+          showModal("El teléfono debe tener exactamente 10 dígitos.", "error", "Error de Validación");
+          return;
+        }
+
+        if (email && !validateEmail(email)) {
+          setCamposErrores(["email"]);
+          showModal("El formato del correo electrónico no es válido.", "error", "Error de Validación");
+          return;
+        }
+
 
         const missing = validation.filter(v => !v.value.trim());
         
@@ -308,6 +331,7 @@ export default function DashboardPage() {
           apellido: apellidos,
           documento: identificacion,
           telefono: telefono,
+          email: email,
           destino,
           motivo,
           tipo,
@@ -447,6 +471,19 @@ export default function DashboardPage() {
       return;
     }
 
+    // Validaciones específicas
+    if (telefono && telefono.length !== 10) {
+      setCamposErrores(["telefono"]);
+      showModal("El teléfono debe tener exactamente 10 dígitos.", "error", "Error de Validación");
+      return;
+    }
+
+    if (email && !validateEmail(email)) {
+      setCamposErrores(["email"]);
+      showModal("El formato del correo electrónico no es válido.", "error", "Error de Validación");
+      return;
+    }
+
     try {
       setLoadingTipos(true);
       await api.post("/registros/actualizar-datos", {
@@ -454,6 +491,7 @@ export default function DashboardPage() {
         apellido: apellidos,
         documento: identificacion,
         telefono: telefono,
+        email: email,
         tipo,
         foto: fotoBase64,
         placa,
@@ -488,6 +526,7 @@ export default function DashboardPage() {
     setNombres("");
     setApellidos("");
     setTelefono("");
+    setEmail("");
     setDestino("");
     setMotivo("");
     setTipo("visitante");
@@ -525,6 +564,7 @@ export default function DashboardPage() {
         setNombres(persona.nombre || "");
         setApellidos(persona.apellido || "");
         setTelefono(persona.telefono || "");
+        setEmail(persona.email || "");
         setTipo(persona.tipo || "visitante");
 
         // 📸 Foto de la persona
@@ -614,6 +654,7 @@ export default function DashboardPage() {
           nombre: persona.nombre || "",
           apellido: persona.apellido || "",
           telefono: persona.telefono || "",
+          email: persona.email || "",
           tipo: persona.tipo || "visitante",
           placa: persona.placaVehiculo || "",
           marca: persona.marcaVehiculo || "",
@@ -703,6 +744,7 @@ export default function DashboardPage() {
           setNombres(vehiculo.propietarioNombre || "");
           setApellidos(vehiculo.propietarioApellido || "");
           setTelefono(vehiculo.propietarioTelefono || "");
+          setEmail(vehiculo.propietarioEmail || "");
           setTipo(vehiculo.propietarioTipo || "visitante");
           if (vehiculo.propietarioFotoUrl) setFotoUrl(vehiculo.propietarioFotoUrl);
           if (alertasPropietario.status === "fulfilled") setAnotacionesAlerta(alertasPropietario.value as AnotacionDto[]);
@@ -844,7 +886,7 @@ export default function DashboardPage() {
         title={fotoZoomUrl === (fotoBase64 || (fotoUrl ? (fotoUrl.startsWith('http') ? fotoUrl : `${BACKEND_BASE_URL}${fotoUrl}`) : null)) ? "Persona" : "Vehículo"}
       />
 
-      <div className="flex-1 w-full flex flex-col relative z-0 lg:overflow-hidden bg-background transition-colors duration-300">
+      <div style={{ zoom: '0.9' }} className="flex-1 w-full flex flex-col relative z-0 lg:overflow-hidden bg-background transition-colors duration-300">
         
         <div className="flex flex-col-reverse lg:flex-row-reverse gap-4 flex-1 min-h-0 w-full max-w-[1700px] mx-auto p-3 lg:p-4 overflow-y-auto lg:overflow-hidden">
 
@@ -1041,13 +1083,7 @@ export default function DashboardPage() {
                   </button>
                 </div>
 
-                <button
-                  onClick={() => router.push('/registros-vehiculos')}
-                  className="btn-secondary !w-full !mt-1 !py-3 !text-[9px] !tracking-[0.2em] flex items-center justify-center gap-2"
-                >
-                  <ScrollText className="w-4 h-4" />
-                  Historial de Vehículos
-                </button>
+
               </div>
             </div>
 
@@ -1062,7 +1098,7 @@ export default function DashboardPage() {
           {/* ══════════════════════════════════════════
               SECCIÓN IZQUIERDA: Formulario Persona + Acciones
           ══════════════════════════════════════════ */}
-          <div className="flex-1 flex flex-col bg-card rounded-xl border border-border shadow-sm p-5 lg:p-7 lg:overflow-hidden min-h-0 relative transition-colors duration-300">
+          <div className="flex-1 flex flex-col bg-card rounded-xl border border-border shadow-sm p-4 lg:p-6 lg:overflow-hidden min-h-0 relative transition-colors duration-300">
             
             <div className="flex items-center gap-4 mb-4 flex-shrink-0 relative z-10">
               <div className="flex flex-col justify-center flex-1 min-w-0">
@@ -1135,8 +1171,8 @@ export default function DashboardPage() {
               </div>
             )}
 
-            <div className="flex-1 overflow-y-auto lg:overflow-visible custom-scrollbar min-h-0 pr-1 relative z-10">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 pb-2 transition-colors">
+            <div className="flex-1 overflow-y-auto custom-scrollbar min-h-0 pr-1 relative z-10">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pb-2 transition-colors">
                 <div className="relative sm:col-span-2 lg:col-span-1">
                   <span className="absolute left-3.5 top-2.5 text-[9px] text-emerald-500 dark:text-emerald-400 font-black uppercase tracking-widest z-10">Documento</span>
                   <input
@@ -1144,9 +1180,10 @@ export default function DashboardPage() {
                     type="text"
                     value={identificacion}
                     onChange={(e) => {
-                      setIdentificacion(e.target.value.replace(/[^0-9]/g, ""));
+                      setIdentificacion(e.target.value.replace(/[^0-9]/g, "").slice(0, 10));
                       setCamposErrores(prev => prev.filter(err => err !== "identificacion"));
                     }}
+                    maxLength={10}
                     onBlur={handleBuscar}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
@@ -1196,7 +1233,8 @@ export default function DashboardPage() {
 
                 <div className="flex flex-col gap-1">
                   <span className="text-[9px] text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest px-2">Teléfono</span>
-                  <input type="text" placeholder="Solo números" value={telefono} onChange={(e) => setTelefono(e.target.value.replace(/[^0-9]/g, ""))}
+                  <input type="text" placeholder="Solo 10 dígitos" value={telefono} onChange={(e) => setTelefono(e.target.value.replace(/[^0-9]/g, "").slice(0, 10))}
+                    maxLength={10}
                     className="input-standard" />
                 </div>
 
@@ -1204,6 +1242,18 @@ export default function DashboardPage() {
                   <span className="text-[9px] text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest px-2">Cargo</span>
                   <input type="text" placeholder="Opcional" value={cargo} onChange={(e) => setCargo(e.target.value)}
                     className="input-standard" />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <span className="text-[9px] text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest px-2">Correo Electrónico (Opcional)</span>
+                  <input 
+                    ref={emailRef}
+                    type="email" 
+                    placeholder="ejemplo@correo.com" 
+                    value={email} 
+                    onChange={(e) => setEmail(e.target.value)} 
+                    className="input-standard" 
+                  />
                 </div>
 
                 <div className="flex flex-col gap-1">

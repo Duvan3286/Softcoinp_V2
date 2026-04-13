@@ -9,7 +9,11 @@ namespace Softcoinp.Backend.Dtos
 
         public string? Nombre { get; set; }
         public string? Apellido { get; set; }
+        [RegularExpression(@"^\d{10}$", ErrorMessage = "El teléfono debe tener exactamente 10 dígitos numéricos")]
         public string? Telefono { get; set; }
+
+        [EmailAddress(ErrorMessage = "El formato del correo electrónico no es válido")]
+        public string? Email { get; set; }
         public string? Tipo { get; set; }
         public string? Foto { get; set; } // base64
 

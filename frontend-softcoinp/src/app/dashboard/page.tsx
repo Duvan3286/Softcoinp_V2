@@ -1089,41 +1089,43 @@ export default function DashboardPage() {
                   )}
                 </div>
 
-                <div className="relative group/select">
-                  <select
-                    ref={tipoVehiculoRef}
-                    value={tipoVehiculo}
-                    onChange={(e) => {
-                      setTipoVehiculo(e.target.value);
-                      setCamposErrores(prev => prev.filter(err => err !== "tipoVehiculo"));
-                    }}
-                    className="input-standard appearance-none cursor-pointer"
-                  >
-                    <option value="">Tipo de Vehículo</option>
-                    <option value="carro">Carro</option>
-                    <option value="moto">Moto</option>
-                    <option value="camioneta">Camioneta</option>
-                    <option value="camion">Camión</option>
-                    <option value="bus">Bus / Microbús</option>
-                    <option value="bicicleta">Bicicleta</option>
-                    <option value="otro">Otro</option>
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-400 group-hover/select:text-emerald-500 transition-colors">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" /></svg>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <div className="relative group/select">
+                    <select
+                      ref={tipoVehiculoRef}
+                      value={tipoVehiculo}
+                      onChange={(e) => {
+                        setTipoVehiculo(e.target.value);
+                        setCamposErrores(prev => prev.filter(err => err !== "tipoVehiculo"));
+                      }}
+                      className="input-standard appearance-none cursor-pointer"
+                    >
+                      <option value="">Tipo</option>
+                      <option value="carro">Carro</option>
+                      <option value="moto">Moto</option>
+                      <option value="camioneta">Camioneta</option>
+                      <option value="camion">Camión</option>
+                      <option value="bus">Bus / Microbús</option>
+                      <option value="bicicleta">Bicicleta</option>
+                      <option value="otro">Otro</option>
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-400 group-hover/select:text-emerald-500 transition-colors">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" /></svg>
+                    </div>
                   </div>
-                </div>
 
-                <input
-                  ref={marcaRef}
-                  type="text"
-                  placeholder="Marca"
-                  value={marca}
-                  onChange={(e) => {
-                    setMarca(e.target.value);
-                    setCamposErrores(prev => prev.filter(err => err !== "marca"));
-                  }}
-                  className="input-standard"
-                />
+                  <input
+                    ref={marcaRef}
+                    type="text"
+                    placeholder="Marca"
+                    value={marca}
+                    onChange={(e) => {
+                      setMarca(e.target.value);
+                      setCamposErrores(prev => prev.filter(err => err !== "marca"));
+                    }}
+                    className="input-standard"
+                  />
+                </div>
 
                 <div className="grid grid-cols-2 gap-2.5">
                   <input

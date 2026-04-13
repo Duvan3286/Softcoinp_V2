@@ -28,11 +28,23 @@ namespace Softcoinp.Backend
                 .HasIndex(p => p.Documento)
                 .IsUnique();
 
-            // Relación 1:N entre Personal y Registro
+            // Relaciones de Registro con Personal
             modelBuilder.Entity<Registro>()
                 .HasOne(r => r.Personal)
-                .WithMany(p => p.Registros)   // ← ESTA ES LA PARTE QUE FALTABA
+                .WithMany(p => p.Registros)
                 .HasForeignKey(r => r.PersonalId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Registro>()
+                .HasOne(r => r.Conductor)
+                .WithMany()
+                .HasForeignKey(r => r.ConductorId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Registro>()
+                .HasOne(r => r.ConductorSalida)
+                .WithMany()
+                .HasForeignKey(r => r.ConductorSalidaId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Relación Personal - Anotacion
@@ -100,6 +112,19 @@ namespace Softcoinp.Backend
 
             modelBuilder.Entity<Vehiculo>()
                 .HasIndex(v => v.PersonalId);
+
+            // Relaciones de RegistroVehiculo con Personal (Conductores)
+            modelBuilder.Entity<RegistroVehiculo>()
+                .HasOne(r => r.Conductor)
+                .WithMany()
+                .HasForeignKey(r => r.ConductorId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<RegistroVehiculo>()
+                .HasOne(r => r.ConductorSalida)
+                .WithMany()
+                .HasForeignKey(r => r.ConductorSalidaId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             base.OnModelCreating(modelBuilder);
         }

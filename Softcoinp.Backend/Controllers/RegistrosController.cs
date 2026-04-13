@@ -196,7 +196,9 @@ namespace Softcoinp.Backend.Controllers
                     ModeloVehiculo = r.ModeloVehiculo,
                     ColorVehiculo = r.ColorVehiculo,
                     TipoVehiculo = r.TipoVehiculo,
-                    FotoVehiculoUrl = r.FotoVehiculoUrl
+                    FotoVehiculoUrl = r.FotoVehiculoUrl,
+                    ConductorId = r.ConductorId,
+                    ConductorNombre = r.ConductorNombre
                 })
                 .ToList();
 
@@ -242,7 +244,9 @@ namespace Softcoinp.Backend.Controllers
                     ModeloVehiculo  = v.Modelo     ?? r.ModeloVehiculo,
                     ColorVehiculo   = v.Color      ?? r.ColorVehiculo,
                     TipoVehiculo    = v.TipoVehiculo ?? r.TipoVehiculo,
-                    FotoVehiculoUrl = v.FotoUrl    ?? r.FotoVehiculoUrl
+                    FotoVehiculoUrl = v.FotoUrl    ?? r.FotoVehiculoUrl,
+                    ConductorId     = r.ConductorId,
+                    ConductorNombre = r.ConductorNombre
                 }
             ).FirstOrDefault();
 
@@ -273,7 +277,9 @@ namespace Softcoinp.Backend.Controllers
                 ModeloVehiculo  = result.ModeloVehiculo,
                 ColorVehiculo   = result.ColorVehiculo,
                 TipoVehiculo    = result.TipoVehiculo,
-                FotoVehiculoUrl = result.FotoVehiculoUrl
+                FotoVehiculoUrl = result.FotoVehiculoUrl,
+                ConductorId     = result.ConductorId,
+                ConductorNombre = result.ConductorNombre
             };
 
             return Ok(ApiResponse<RegistroDto>.SuccessResponse(registro));
@@ -321,7 +327,9 @@ namespace Softcoinp.Backend.Controllers
                     ModeloVehiculo     = v.Modelo     ?? r.ModeloVehiculo,
                     ColorVehiculo      = v.Color      ?? r.ColorVehiculo,
                     TipoVehiculo       = v.TipoVehiculo ?? r.TipoVehiculo,
-                    FotoVehiculoUrl    = v.FotoUrl    ?? r.FotoVehiculoUrl
+                    FotoVehiculoUrl    = v.FotoUrl    ?? r.FotoVehiculoUrl,
+                    ConductorId        = r.ConductorId,
+                    ConductorNombre    = r.ConductorNombre
                 }
             ).FirstOrDefault();
 
@@ -354,7 +362,9 @@ namespace Softcoinp.Backend.Controllers
                 ModeloVehiculo  = result.ModeloVehiculo,
                 ColorVehiculo   = result.ColorVehiculo,
                 TipoVehiculo    = result.TipoVehiculo,
-                FotoVehiculoUrl = result.FotoVehiculoUrl
+                FotoVehiculoUrl = result.FotoVehiculoUrl,
+                ConductorId     = result.ConductorId,
+                ConductorNombre = result.ConductorNombre
             };
 
             return Ok(ApiResponse<RegistroDto>.SuccessResponse(registro));
@@ -659,7 +669,9 @@ namespace Softcoinp.Backend.Controllers
                 ModeloVehiculo = input.Modelo,
                 ColorVehiculo = input.Color,
                 TipoVehiculo = input.TipoVehiculo,
-                FotoVehiculoUrl = fotoUrlVehiculo
+                FotoVehiculoUrl = fotoUrlVehiculo,
+                ConductorId = input.ConductorId,
+                ConductorNombre = input.ConductorNombre
             };
 
             var userIdClaim = User.FindFirst("id")?.Value;
@@ -701,6 +713,8 @@ namespace Softcoinp.Backend.Controllers
                 HoraSalidaLocal = registro.HoraSalidaLocal,
                 RegistradoPor = registro.RegistradoPor,
                 FotoUrl = registro.FotoUrl,
+                ConductorId = registro.ConductorId,
+                ConductorNombre = registro.ConductorNombre
             };
 
             return CreatedAtAction(nameof(GetById), new { id = registro.Id },
@@ -710,9 +724,9 @@ namespace Softcoinp.Backend.Controllers
 
         // PUT: api/registros/{id}/salida
         [HttpPut("{id}/salida")]
-        public async Task<IActionResult> RegistrarSalida(Guid id)
+        public async Task<IActionResult> RegistrarSalida(Guid id, [FromBody] RegistrarSalidaDto input)
         {
-            var registro = _db.Registros.Find(id);
+            var registro = await _db.Registros.FindAsync(id);
             if (registro == null)
                 return NotFound(ApiResponse<RegistroDto>.Fail(null, "Registro no encontrado"));
 
@@ -720,6 +734,8 @@ namespace Softcoinp.Backend.Controllers
                 return BadRequest(ApiResponse<RegistroDto>.Fail(null, "La salida ya fue registrada"));
 
             registro.HoraSalidaUtc = DateTime.UtcNow;
+            registro.ConductorSalidaId = input.ConductorSalidaId;
+            registro.ConductorSalidaNombre = input.ConductorSalidaNombre;
 
             await _db.SaveChangesAsync();
 

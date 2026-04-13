@@ -73,7 +73,9 @@ namespace Softcoinp.Backend.Controllers
                                  HoraIngresoLocal = r.HoraIngresoLocal,
                                  HoraSalidaUtc = r.HoraSalidaUtc,
                                  HoraSalidaLocal = r.HoraSalidaLocal,
-                                 RegistradoPorNombre = subUser != null ? subUser.Nombre : "SISTEMA"
+                                 RegistradoPorNombre = subUser != null ? subUser.Nombre : "SISTEMA",
+                                 ConductorId = r.ConductorId,
+                                 ConductorNombre = r.ConductorNombre
                              })
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
@@ -133,7 +135,9 @@ namespace Softcoinp.Backend.Controllers
                 Color = input.Color ?? vehiculo?.Color,
                 TipoVehiculo = input.TipoVehiculo ?? vehiculo?.TipoVehiculo,
                 FotoVehiculoUrl = fotoUrlVehiculo ?? vehiculo?.FotoUrl,
-                HoraIngresoUtc = nowUtc
+                HoraIngresoUtc = nowUtc,
+                ConductorId = input.ConductorId,
+                ConductorNombre = input.ConductorNombre
             };
 
             var userIdClaim = User.FindFirst("id")?.Value;
@@ -150,7 +154,9 @@ namespace Softcoinp.Backend.Controllers
                 Id = registro.Id,
                 Placa = registro.Placa,
                 HoraIngresoUtc = registro.HoraIngresoUtc,
-                HoraIngresoLocal = registro.HoraIngresoLocal
+                HoraIngresoLocal = registro.HoraIngresoLocal,
+                ConductorId = registro.ConductorId,
+                ConductorNombre = registro.ConductorNombre
             };
 
             return Ok(ApiResponse<RegistroVehiculoDto>.SuccessResponse(dto, "Entrada de vehículo registrada con éxito"));
@@ -180,7 +186,7 @@ namespace Softcoinp.Backend.Controllers
 
         // PUT: api/regisrovehiculo/{id}/salida
         [HttpPut("{id}/salida")]
-        public async Task<IActionResult> RegistrarSalida(Guid id)
+        public async Task<IActionResult> RegistrarSalida(Guid id, [FromBody] RegistrarSalidaDto input)
         {
             var registro = await _db.RegistrosVehiculos.FindAsync(id);
             if (registro == null)
@@ -190,6 +196,9 @@ namespace Softcoinp.Backend.Controllers
                 return BadRequest(ApiResponse<RegistroVehiculoDto>.Fail(null, "La salida ya fue registrada"));
 
             registro.HoraSalidaUtc = DateTime.UtcNow;
+            registro.ConductorSalidaId = input.ConductorSalidaId;
+            registro.ConductorSalidaNombre = input.ConductorSalidaNombre;
+
             await _db.SaveChangesAsync();
 
             try { await _audit.LogAsync("RegistroVehiculoSalida", "RegistroVehiculo", registro.Id, new { registro.Placa }); } catch { }
@@ -366,7 +375,9 @@ namespace Softcoinp.Backend.Controllers
                     HoraIngresoLocal = r.HoraIngresoLocal,
                     HoraSalidaUtc = r.HoraSalidaUtc,
                     HoraSalidaLocal = r.HoraSalidaLocal,
-                    RegistradoPor = r.RegistradoPor
+                    RegistradoPor = r.RegistradoPor,
+                    ConductorId = r.ConductorId,
+                    ConductorNombre = r.ConductorNombre
                 })
                 .ToListAsync();
 

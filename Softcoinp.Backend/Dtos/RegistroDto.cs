@@ -36,5 +36,12 @@ namespace Softcoinp.Backend.Dtos
         public string? ColorVehiculo { get; set; }
         public string? TipoVehiculo { get; set; }
         public string? FotoVehiculoUrl { get; set; }
+
+        // 👨‍✈️ Datos del Conductor
+        public Guid? ConductorId { get; set; }
+        public string? ConductorNombre { get; set; }
+
+        public Guid? ConductorSalidaId { get; set; }
+        public string? ConductorSalidaNombre { get; set; }
     }
 }

@@ -132,6 +132,29 @@ namespace Softcoinp.Backend.Controllers
 
             return Ok(ApiResponse<object>.SuccessResponse(null, "Persona desbloqueada correctamente."));
         }
+    
+        // GET: api/personal/buscar-por-nombre?termino=...
+        [HttpGet("buscar-por-nombre")]
+        public async Task<IActionResult> BuscarPorNombre([FromQuery] string termino)
+        {
+            if (string.IsNullOrWhiteSpace(termino) || termino.Length < 2)
+                return Ok(ApiResponse<object>.SuccessResponse(new List<object>()));
+
+            var personas = await _db.Personal
+                .Where(p => EF.Functions.ILike(p.Nombre + " " + p.Apellido, $"%{termino}%") || p.Documento.StartsWith(termino))
+                .Take(10)
+                .Select(p => new
+                {
+                    p.Id,
+                    p.Nombre,
+                    p.Apellido,
+                    p.Documento,
+                    p.FotoUrl
+                })
+                .ToListAsync();
+
+            return Ok(ApiResponse<object>.SuccessResponse(personas));
+        }
     }
 
     public class MotivoBloqueoDto

@@ -13,6 +13,9 @@ namespace Softcoinp.Backend.Dtos
         public string? TipoVehiculo { get; set; }
 
         public string? FotoVehiculo { get; set; } // Base64
+
+        public Guid? ConductorId { get; set; }
+        public string? ConductorNombre { get; set; }
     }
 
     public class RegistroVehiculoDto
@@ -33,5 +36,17 @@ namespace Softcoinp.Backend.Dtos
 
         public Guid? RegistradoPor { get; set; }
         public string? RegistradoPorNombre { get; set; }
+
+        public Guid? ConductorId { get; set; }
+        public string? ConductorNombre { get; set; }
+
+        public Guid? ConductorSalidaId { get; set; }
+        public string? ConductorSalidaNombre { get; set; }
+    }
+
+    public class RegistrarSalidaDto
+    {
+        public Guid? ConductorSalidaId { get; set; }
+        public string? ConductorSalidaNombre { get; set; }
     }
 }

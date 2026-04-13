@@ -23,7 +23,10 @@ import {
   Trash2, 
   RefreshCw,
   Calendar,
-  X 
+  X,
+  UserCircle,
+  Search,
+  User
 } from "lucide-react";
 
 // URL base del backend para recursos estáticos (fotos)
@@ -159,6 +162,15 @@ export default function DashboardPage() {
   // 🚙 Estado para bloquear registro directo de vehículos nuevos
   const [isVehiculoNuevo, setIsVehiculoNuevo] = useState(false);
 
+  // 👨‍✈️ ESTADOS para el Conductor
+  const [conductorOpcion, setConductorOpcion] = useState<"propietario" | "otro">("propietario");
+  const [conductorId, setConductorId] = useState<string | null>(null);
+  const [conductorNombre, setConductorNombre] = useState<string>("");
+  const [busquedaConductor, setBusquedaConductor] = useState("");
+  const [resultadosConductor, setResultadosConductor] = useState<any[]>([]);
+  const [isSearchingConductor, setIsSearchingConductor] = useState(false);
+  const [showSugerenciasConductor, setShowSugerenciasConductor] = useState(false);
+
   // ⚠️ Estado para validación visual
   const [camposErrores, setCamposErrores] = useState<string[]>([]);
   const [usuario, setUsuario] = useState<UserPayload | null>(null);
@@ -184,6 +196,38 @@ export default function DashboardPage() {
     };
     fetchTipos();
   }, []);
+
+  // 🔍 Lógica de búsqueda de conductor
+  useEffect(() => {
+    const search = async () => {
+      if (busquedaConductor.length < 2) {
+        setResultadosConductor([]);
+        return;
+      }
+
+      setIsSearchingConductor(true);
+      try {
+        const res = await api.get(`/personal/buscar-por-nombre`, {
+          params: { termino: busquedaConductor }
+        }) as any;
+        setResultadosConductor(res.data?.data || []);
+      } catch (err) {
+        console.error("Error buscando conductor:", err);
+      } finally {
+        setIsSearchingConductor(false);
+      }
+    };
+
+    const timer = setTimeout(search, 300);
+    return () => clearTimeout(timer);
+  }, [busquedaConductor]);
+
+  const handleSelectConductor = (persona: any) => {
+    setConductorId(persona.id);
+    setConductorNombre(`${persona.nombre} ${persona.apellido}`);
+    setBusquedaConductor(`${persona.nombre} ${persona.apellido}`);
+    setShowSugerenciasConductor(false);
+  };
 
   useEffect(() => {
     setUsuario(getCurrentUser());
@@ -237,6 +281,15 @@ export default function DashboardPage() {
     setRegistroActivo(null);
     setDatosOriginales({});
     setCamposErrores([]);
+    setIsVehiculoTimelineOpen(false);
+
+    // Conductor
+    setConductorOpcion("propietario");
+    setConductorId(null);
+    setConductorNombre("");
+    setBusquedaConductor("");
+    setResultadosConductor([]);
+    setShowSugerenciasConductor(false);
   };
 
   const limpiarVehiculoFormulario = () => {
@@ -252,6 +305,15 @@ export default function DashboardPage() {
     setMotivoBloqueoVehiculo("");
     setAnotacionesVehiculoAlerta([]);
     setCamposErrores([]);
+    setIsVehiculoTimelineOpen(false);
+
+    // Conductor
+    setConductorOpcion("propietario");
+    setConductorId(null);
+    setConductorNombre("");
+    setBusquedaConductor("");
+    setResultadosConductor([]);
+    setShowSugerenciasConductor(false);
   };
 
   const validateEmail = (email: string) => {
@@ -306,6 +368,12 @@ export default function DashboardPage() {
           return;
         }
 
+        if (conductorOpcion === "otro" && !conductorId && placa) {
+          setCamposErrores(prev => [...prev, "conductor"]);
+          showModal("🛑 Debe buscar y seleccionar un conductor registrado cuando elige la opción 'Otro' para el vehículo.", "error");
+          return;
+        }
+
         // 🔍 Verificar si ya hay una entrada activa
         try {
           const res = await api.get(`/registros/activo`, { params: { documento: identificacion } }) as any;
@@ -342,6 +410,8 @@ export default function DashboardPage() {
           color,
           tipoVehiculo,
           fotoVehiculo: fotoVehiculoBase64,
+          conductorId: conductorOpcion === "otro" ? conductorId : null,
+          conductorNombre: conductorOpcion === "otro" ? conductorNombre : null,
         });
         showModal("✅ Entrada registrada con éxito", "success");
         // 🔄 Marcar como adentro para actualizar los botones inmediatamente
@@ -371,7 +441,10 @@ export default function DashboardPage() {
         }
 
         // Registrar salida
-        await api.put(`/registros/${activeRegistroId}/salida`);
+        await api.put(`/registros/${activeRegistroId}/salida`, {
+          conductorSalidaId: conductorOpcion === "otro" ? conductorId : null,
+          conductorSalidaNombre: conductorOpcion === "otro" ? conductorNombre : null
+        });
         showModal("🚪 Salida registrada con éxito", "success");
         limpiarFormulario();
       }
@@ -414,6 +487,12 @@ export default function DashboardPage() {
           return;
         }
 
+        if (conductorOpcion === "otro" && !conductorId) {
+          setCamposErrores(prev => [...prev, "conductor"]);
+          showModal("🛑 Debe buscar y seleccionar un conductor registrado cuando elige la opción 'Otro'.", "error");
+          return;
+        }
+
         // Verificar si ya tiene entrada activa
         const activo = await registroVehiculoService.getActivo(placa);
         if (activo?.data) {
@@ -428,7 +507,9 @@ export default function DashboardPage() {
           modelo,
           color,
           tipoVehiculo,
-          fotoVehiculo: fotoVehiculoBase64 || undefined
+          fotoVehiculo: fotoVehiculoBase64 || undefined,
+          conductorId: conductorOpcion === "otro" ? (conductorId || undefined) : undefined,
+          conductorNombre: conductorOpcion === "otro" ? (conductorNombre || undefined) : undefined
         });
 
         showModal("✅ Entrada de vehículo registrada con éxito", "success");
@@ -452,7 +533,10 @@ export default function DashboardPage() {
           }
         }
 
-        await registroVehiculoService.registrarSalida(activeId);
+        await registroVehiculoService.registrarSalida(activeId, {
+          conductorSalidaId: conductorOpcion === "otro" ? (conductorId || undefined) : undefined,
+          conductorSalidaNombre: conductorOpcion === "otro" ? (conductorNombre || undefined) : undefined
+        });
         showModal("🚪 Salida de vehículo registrada con éxito", "success");
         limpiarVehiculoFormulario();
       }
@@ -695,6 +779,12 @@ export default function DashboardPage() {
     setMotivo("");
     setFotoVehiculoUrl(null);
     setIsVehiculoNuevo(false);
+
+    // Reset Conductor a Propietario al buscar placa
+    setConductorOpcion("propietario");
+    setConductorId(null);
+    setConductorNombre("");
+    setBusquedaConductor("");
 
     try {
       const res = (await api.get(`/vehiculos/placa/${placa}`)) as { data: { data?: any } };
@@ -1060,6 +1150,99 @@ export default function DashboardPage() {
                   />
                 </div>
 
+                {/* 👨‍✈️ SECCIÓN CONDUCTOR (Movida a sección vehículo) */}
+                <div className="mt-1 p-3 bg-slate-50/80 dark:bg-zinc-800/50 rounded-xl border border-slate-200 dark:border-zinc-700 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                      <UserCircle className="w-3.5 h-3.5 text-indigo-500" />
+                      Conducido por:
+                    </span>
+                    <div className="flex bg-slate-200/50 dark:bg-zinc-700/50 p-0.5 rounded-lg">
+                      <button
+                        onClick={() => {
+                          setConductorOpcion("propietario");
+                          setConductorId(null);
+                          setConductorNombre("");
+                          setBusquedaConductor("");
+                        }}
+                        className={`px-3 py-1 text-[9px] font-bold uppercase rounded-md transition-all ${
+                          conductorOpcion === "propietario" 
+                            ? "bg-white dark:bg-zinc-600 text-indigo-600 dark:text-indigo-400 shadow-sm" 
+                            : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                        }`}
+                      >
+                        Propietario
+                      </button>
+                      <button
+                        onClick={() => setConductorOpcion("otro")}
+                        className={`px-3 py-1 text-[9px] font-bold uppercase rounded-md transition-all ${
+                          conductorOpcion === "otro" 
+                            ? "bg-white dark:bg-zinc-600 text-indigo-600 dark:text-indigo-400 shadow-sm" 
+                            : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                        }`}
+                      >
+                        Otro
+                      </button>
+                    </div>
+                  </div>
+
+                  {conductorOpcion === "otro" && (
+                    <div className="relative">
+                      <div className="relative group">
+                        <Search className={`absolute left-3 top-2.5 w-3.5 h-3.5 transition-colors ${busquedaConductor ? 'text-indigo-500' : 'text-slate-400'}`} />
+                        <input
+                          type="text"
+                          placeholder="Buscar conductor..."
+                          value={busquedaConductor}
+                          onChange={(e) => {
+                            setBusquedaConductor(e.target.value);
+                            setShowSugerenciasConductor(true);
+                          }}
+                          onFocus={() => setShowSugerenciasConductor(true)}
+                          className={`input-standard !p-2 !pl-9 !text-[11px] ${
+                            camposErrores.includes("conductor") ? "border-red-500 bg-red-50" : ""
+                          }`}
+                        />
+                        {isSearchingConductor && (
+                          <div className="absolute right-3 top-2.5">
+                            <div className="w-3.5 h-3.5 border-2 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
+                          </div>
+                        )}
+                      </div>
+
+                      {showSugerenciasConductor && resultadosConductor.length > 0 && (
+                        <div className="absolute z-50 left-0 right-0 mt-1 bg-white dark:bg-zinc-800 rounded-xl shadow-2xl border border-slate-200 dark:border-zinc-700 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                          {resultadosConductor.map((persona) => (
+                            <button
+                              key={persona.id}
+                              onClick={() => handleSelectConductor(persona)}
+                              className="w-full p-2.5 hover:bg-slate-50 dark:hover:bg-zinc-700/50 flex items-center gap-3 transition-colors border-b border-slate-100 dark:border-zinc-700 last:border-0"
+                            >
+                              <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-zinc-700 flex-shrink-0 overflow-hidden border border-slate-200 dark:border-zinc-600">
+                                {persona.fotoUrl ? (
+                                  <img src={`${api.defaults.baseURL?.replace('/api', '')}${persona.fotoUrl}`} alt="Foto" className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-slate-400">
+                                     <User className="w-4 h-4" />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="text-left overflow-hidden">
+                                <div className="text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">
+                                  {persona.nombre} {persona.apellido}
+                                </div>
+                                <div className="text-[9px] text-slate-500 font-medium">
+                                  CC: {persona.documento}
+                                </div>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 <div className="grid grid-cols-2 gap-3 mt-2 transition-colors">
                   <button
                     onClick={() => handleRegistrarVehiculo("entrada")}
@@ -1256,7 +1439,8 @@ export default function DashboardPage() {
                   />
                 </div>
 
-                <div className="flex flex-col gap-1">
+
+                <div className="flex gap-2.5 mt-1">
                   <span className="text-[9px] text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest px-2">Destino</span>
                   <input 
                     ref={destinoRef}

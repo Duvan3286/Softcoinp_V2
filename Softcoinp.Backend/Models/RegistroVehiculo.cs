@@ -43,5 +43,21 @@ namespace Softcoinp.Backend.Models
 
         // Quién registró la entrada
         public Guid? RegistradoPor { get; set; }
+
+        // 🚗 Conductor del vehículo
+        public Guid? ConductorId { get; set; }
+
+        [ForeignKey("ConductorId")]
+        public Personal? Conductor { get; set; }
+
+        public string? ConductorNombre { get; set; }
+
+        // 👨‍✈️ Conductor del vehículo al momento de la SALIDA
+        public Guid? ConductorSalidaId { get; set; }
+
+        [ForeignKey("ConductorSalidaId")]
+        public Personal? ConductorSalida { get; set; }
+
+        public string? ConductorSalidaNombre { get; set; }
     }
 }

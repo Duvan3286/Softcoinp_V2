@@ -14,6 +14,8 @@ export interface RegistroVehiculoDto {
   horaSalidaUtc?: string;
   horaSalidaLocal?: string;
   registradoPorNombre?: string;
+  conductorId?: string;
+  conductorNombre?: string;
 }
 
 export interface CreateRegistroVehiculoDto {
@@ -23,6 +25,8 @@ export interface CreateRegistroVehiculoDto {
   color?: string;
   tipoVehiculo?: string;
   fotoVehiculo?: string; // Base64
+  conductorId?: string;
+  conductorNombre?: string;
 }
 
 export const registroVehiculoService = {
@@ -51,8 +55,8 @@ export const registroVehiculoService = {
     return res.data;
   },
 
-  registrarSalida: async (id: string) => {
-    const res = await api.put(`/registrovehiculo/${id}/salida`) as any;
+  registrarSalida: async (id: string, data: RegistrarSalidaDto = {}) => {
+    const res = await api.put(`/registrovehiculo/${id}/salida`, data) as any;
     return res.data;
   }
 };

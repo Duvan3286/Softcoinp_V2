@@ -1,71 +1,80 @@
-# 🛡️ SOFTCOINP - Enterprise Access Control & Identity Management
+# 🛡️ SOFTCOINP - Sistema Integral de Gestión Residencial y Control de Acceso
 
-**SOFTCOINP** es una solución integral de seguridad de grado empresarial diseñada para la gestión crítica de accesos, supervisión de personal activo, control vehicular y auditoría de operaciones. El sistema ahora opera bajo una arquitectura totalmente **Dockerizada**, garantizando portabilidad y estabilidad total.
+**SOFTCOINP** es una solución de grado empresarial diseñada para la gestión crítica de copropiedades y conjuntos residenciales. El sistema centraliza la seguridad, administración y comunicación en una plataforma robusta y moderna.
+
+---
+
+## 📝 Resumen del Proyecto
+
+El sistema permite automatizar y supervisar las operaciones diarias de una propiedad horizontal:
+
+1.  **Control de Acceso Vehicular y Peatonal**: Registro en tiempo real de entradas y salidas con gestión de bloqueos preventivos.
+2.  **Seguridad y Bitácora**: Módulo de anotaciones para vigilantes y personal de seguridad.
+3.  **Gestión de Correspondencia**: Seguimiento automatizado de paquetes y correspondencia recibida.
+4.  **Servicios Públicos**: Control centralizado de recibos y consumos comunes.
+5.  **Administración y Auditoría**: Gestión de roles, permisos granulares (RBAC) y logs detallados de actividad (AuditLogs).
+6.  **Analíticas**: Tableros de control con estadísticas mensuales y visualización de datos.
 
 ---
 
 ## 🏗️ Arquitectura y Stack Tecnológico
 
-El ecosistema se distribuye en tres servicios orquestados:
+El ecosistema se distribuye en una arquitectura desacoplada y dockerizada:
 
 ### 🎨 Frontend (`/frontend-softcoinp`)
-- **Tecnología:** Next.js 15+ (App Router) & TypeScript.
-- **Estilos:** Tailwind CSS con soporte nativo de **Modo Oscuro/Claro**.
-- **Visualización:** Recharts para analítica en tiempo real.
+- **Framework**: Next.js 15+ (App Router) con TypeScript 6.
+- **Estilos**: Tailwind CSS 4 con soporte para Modo Oscuro/Claro (`next-themes`).
+- **Estado y Datos**: Context API para estado global, Axios para consumo de APIs y Recharts para analítica.
+- **Convenciones**: Organización basada en carpetas por funcionalidades dentro de `src/app`.
 
 ### ⚙️ Backend (`/Softcoinp.Backend`)
-- **Tecnología:** ASP.NET Core 8.0 Web API.
-- **Base de Datos:** PostgreSQL 15.
-- **Seguridad:** JWT (Json Web Tokens) & RBAC (Role-Based Access Control).
-- **Resiliencia:** Auto-migración y Auto-seeding automático al iniciar el contenedor.
+- **Framework**: ASP.NET Core 8.0 Web API.
+- **Base de Datos**: PostgreSQL 15 (Entity Framework Core).
+- **Seguridad**: Autenticación JWT con políticas de validación estrictas.
+- **Optimización**: Compresión de respuestas (Brotli/Gzip) y procesamiento de fechas en UTC mediante middlewares.
+- **Patrones**: DTOs para transferencia de datos, filtros globales de validación y manejo centralizado de excepciones.
+
+### 🕒 Worker Service (`/Softcoinp.Worker`)
+- **Propósito**: Procesamiento de tareas en segundo plano, como generación de analíticas mensuales y tareas de mantenimiento programadas.
+
+---
+
+## 📏 Reglas de Estilo y Convenciones de Código
+
+Para mantener la consistencia en el desarrollo, el proyecto sigue estas directrices:
+
+### General
+- **Internacionalización**: El backend maneja todas las fechas en formato UTC y utiliza conversores personalizados para asegurar consistencia en el JSON.
+- **Arquitectura de API**: Uso estricto de CamelCase para las respuestas JSON y manejo de `null` omitiendo campos no definidos.
+
+### Backend (C#)
+- **Validación**: Uso de `ValidationFilter` global para interceptar y estandarizar errores de `ModelState`.
+- **Estructura**: Separación clara entre `Models` (entidades de DB), `Dtos` (contratos de API) y `Controllers`.
+- **Inyección de Dependencias**: Configuración centralizada en `Program.cs`.
+
+### Frontend (TypeScript/React)
+- **Tipado**: Uso obligatorio de interfaces y tipos de TypeScript para todas las props y respuestas de API.
+- **Componentes**: Estilo funcional con Hooks. Preferencia por componentes de servidor cuando sea posible.
+- **CSS**: Utilidad de Tailwind para evitar CSS personalizado innecesario.
 
 ---
 
 ## 🚀 Despliegue Rápido (Docker)
 
-La forma recomendada de ejecutar SOFTCOINP es mediante **Docker Compose**, lo que configura automáticamente la base de datos, el backend (incluyendo herramientas de PostgreSQL) y el frontend.
-
-### Requisitos
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado.
+La forma recomendada de ejecutar SOFTCOINP es mediante **Docker Compose**.
 
 ### Pasos para iniciar
-1.  Clonar el repositorio y situarse en la raíz.
-2.  Ejecutar el comando de construcción y arranque:
+1.  Clonar el repositorio.
+2.  Ejecutar:
     ```bash
     docker-compose up --build -d
     ```
-3.  Acceso a la aplicación: [http://localhost:3000](http://localhost:3000)
-4.  Acceso a la API: [http://localhost:5100/api](http://localhost:5100/api)
+3.  Acceso: [http://localhost:3000](http://localhost:3000)
 
-### Credenciales Predeterminadas (Primer Inicio)
+### Credenciales Predeterminadas
 | Rol | Email | Password |
 | :--- | :--- | :--- |
 | **SuperAdmin** | `superadmin@dev` | `SuperDev2026!` |
-| **Admin** | `admin@local` | `Admin123` |
-
----
-
-## 🛠️ Capacidades del Módulo de Mantenimiento
-
-El sistema incluye herramientas avanzadas para administradores:
-
-- **Backups Inteligentes**:
-    - **Configuración (JSON)**: Respaldo ligero de ajustes y usuarios.
-    - **Completo (SQL)**: Volcado real de la base de datos generado por `pg_dump`.
-- **Restauración Dual**: Soporte para cargar archivos `.json` o `.sql` directamente desde la interfaz web.
-- **Limpieza Selectiva**: Modal que permite eliminar datos por módulos (Registros, Personal, Correspondencia, etc.) sin afectar la base del sistema.
-- **Identidad Corporativa**: Personalización dinámica del nombre de la institución y versión del software.
-
----
-
-## 📋 Comandos Útiles de Docker
-
-| Acción | Comando |
-| :--- | :--- |
-| **Ver logs del sistema** | `docker-compose logs -f` |
-| **Detener el sistema** | `docker-compose stop` |
-| **Reiniciar y reconstruir** | `docker-compose up --build -d` |
-| **Borrar todo (incluyendo datos)** | `docker-compose down -v` |
 
 ---
 © 2026 **Softcoinp Technologies** | *Ingeniería en Control de Acceso e Identidad Digital.*

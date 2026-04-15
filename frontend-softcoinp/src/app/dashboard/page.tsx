@@ -1098,8 +1098,11 @@ export default function DashboardPage() {
                     placeholder="Placa"
                     value={placa}
                     onChange={(e) => {
-                      setPlaca(e.target.value.toUpperCase());
-                      setCamposErrores(prev => prev.filter(err => err !== "placa"));
+                      const val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                      if (val.length <= 6) {
+                        setPlaca(val);
+                        setCamposErrores(prev => prev.filter(err => err !== "placa"));
+                      }
                     }}
                     onBlur={handleBuscarPlaca}
                     onKeyDown={(e) => {
@@ -1164,13 +1167,16 @@ export default function DashboardPage() {
                   <input
                     ref={modeloRef}
                     type="text"
-                    placeholder="Modelo"
+                    placeholder="Modelo (Año)"
                     value={modelo}
                     onChange={(e) => {
-                      setModelo(e.target.value);
-                      setCamposErrores(prev => prev.filter(err => err !== "modelo"));
+                      const val = e.target.value.replace(/\D/g, '');
+                      if (val.length <= 4) {
+                          setModelo(val);
+                          setCamposErrores(prev => prev.filter(err => err !== "modelo"));
+                      }
                     }}
-                    className="input-standard"
+                    className={`input-standard ${camposErrores.includes("modelo") ? 'border-red-500 ring-2 ring-red-500/20' : ''}`}
                   />
                   <input
                     ref={colorRef}

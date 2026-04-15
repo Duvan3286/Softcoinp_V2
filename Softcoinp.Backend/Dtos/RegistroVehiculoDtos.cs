@@ -4,10 +4,13 @@ namespace Softcoinp.Backend.Dtos
 {
     public class CreateRegistroVehiculoDto
     {
-        [Required]
+        [Required(ErrorMessage = "La placa es obligatoria")]
+        [RegularExpression(@"^[A-Z0-9]{6}$", ErrorMessage = "La placa debe tener exactamente 6 caracteres alfanuméricos")]
         public string Placa { get; set; } = string.Empty;
 
         public string? Marca { get; set; }
+
+        [RegularExpression(@"^[0-9]{4}$", ErrorMessage = "El modelo debe tener exactamente 4 dígitos numéricos")]
         public string? Modelo { get; set; }
         public string? Color { get; set; }
         public string? TipoVehiculo { get; set; }

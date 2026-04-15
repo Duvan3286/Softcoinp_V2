@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { registroService } from "@/services/registroService";
 import api from "@/services/api";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
@@ -115,16 +116,16 @@ export default function RegistrosPage() {
         hasta: overrides?.hasOwnProperty('hasta') ? overrides.hasta : (hasta || undefined),
       };
 
-      const res = await api.get<any>("/registros", { params });
+      const res = await registroService.getRegistros(params);
       
-      const pagedData = res.data.data;
+      const pagedData = res.data;
       
       if (pagedData && pagedData.items) {
         setRegistros(pagedData.items);
         setTotalCount(pagedData.totalCount || 0);
-      } else if (res.data.items) {
-        setRegistros(res.data.items);
-        setTotalCount(res.data.totalCount || 0);
+      } else if (res.items) {
+        setRegistros(res.items);
+        setTotalCount(res.totalCount || 0);
       } else {
         setRegistros([]);
         setTotalCount(0);

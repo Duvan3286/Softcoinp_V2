@@ -112,7 +112,7 @@ export default function MantenimientoHubPage() {
         async () => {
             setLoading(true);
             try {
-              await api.post("/Maintenance/deep-clean-and-seed");
+              await api.post("/Maintenance/deep-clean-and-seed", {});
               showModal("✅ Sistema reseteado.", "success");
               setTimeout(() => { localStorage.removeItem("token"); window.location.href = "/login"; }, 3000);
             } catch (err: any) {

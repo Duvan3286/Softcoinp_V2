@@ -1,25 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import api from "@/services/api";
+import { registroService, RegistroDto } from "@/services/registroService";
 import { useRouter } from "next/navigation";
 
 const BACKEND_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5100/api").replace(/\/api$/, "/static");
-
-
-// Definición de tipo de registro
-interface RegistroDto {
-  id: string;
-  nombre: string;
-  apellido: string;
-  documento: string;
-  motivo: string;
-  destino: string;
-  tipo: string;
-  horaIngresoUtc: string;
-  horaIngresoLocal: string;
-  fotoUrl?: string | null;
-}
 
 export default function PersonalActivoPage() {
   const [registrosActivos, setRegistrosActivos] = useState<RegistroDto[]>([]);
@@ -29,8 +14,8 @@ export default function PersonalActivoPage() {
   const fetchActivos = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/registros/activos") as any;
-      setRegistrosActivos(res.data?.data || []);
+      const res = await registroService.getActivos();
+      setRegistrosActivos(res.data || []);
     } catch (err) {
       console.error("Error al cargar registros activos:", err);
     } finally {
@@ -44,7 +29,7 @@ export default function PersonalActivoPage() {
 
   const handleSalida = async (id: string) => {
     try {
-      await api.put(`/registros/${id}/salida`);
+      await registroService.registrarSalida(id);
       setRegistrosActivos(prev => prev.filter(r => r.id !== id));
     } catch (err) {
       console.error("Error al registrar salida:", err);

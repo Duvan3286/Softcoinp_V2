@@ -29,6 +29,11 @@ export interface CreateRegistroVehiculoDto {
   conductorNombre?: string;
 }
 
+export interface RegistrarSalidaDto {
+  conductorSalidaId?: string;
+  conductorSalidaNombre?: string;
+}
+
 export const registroVehiculoService = {
   getRegistros: async (params: any = {}) => {
     const res = await api.get("/registrovehiculo", { params }) as any;

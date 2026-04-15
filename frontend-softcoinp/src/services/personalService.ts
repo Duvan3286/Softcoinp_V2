@@ -32,4 +32,11 @@ export const personalService = {
       return [];
     }
   },
+
+  buscarPorNombre: async (termino: string) => {
+    const res = await api.get("/personal/buscar-por-nombre", {
+      params: { termino }
+    }) as any;
+    return res.data;
+  },
 };

@@ -14,7 +14,8 @@ import {
   Filter, 
   CarFront, 
   ChevronLeft, 
-  ChevronRight 
+  ChevronRight,
+  UserCircle
 } from "lucide-react";
 
 const BACKEND_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5100/api").replace(/\/api$/, "/static");
@@ -240,6 +241,7 @@ export default function RegistrosVehiculosPage() {
                   <thead className="bg-background sticky top-0 z-10 shadow-sm">
                     <tr>
                       <th className="px-5 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-border">Imagen</th>
+                      <th className="px-5 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-border">Conductor</th>
                       <th className="px-5 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-border">Placa</th>
                       <th className="px-5 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-border">Marca / Modelo</th>
                       <th className="px-5 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-border">Tipo</th>
@@ -250,7 +252,7 @@ export default function RegistrosVehiculosPage() {
                   <tbody className="bg-card divide-y divide-border transition-colors">
                     {registros.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="px-6 py-20 text-center">
+                        <td colSpan={7} className="px-6 py-20 text-center">
                           <div className="flex flex-col items-center gap-4 opacity-30 grayscale">
                             <CarFront className="w-16 h-16 text-foreground" />
                             <p className="text-sm font-black uppercase tracking-widest text-foreground">Sin registros de vehículos</p>
@@ -276,6 +278,16 @@ export default function RegistrosVehiculosPage() {
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center text-slate-300 dark:text-slate-600"><CarFront className="w-8 h-8" /></div>
                                 )}
+                              </div>
+                            </td>
+                            <td className="px-5 py-4 whitespace-nowrap">
+                              <div className="flex items-center gap-2">
+                                <div className="p-1.5 bg-indigo-50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400 rounded-lg">
+                                   <UserCircle className="w-3.5 h-3.5" />
+                                </div>
+                                <span className="text-[12px] font-black text-foreground uppercase tracking-tight">
+                                  {r.conductorNombre || "PROPIETARIO"}
+                                </span>
                               </div>
                             </td>
                             <td className="px-5 py-4 whitespace-nowrap">

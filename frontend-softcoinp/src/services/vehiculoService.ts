@@ -20,14 +20,9 @@ export interface VehiculoDto {
 }
 
 export const vehiculoService = {
-  getVehiculoPorPlaca: async (placa: string): Promise<VehiculoDto | null> => {
-    try {
-      const response = await api.get<ApiResponse<VehiculoDto>>(`/vehiculos/placa/${placa}`);
-      return response.data.data;
-    } catch (error) {
-      console.error(`Error al obtener vehículo con placa ${placa}:`, error);
-      return null;
-    }
+  getVehiculoPorPlaca: async (placa: string): Promise<ApiResponse<VehiculoDto>> => {
+    const response = await api.get<ApiResponse<VehiculoDto>>(`/vehiculos/placa/${placa}`);
+    return response.data;
   },
   getAllVehiculos: async (): Promise<VehiculoDto[]> => {
     try {

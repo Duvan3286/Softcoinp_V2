@@ -7,6 +7,9 @@ import CameraCapture from "@/components/CameraCapture";
 import { tipoService, TipoPersonal } from "@/services/tipoService";
 import { anotacionService, AnotacionDto } from "@/services/anotacionService";
 import { registroVehiculoService } from "@/services/registroVehiculoService";
+import { registroService } from "@/services/registroService";
+import { personalService } from "@/services/personalService";
+import { vehiculoService } from "@/services/vehiculoService";
 import CustomModal, { ModalType } from "@/components/CustomModal";
 import { getCurrentUser, UserPayload } from "@/utils/auth";
 import ImageZoomModal from "@/components/ImageZoomModal";
@@ -207,10 +210,8 @@ export default function DashboardPage() {
 
       setIsSearchingConductor(true);
       try {
-        const res = await api.get(`/personal/buscar-por-nombre`, {
-          params: { termino: busquedaConductor }
-        }) as any;
-        setResultadosConductor(res.data?.data || []);
+        const res = await personalService.buscarPorNombre(busquedaConductor);
+        setResultadosConductor(res.data || []);
       } catch (err) {
         console.error("Error buscando conductor:", err);
       } finally {
@@ -376,8 +377,8 @@ export default function DashboardPage() {
 
         // 🔍 Verificar si ya hay una entrada activa
         try {
-          const res = await api.get(`/registros/activo`, { params: { documento: identificacion } }) as any;
-          if (res.data?.data) {
+          const res = await registroService.getActivoPorDocumento(identificacion);
+          if (res?.data) {
             showModal(
               "⚠️ Esta persona ya tiene una entrada activa. No se puede registrar otra entrada.",
               "warning"
@@ -394,7 +395,7 @@ export default function DashboardPage() {
         }
 
         // Si no hay entrada activa, continuar con el POST
-        await api.post("/registros", {
+        await registroService.registrarEntrada({
           nombre: nombres,
           apellido: apellidos,
           documento: identificacion,
@@ -403,15 +404,15 @@ export default function DashboardPage() {
           destino,
           motivo,
           tipo,
-          foto: fotoBase64,
+          foto: fotoBase64 || undefined,
           placa,
           marca,
           modelo,
           color,
           tipoVehiculo,
-          fotoVehiculo: fotoVehiculoBase64,
-          conductorId: conductorOpcion === "otro" ? conductorId : null,
-          conductorNombre: conductorOpcion === "otro" ? conductorNombre : null,
+          fotoVehiculo: fotoVehiculoBase64 || undefined,
+          conductorId: conductorOpcion === "otro" ? (conductorId || undefined) : undefined,
+          conductorNombre: conductorOpcion === "otro" ? (conductorNombre || undefined) : undefined,
         });
         showModal("✅ Entrada registrada con éxito", "success");
         // 🔄 Marcar como adentro para actualizar los botones inmediatamente
@@ -427,9 +428,9 @@ export default function DashboardPage() {
         // 🔍 Buscar registro activo en el backend
         let activeRegistroId: string | null = null;
         try {
-          const res = await api.get(`/registros/activo`, { params: { documento: identificacion } }) as any;
-          if (res.data?.data) {
-            activeRegistroId = res.data.data.id;
+          const res = await registroService.getActivoPorDocumento(identificacion);
+          if (res?.data) {
+            activeRegistroId = res.data.id;
           }
         } catch {
           activeRegistroId = null;
@@ -441,9 +442,9 @@ export default function DashboardPage() {
         }
 
         // Registrar salida
-        await api.put(`/registros/${activeRegistroId}/salida`, {
-          conductorSalidaId: conductorOpcion === "otro" ? conductorId : null,
-          conductorSalidaNombre: conductorOpcion === "otro" ? conductorNombre : null
+        await registroService.registrarSalida(activeRegistroId, {
+          conductorSalidaId: conductorOpcion === "otro" ? (conductorId || undefined) : undefined,
+          conductorSalidaNombre: conductorOpcion === "otro" ? (conductorNombre || undefined) : undefined
         });
         showModal("🚪 Salida registrada con éxito", "success");
         limpiarFormulario();
@@ -570,20 +571,20 @@ export default function DashboardPage() {
 
     try {
       setLoadingTipos(true);
-      await api.post("/registros/actualizar-datos", {
+      await registroService.actualizarDatos({
         nombre: nombres,
         apellido: apellidos,
         documento: identificacion,
         telefono: telefono,
         email: email,
         tipo,
-        foto: fotoBase64,
+        foto: fotoBase64 || undefined,
         placa,
         marca,
         modelo,
         color,
         tipoVehiculo,
-        fotoVehiculo: fotoVehiculoBase64,
+        fotoVehiculo: fotoVehiculoBase64 || undefined,
       });
 
       const resumen = "✅ Información sincronizada correctamente.";
@@ -632,11 +633,8 @@ export default function DashboardPage() {
     setMotivoBloqueoVehiculo("");
 
     try {
-      const res = (await api.get(`/registros/buscar`, {
-        params: { documento: identificacion },
-      })) as { data: { data?: any } };
-
-      const persona = res.data?.data;
+      const res = await registroService.buscarPorDocumento(identificacion);
+      const persona = res.data;
 
       if (persona) {
         if (persona.isBloqueado) {
@@ -668,10 +666,10 @@ export default function DashboardPage() {
         // ✅ Lanzar TODAS las peticiones secundarias EN PARALELO
         const [activoRes, vehiculoData, activoVehRes, alertasPersona, alertasVehiculo] = await Promise.allSettled([
           // 1. ¿La persona tiene una entrada activa?
-          api.get(`/registros/activo`, { params: { documento: identificacion } }),
+          registroService.getActivoPorDocumento(identificacion),
           // 2. Datos actualizados del vehículo (foto, bloqueo, etc.)
           persona.placaVehiculo
-            ? api.get(`/vehiculos/placa/${persona.placaVehiculo}`)
+            ? vehiculoService.getVehiculoPorPlaca(persona.placaVehiculo)
             : Promise.resolve(null),
           // 3. ¿El vehículo asociado tiene una entrada activa?
           persona.placaVehiculo
@@ -688,17 +686,16 @@ export default function DashboardPage() {
         ]);
 
         // — Entrada activa de la PERSONA
-        // api.get devuelve el objeto de axios, por lo que el cuerpo es .data y el objeto es .data.data
         const personActive = (activoRes.status === "fulfilled" ? activoRes.value : null) as any;
-        if (personActive && personActive.data && personActive.data.data) {
-          setRegistroActivo({ id: personActive.data.data.id });
+        if (personActive && personActive.data) {
+          setRegistroActivo({ id: personActive.data.id });
         } else {
           setRegistroActivo(null);
         }
 
         // — Datos actualizados del VEHÍCULO (foto, bloqueo)
         const masterVehRes = (vehiculoData.status === "fulfilled" ? vehiculoData.value : null) as any;
-        const vData = masterVehRes?.data?.data ? masterVehRes.data.data : masterVehRes?.data;
+        const vData = masterVehRes?.data;
 
         if (vData) {
           // Sobreescribir con datos más frescos del vehículo
@@ -719,7 +716,7 @@ export default function DashboardPage() {
 
         // — Entrada activa del VEHÍCULO
         const activeVehResData = (activoVehRes.status === "fulfilled" ? activoVehRes.value : null) as any;
-        const activeVehRecord = activeVehResData?.data; // El servicio ya devuelve .data, así que buscamos el objeto ahí
+        const activeVehRecord = activeVehResData?.data;
 
         if (activeVehRecord && activeVehRecord.id) {
           console.log("🚗 Vehículo detectado EN SITIO:", activeVehRecord.id);
@@ -773,7 +770,8 @@ export default function DashboardPage() {
   };
 
   const handleBuscarPlaca = async () => {
-    if (!placa || placa.trim().length < 3) return;
+    const placaLimpia = placa.trim();
+    if (!placaLimpia || placaLimpia.length < 3) return;
 
     setDestino("");
     setMotivo("");
@@ -787,8 +785,8 @@ export default function DashboardPage() {
     setBusquedaConductor("");
 
     try {
-      const res = (await api.get(`/vehiculos/placa/${placa}`)) as { data: { data?: any } };
-      const vehiculo = res.data?.data;
+      const res = await vehiculoService.getVehiculoPorPlaca(placaLimpia);
+      const vehiculo = res.data;
 
       if (vehiculo) {
         setIsVehiculoNuevo(false);
@@ -801,7 +799,7 @@ export default function DashboardPage() {
         if (vehiculo.isBloqueado) {
           setIsVehiculoBloqueado(true);
           setMotivoBloqueoVehiculo(vehiculo.motivoBloqueo || "Motivo no especificado");
-          showModal(`🚫 VEHÍCULO BLOQUEADO: La placa ${placa} tiene restringido el ingreso. Motivo: ${vehiculo.motivoBloqueo}`, "error");
+          showModal(`🚫 VEHÍCULO BLOQUEADO: La placa ${placaLimpia} tiene restringido el ingreso. Motivo: ${vehiculo.motivoBloqueo}`, "error");
         } else {
           setIsVehiculoBloqueado(false);
           setMotivoBloqueoVehiculo("");
@@ -813,7 +811,7 @@ export default function DashboardPage() {
         // Lanzar peticiones secundarias EN PARALELO
         const [vAlertas, activoVeh, alertasPropietario] = await Promise.allSettled([
           anotacionService.getAnotacionesPorVehiculo(vehiculo.id),
-          registroVehiculoService.getActivo(placa.trim()),
+          registroVehiculoService.getActivo(placaLimpia),
           vehiculo.propietarioId
             ? anotacionService.getAnotacionesPorPersonal(vehiculo.propietarioId)
             : Promise.resolve([]),
@@ -834,7 +832,7 @@ export default function DashboardPage() {
           setNombres(vehiculo.propietarioNombre || "");
           setApellidos(vehiculo.propietarioApellido || "");
           setTelefono(vehiculo.propietarioTelefono || "");
-          setEmail(vehiculo.propietarioEmail || "");
+          setEmail(""); // El backend no devuelve email en VehiculoListDto actualmente
           setTipo(vehiculo.propietarioTipo || "visitante");
           if (vehiculo.propietarioFotoUrl) setFotoUrl(vehiculo.propietarioFotoUrl);
           if (alertasPropietario.status === "fulfilled") setAnotacionesAlerta(alertasPropietario.value as AnotacionDto[]);
@@ -845,7 +843,7 @@ export default function DashboardPage() {
           apellido: apellidos || vehiculo.propietarioApellido || "",
           telefono: telefono || vehiculo.propietarioTelefono || "",
           tipo: tipo || vehiculo.propietarioTipo || "visitante",
-          placa: placa || "",
+          placa: placaLimpia,
           marca: vehiculo.marca || "",
           modelo: vehiculo.modelo || "",
           color: vehiculo.color || "",
@@ -860,6 +858,8 @@ export default function DashboardPage() {
        if (err.response?.status === 404) {
          setIsVehiculoNuevo(true);
          showModal("⚠️ Vehículo Nuevo. Por normas de seguridad, debe registrar los datos del conductor en el panel izquierdo para vincularlo como propietario o conductor frecuente la primera vez.", "warning");
+       } else {
+         console.error("Error al buscar placa:", err);
        }
     }
   };

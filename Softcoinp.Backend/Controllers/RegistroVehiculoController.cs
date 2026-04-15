@@ -246,6 +246,7 @@ namespace Softcoinp.Backend.Controllers
                                  r.TipoVehiculo,
                                  r.HoraIngresoUtc,
                                  r.HoraSalidaUtc,
+                                 ConductorNombre = r.ConductorNombre ?? "PROPIETARIO",
                                  RegistradoPorNombre = subUser != null ? subUser.Nombre : "SISTEMA"
                              }).ToList();
 
@@ -263,7 +264,7 @@ namespace Softcoinp.Backend.Controllers
             string clientName = clientSetting?.Value ?? "SOFTCOINP";
 
             // 1. Título Principal
-            var titleRange = worksheet.Range(1, 1, 1, 9);
+            var titleRange = worksheet.Range(1, 1, 1, 10);
             titleRange.Merge().Value = $"{clientName} - HISTORIAL VEHICULAR";
             titleRange.Style
                 .Font.SetBold()
@@ -280,17 +281,17 @@ namespace Softcoinp.Backend.Controllers
                              " hasta " + 
                              (hasta.HasValue ? hasta.Value.ToString("yyyy-MM-dd") : "Hoy");
             worksheet.Cell(2, 2).Value = rangoStr;
-            worksheet.Cell(2, 8).Value = "Generado el:";
-            worksheet.Cell(2, 9).Value = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz).ToString("yyyy-MM-dd HH:mm:ss");
+            worksheet.Cell(2, 9).Value = "Generado el:";
+            worksheet.Cell(2, 10).Value = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz).ToString("yyyy-MM-dd HH:mm:ss");
 
-            var infoRange = worksheet.Range(2, 1, 2, 9);
+            var infoRange = worksheet.Range(2, 1, 2, 10);
             infoRange.Style.Font.SetFontSize(9).Font.SetFontColor(secondaryColor);
             infoRange.Style.Border.BottomBorder = XLBorderStyleValues.Thin;
             infoRange.Style.Border.BottomBorderColor = borderColor;
 
             // 3. Encabezados
             string[] headers = { 
-                "PLACA", "MARCA", "MODELO", "COLOR", "TIPO VEHÍCULO", 
+                "PLACA", "CONDUCTOR", "MARCA", "MODELO", "COLOR", "TIPO VEHÍCULO", 
                 "FECHA INGRESO", "HORA INGRESO", "ESTADO / SALIDA", "REGISTRADO POR" 
             };
 
@@ -315,18 +316,19 @@ namespace Softcoinp.Backend.Controllers
                 var salidaLocal = r.HoraSalidaUtc.HasValue ? TimeZoneInfo.ConvertTimeFromUtc(r.HoraSalidaUtc.Value, tz) : (DateTime?)null;
 
                 worksheet.Cell(row, 1).Value = r.Placa;
-                worksheet.Cell(row, 2).Value = r.Marca;
-                worksheet.Cell(row, 3).Value = r.Modelo;
-                worksheet.Cell(row, 4).Value = r.Color;
-                worksheet.Cell(row, 5).Value = r.TipoVehiculo?.ToUpper() ?? "OTRO";
-                worksheet.Cell(row, 6).Value = ingresoLocal.ToString("yyyy-MM-dd");
-                worksheet.Cell(row, 7).Value = ingresoLocal.ToString("HH:mm:ss");
-                worksheet.Cell(row, 8).Value = salidaLocal?.ToString("yyyy-MM-dd HH:mm:ss") ?? "EN SITIO";
-                worksheet.Cell(row, 9).Value = r.RegistradoPorNombre;
+                worksheet.Cell(row, 2).Value = r.ConductorNombre;
+                worksheet.Cell(row, 3).Value = r.Marca;
+                worksheet.Cell(row, 4).Value = r.Modelo;
+                worksheet.Cell(row, 5).Value = r.Color;
+                worksheet.Cell(row, 6).Value = r.TipoVehiculo?.ToUpper() ?? "OTRO";
+                worksheet.Cell(row, 7).Value = ingresoLocal.ToString("yyyy-MM-dd");
+                worksheet.Cell(row, 8).Value = ingresoLocal.ToString("HH:mm:ss");
+                worksheet.Cell(row, 9).Value = salidaLocal?.ToString("yyyy-MM-dd HH:mm:ss") ?? "EN SITIO";
+                worksheet.Cell(row, 10).Value = r.RegistradoPorNombre;
 
-                if (row % 2 == 0) worksheet.Range(row, 1, row, 9).Style.Fill.SetBackgroundColor(accentColor);
+                if (row % 2 == 0) worksheet.Range(row, 1, row, 10).Style.Fill.SetBackgroundColor(accentColor);
                 
-                var rowRange = worksheet.Range(row, 1, row, 9);
+                var rowRange = worksheet.Range(row, 1, row, 10);
                 rowRange.Style.Font.SetFontSize(10).Alignment.SetVertical(XLAlignmentVerticalValues.Center);
                 rowRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
                 rowRange.Style.Border.InsideBorderColor = XLColor.White;
@@ -334,10 +336,10 @@ namespace Softcoinp.Backend.Controllers
                 rowRange.Style.Border.OutsideBorderColor = borderColor;
 
                 worksheet.Cell(row, 1).Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center).Font.SetBold();
-                worksheet.Cell(row, 6).Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
                 worksheet.Cell(row, 7).Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                worksheet.Cell(row, 8).Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
                 
-                if (!salidaLocal.HasValue) worksheet.Cell(row, 8).Style.Font.SetFontColor(XLColor.Red).Font.SetBold();
+                if (!salidaLocal.HasValue) worksheet.Cell(row, 9).Style.Font.SetFontColor(XLColor.Red).Font.SetBold();
 
                 row++;
             }

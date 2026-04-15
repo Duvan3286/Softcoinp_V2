@@ -64,7 +64,7 @@ namespace Softcoinp.Backend
             // Relación 1:N entre Personal y Vehiculo
             modelBuilder.Entity<Vehiculo>()
                 .HasOne(v => v.Personal)
-                .WithMany() // Una persona puede tener varios vehículos (historial)
+                .WithMany(p => p.Vehiculos) // Una persona puede tener varios vehículos
                 .HasForeignKey(v => v.PersonalId)
                 .OnDelete(DeleteBehavior.Cascade);
 

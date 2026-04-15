@@ -28,6 +28,7 @@ export interface RegistroDto {
   fotoVehiculoUrl?: string;
   conductorId?: string;
   conductorNombre?: string;
+  vehiculos?: any[];
 }
 
 export interface CreateRegistroDto {

@@ -126,12 +126,27 @@ namespace Softcoinp.Backend.Controllers
             if (string.IsNullOrWhiteSpace(placa))
                 return BadRequest(ApiResponse<VehiculoListDto>.Fail(null, "La placa es obligatoria."));
 
-            placa = placa.ToUpper();
+            placa = placa.ToUpper().Trim();
 
-            var vehiculo = await _db.Vehiculos
-                .Include(v => v.Personal)
-                .Where(v => v.Placa == placa)
-                .Select(v => new VehiculoListDto
+            // 1. Buscar el vehículo en la tabla maestra (sin proyección compleja inicial)
+            var v = await _db.Vehiculos
+                .Include(x => x.Personal)
+                .FirstOrDefaultAsync(x => x.Placa == placa);
+
+            if (v != null)
+            {
+                // 📸 Buscar foto en historial si la maestra no tiene
+                string? fotoH = v.FotoUrl;
+                if (string.IsNullOrEmpty(fotoH))
+                {
+                    fotoH = await _db.Registros
+                        .Where(r => r.PlacaVehiculo == placa && r.FotoVehiculoUrl != null)
+                        .OrderByDescending(r => r.HoraIngresoUtc)
+                        .Select(r => r.FotoVehiculoUrl)
+                        .FirstOrDefaultAsync();
+                }
+
+                var dto = new VehiculoListDto
                 {
                     Id = v.Id,
                     Placa = v.Placa,
@@ -139,77 +154,73 @@ namespace Softcoinp.Backend.Controllers
                     Modelo = v.Modelo,
                     Color = v.Color,
                     TipoVehiculo = v.TipoVehiculo,
-                    FotoUrl = v.FotoUrl ?? _db.Registros.Where(r => r.PlacaVehiculo == v.Placa && r.FotoVehiculoUrl != null).OrderByDescending(r => r.HoraIngresoUtc).Select(r => r.FotoVehiculoUrl).FirstOrDefault(),
+                    FotoUrl = fotoH,
                     PropietarioId = v.PersonalId,
-                    PropietarioNombre = v.Personal.Nombre,
-                    PropietarioApellido = v.Personal.Apellido,
-                    PropietarioDocumento = v.Personal.Documento,
-                    PropietarioTipo = v.Personal.Tipo,
-                    PropietarioFotoUrl = v.Personal.FotoUrl,
-                    PropietarioTelefono = v.Personal.Telefono,
+                    PropietarioNombre = v.Personal?.Nombre ?? "SISTEMA",
+                    PropietarioApellido = v.Personal?.Apellido ?? "",
+                    PropietarioDocumento = v.Personal?.Documento ?? "",
+                    PropietarioTipo = v.Personal?.Tipo ?? "visitante",
+                    PropietarioFotoUrl = v.Personal?.FotoUrl,
+                    PropietarioTelefono = v.Personal?.Telefono,
                     IsBloqueado = v.IsBloqueado,
                     MotivoBloqueo = v.MotivoBloqueo
-                })
-                .FirstOrDefaultAsync();
-
-            if (vehiculo == null)
-            {
-                // Fallback 1: Buscar en el historial de Ingresos Vehiculares Aislados
-                var rVeh = await _db.RegistrosVehiculos
-                    .Where(r => r.Placa == placa)
-                    .OrderByDescending(r => r.HoraIngresoUtc)
-                    .FirstOrDefaultAsync();
-
-                if (rVeh != null)
-                {
-                    var vehCotH = new VehiculoListDto
-                    {
-                        Id = Guid.Empty, // No master ID
-                        Placa = rVeh.Placa,
-                        Marca = rVeh.Marca,
-                        Modelo = rVeh.Modelo,
-                        Color = rVeh.Color,
-                        TipoVehiculo = rVeh.TipoVehiculo,
-                        FotoUrl = rVeh.FotoVehiculoUrl,
-                        PropietarioId = Guid.Empty,
-                        PropietarioNombre = "SIN",
-                        PropietarioApellido = "REGISTRO",
-                        PropietarioDocumento = "",
-                        PropietarioTipo = "visitante"
-                    };
-                    return Ok(ApiResponse<VehiculoListDto>.SuccessResponse(vehCotH));
-                }
-
-                // Fallback 2: Buscar en el historial de Ingresos Complejos (Persona + Vehiculo)
-                var rPerVeh = await _db.Registros
-                    .Where(r => r.PlacaVehiculo == placa)
-                    .OrderByDescending(r => r.HoraIngresoUtc)
-                    .FirstOrDefaultAsync();
-
-                if (rPerVeh != null)
-                {
-                    var vehRegH = new VehiculoListDto
-                    {
-                        Id = Guid.Empty,
-                        Placa = rPerVeh.PlacaVehiculo ?? placa,
-                        Marca = rPerVeh.MarcaVehiculo,
-                        Modelo = rPerVeh.ModeloVehiculo,
-                        Color = rPerVeh.ColorVehiculo,
-                        TipoVehiculo = rPerVeh.TipoVehiculo,
-                        FotoUrl = rPerVeh.FotoVehiculoUrl,
-                        PropietarioId = rPerVeh.PersonalId,
-                        PropietarioNombre = rPerVeh.Nombre,
-                        PropietarioApellido = rPerVeh.Apellido,
-                        PropietarioDocumento = rPerVeh.Documento,
-                        PropietarioTipo = rPerVeh.Tipo
-                    };
-                    return Ok(ApiResponse<VehiculoListDto>.SuccessResponse(vehRegH));
-                }
-
-                return NotFound(ApiResponse<VehiculoListDto>.Fail(null, "Vehículo no encontrado."));
+                };
+                return Ok(ApiResponse<VehiculoListDto>.SuccessResponse(dto));
             }
 
-            return Ok(ApiResponse<VehiculoListDto>.SuccessResponse(vehiculo));
+            // 2. Fallback 1: Buscar en el historial de Ingresos Vehiculares Aislados
+            var rVeh = await _db.RegistrosVehiculos
+                .Where(r => r.Placa == placa)
+                .OrderByDescending(r => r.HoraIngresoUtc)
+                .FirstOrDefaultAsync();
+
+            if (rVeh != null)
+            {
+                var vehCotH = new VehiculoListDto
+                {
+                    Id = Guid.Empty, // No master ID
+                    Placa = rVeh.Placa,
+                    Marca = rVeh.Marca,
+                    Modelo = rVeh.Modelo,
+                    Color = rVeh.Color,
+                    TipoVehiculo = rVeh.TipoVehiculo,
+                    FotoUrl = rVeh.FotoVehiculoUrl,
+                    PropietarioId = Guid.Empty,
+                    PropietarioNombre = "SIN",
+                    PropietarioApellido = "REGISTRO",
+                    PropietarioDocumento = "",
+                    PropietarioTipo = "visitante"
+                };
+                return Ok(ApiResponse<VehiculoListDto>.SuccessResponse(vehCotH));
+            }
+
+            // 3. Fallback 2: Buscar en el historial de Ingresos Complejos (Persona + Vehiculo)
+            var rPerVeh = await _db.Registros
+                .Where(r => r.PlacaVehiculo == placa)
+                .OrderByDescending(r => r.HoraIngresoUtc)
+                .FirstOrDefaultAsync();
+
+            if (rPerVeh != null)
+            {
+                var vehRegH = new VehiculoListDto
+                {
+                    Id = Guid.Empty,
+                    Placa = rPerVeh.PlacaVehiculo ?? placa,
+                    Marca = rPerVeh.MarcaVehiculo,
+                    Modelo = rPerVeh.ModeloVehiculo,
+                    Color = rPerVeh.ColorVehiculo,
+                    TipoVehiculo = rPerVeh.TipoVehiculo,
+                    FotoUrl = rPerVeh.FotoVehiculoUrl,
+                    PropietarioId = rPerVeh.PersonalId,
+                    PropietarioNombre = rPerVeh.Nombre,
+                    PropietarioApellido = rPerVeh.Apellido,
+                    PropietarioDocumento = rPerVeh.Documento,
+                    PropietarioTipo = rPerVeh.Tipo
+                };
+                return Ok(ApiResponse<VehiculoListDto>.SuccessResponse(vehRegH));
+            }
+
+            return NotFound(ApiResponse<VehiculoListDto>.Fail(null, "Vehículo no encontrado."));
         }
 
         // POST: api/vehiculos/{id}/bloquear

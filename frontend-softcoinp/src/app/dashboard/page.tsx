@@ -150,6 +150,8 @@ export default function DashboardPage() {
   const [motivoBloqueoVehiculo, setMotivoBloqueoVehiculo] = useState("");
 
   // 🚗 ESTADOS para el Vehículo
+  const [vehiculosAsociados, setVehiculosAsociados] = useState<any[]>([]);
+  const [vehiculoSeleccionadoIdx, setVehiculoSeleccionadoIdx] = useState<number>(-1);
   const [placa, setPlaca] = useState("");
   const [marca, setMarca] = useState("");
   const [modelo, setModelo] = useState("");
@@ -599,6 +601,49 @@ export default function DashboardPage() {
     }
   };
 
+  const selectVehiculo = (v: any, idx: number) => {
+    setVehiculoSeleccionadoIdx(idx);
+    if (!v) {
+        limpiarVehiculoFormulario();
+        return;
+    }
+    setPlaca(v.placa);
+    setMarca(v.marca || "");
+    setModelo(v.modelo || "");
+    setColor(v.color || "");
+    setTipoVehiculo(v.tipoVehiculo || "");
+    setFotoVehiculoUrl(v.fotoUrl || null);
+    setIsVehiculoBloqueado(v.isBloqueado);
+    setMotivoBloqueoVehiculo(v.motivoBloqueo || "");
+    
+    // Disparar consultas secundarias para este vehículo específico
+    fetchVehiculoDetails(v.placa, v.id);
+  };
+
+  const fetchVehiculoDetails = async (placaLimpia: string, vehiculoId?: string) => {
+    try {
+        const [activoVeh, vAlertas] = await Promise.allSettled([
+            registroVehiculoService.getActivo(placaLimpia),
+            vehiculoId 
+              ? anotacionService.getAnotacionesPorVehiculo(vehiculoId)
+              : Promise.resolve([]),
+        ]);
+
+        const activoVehResult = (activoVeh.status === "fulfilled" ? activoVeh.value : null) as any;
+        if (activoVehResult && activoVehResult.data) {
+          setRegistroVehiculoActivo({ id: activoVehResult.data.id });
+        } else {
+          setRegistroVehiculoActivo(null);
+        }
+
+        if (vAlertas.status === "fulfilled") {
+            setAnotacionesVehiculoAlerta(vAlertas.value as AnotacionDto[]);
+        }
+    } catch (err) {
+        console.error("Error al obtener detalles del vehículo:", err);
+    }
+  };
+
   const handleBuscar = async () => {
     if (!identificacion.trim()) return;
 
@@ -631,6 +676,8 @@ export default function DashboardPage() {
     setMotivoBloqueo("");
     setIsVehiculoBloqueado(false);
     setMotivoBloqueoVehiculo("");
+    setVehiculosAsociados([]);
+    setVehiculoSeleccionadoIdx(-1);
 
     try {
       const res = await registroService.buscarPorDocumento(identificacion);
@@ -652,36 +699,29 @@ export default function DashboardPage() {
         // 📸 Foto de la persona
         if (persona.fotoUrl) setFotoUrl(persona.fotoUrl);
 
-        // 🚗 Autocompletar vehículo asociado si la persona tiene uno
-        if (persona.placaVehiculo) {
-          setPlaca(persona.placaVehiculo);
-          setMarca(persona.marcaVehiculo || "");
-          setModelo(persona.modeloVehiculo || "");
-          setColor(persona.colorVehiculo || "");
-          setTipoVehiculo(persona.tipoVehiculo || "");
-          // Usar la foto del registro como placeholder inicial; se actualizará abajo
-          if (persona.fotoVehiculoUrl) setFotoVehiculoUrl(persona.fotoVehiculoUrl);
+        // 🚗 Manejar múltiples vehículos
+        if (persona.vehiculos && persona.vehiculos.length > 0) {
+            setVehiculosAsociados(persona.vehiculos);
+            // Seleccionar el primero por defecto
+            const v = persona.vehiculos[0];
+            setVehiculoSeleccionadoIdx(0);
+            setPlaca(v.placa);
+            setMarca(v.marca || "");
+            setModelo(v.modelo || "");
+            setColor(v.color || "");
+            setTipoVehiculo(v.tipoVehiculo || "");
+            setFotoVehiculoUrl(v.fotoUrl || null);
+            setIsVehiculoBloqueado(v.isBloqueado);
+            setMotivoBloqueoVehiculo(v.motivoBloqueo || "");
         }
 
         // ✅ Lanzar TODAS las peticiones secundarias EN PARALELO
-        const [activoRes, vehiculoData, activoVehRes, alertasPersona, alertasVehiculo] = await Promise.allSettled([
+        const [activoRes, alertasPersona] = await Promise.allSettled([
           // 1. ¿La persona tiene una entrada activa?
           registroService.getActivoPorDocumento(identificacion),
-          // 2. Datos actualizados del vehículo (foto, bloqueo, etc.)
-          persona.placaVehiculo
-            ? vehiculoService.getVehiculoPorPlaca(persona.placaVehiculo)
-            : Promise.resolve(null),
-          // 3. ¿El vehículo asociado tiene una entrada activa?
-          persona.placaVehiculo
-            ? registroVehiculoService.getActivo(persona.placaVehiculo)
-            : Promise.resolve(null),
-          // 4. Anotaciones de seguridad de la persona
+          // 2. Anotaciones de seguridad de la persona
           persona.personalId
             ? anotacionService.getAnotacionesPorPersonal(persona.personalId)
-            : Promise.resolve([]),
-          // 5. Anotaciones de seguridad del vehículo
-          persona.vehiculoId
-            ? anotacionService.getAnotacionesPorVehiculo(persona.vehiculoId)
             : Promise.resolve([]),
         ]);
 
@@ -693,42 +733,13 @@ export default function DashboardPage() {
           setRegistroActivo(null);
         }
 
-        // — Datos actualizados del VEHÍCULO (foto, bloqueo)
-        const masterVehRes = (vehiculoData.status === "fulfilled" ? vehiculoData.value : null) as any;
-        const vData = masterVehRes?.data;
-
-        if (vData) {
-          // Sobreescribir con datos más frescos del vehículo
-          if (vData.marca) setMarca(vData.marca);
-          if (vData.modelo) setModelo(vData.modelo);
-          if (vData.color) setColor(vData.color);
-          if (vData.tipoVehiculo) setTipoVehiculo(vData.tipoVehiculo);
-          if (vData.fotoUrl) setFotoVehiculoUrl(vData.fotoUrl);
-
-          if (vData.isBloqueado) {
-            setIsVehiculoBloqueado(true);
-            setMotivoBloqueoVehiculo(vData.motivoBloqueo || "Motivo no especificado");
-          } else {
-            setIsVehiculoBloqueado(false);
-            setMotivoBloqueoVehiculo("");
-          }
-        }
-
-        // — Entrada activa del VEHÍCULO
-        const activeVehResData = (activoVehRes.status === "fulfilled" ? activoVehRes.value : null) as any;
-        const activeVehRecord = activeVehResData?.data;
-
-        if (activeVehRecord && activeVehRecord.id) {
-          console.log("🚗 Vehículo detectado EN SITIO:", activeVehRecord.id);
-          setRegistroVehiculoActivo({ id: activeVehRecord.id });
-        } else {
-          console.log("🚗 Vehículo detectado FUERA");
-          setRegistroVehiculoActivo(null);
-        }
-
         // — Anotaciones de seguridad
         if (alertasPersona.status === "fulfilled") setAnotacionesAlerta(alertasPersona.value as AnotacionDto[]);
-        if (alertasVehiculo.status === "fulfilled") setAnotacionesVehiculoAlerta(alertasVehiculo.value as AnotacionDto[]);
+
+        // — Si hay vehículo, cargar sus detalles (alertas y entrada activa)
+        if (persona.vehiculos && persona.vehiculos.length > 0) {
+            fetchVehiculoDetails(persona.vehiculos[0].placa, persona.vehiculos[0].id);
+        }
 
         // Snapshot de datos originales
         setDatosOriginales({
@@ -737,13 +748,13 @@ export default function DashboardPage() {
           telefono: persona.telefono || "",
           email: persona.email || "",
           tipo: persona.tipo || "visitante",
-          placa: persona.placaVehiculo || "",
-          marca: persona.marcaVehiculo || "",
-          modelo: persona.modeloVehiculo || "",
-          color: persona.colorVehiculo || "",
-          tipoVehiculo: persona.tipoVehiculo || "",
+          placa: persona.vehiculos?.[0]?.placa || "",
+          marca: persona.vehiculos?.[0]?.marca || "",
+          modelo: persona.vehiculos?.[0]?.modelo || "",
+          color: persona.vehiculos?.[0]?.color || "",
+          tipoVehiculo: persona.vehiculos?.[0]?.tipoVehiculo || "",
           fotoUrl: persona.fotoUrl || null,
-          fotoVehiculoUrl: persona.fotoVehiculoUrl || null,
+          fotoVehiculoUrl: persona.vehiculos?.[0]?.fotoUrl || null,
         });
 
         if (!persona.fotoUrl) {
@@ -773,16 +784,8 @@ export default function DashboardPage() {
     const placaLimpia = placa.trim();
     if (!placaLimpia || placaLimpia.length < 3) return;
 
-    setDestino("");
-    setMotivo("");
-    setFotoVehiculoUrl(null);
-    setIsVehiculoNuevo(false);
-
-    // Reset Conductor a Propietario al buscar placa
-    setConductorOpcion("propietario");
-    setConductorId(null);
-    setConductorNombre("");
-    setBusquedaConductor("");
+    // Guardar ID de persona actual para ver si cambia
+    const currentPersonDoc = identificacion;
 
     try {
       const res = await vehiculoService.getVehiculoPorPlaca(placaLimpia);
@@ -790,77 +793,74 @@ export default function DashboardPage() {
 
       if (vehiculo) {
         setIsVehiculoNuevo(false);
-        // Cargar datos del vehículo
+
+        // 1. Si el vehículo pertenece a OTRA persona, cargar a esa persona
+        if (vehiculo.propietarioDocumento && vehiculo.propietarioDocumento !== currentPersonDoc) {
+            setIdentificacion(vehiculo.propietarioDocumento);
+            // Simular búsqueda de la nueva persona para cargar todo su contexto
+            await handleBuscarManual(vehiculo.propietarioDocumento, placaLimpia);
+            return;
+        }
+
+        // 2. Si es de la misma persona o no tiene dueño, cargar datos en campos
         setMarca(vehiculo.marca || "");
         setModelo(vehiculo.modelo || "");
         setColor(vehiculo.color || "");
         setTipoVehiculo(vehiculo.tipoVehiculo || "");
-        
+        setFotoVehiculoUrl(vehiculo.fotoUrl || null);
+        setIsVehiculoBloqueado(vehiculo.isBloqueado);
+        setMotivoBloqueoVehiculo(vehiculo.motivoBloqueo || "");
+
         if (vehiculo.isBloqueado) {
-          setIsVehiculoBloqueado(true);
-          setMotivoBloqueoVehiculo(vehiculo.motivoBloqueo || "Motivo no especificado");
           showModal(`🚫 VEHÍCULO BLOQUEADO: La placa ${placaLimpia} tiene restringido el ingreso. Motivo: ${vehiculo.motivoBloqueo}`, "error");
-        } else {
-          setIsVehiculoBloqueado(false);
-          setMotivoBloqueoVehiculo("");
-        }
-        
-        // 📸 Fotos: asignar URL directamente
-        if (vehiculo.fotoUrl) setFotoVehiculoUrl(vehiculo.fotoUrl);
-
-        // Lanzar peticiones secundarias EN PARALELO
-        const [vAlertas, activoVeh, alertasPropietario] = await Promise.allSettled([
-          anotacionService.getAnotacionesPorVehiculo(vehiculo.id),
-          registroVehiculoService.getActivo(placaLimpia),
-          vehiculo.propietarioId
-            ? anotacionService.getAnotacionesPorPersonal(vehiculo.propietarioId)
-            : Promise.resolve([]),
-        ]);
-
-        if (vAlertas.status === "fulfilled") setAnotacionesVehiculoAlerta(vAlertas.value as AnotacionDto[]);
-
-        const activoVehResult = (activoVeh.status === "fulfilled" ? activoVeh.value : null) as any;
-        if (activoVehResult && activoVehResult.data) {
-          console.log("🚗 Placa detectada EN SITIO:", activoVehResult.data.id);
-          setRegistroVehiculoActivo({ id: activoVehResult.data.id });
-        } else {
-          setRegistroVehiculoActivo(null);
         }
 
-        if (!identificacion) {
-          setIdentificacion(vehiculo.propietarioDocumento || "");
-          setNombres(vehiculo.propietarioNombre || "");
-          setApellidos(vehiculo.propietarioApellido || "");
-          setTelefono(vehiculo.propietarioTelefono || "");
-          setEmail(""); // El backend no devuelve email en VehiculoListDto actualmente
-          setTipo(vehiculo.propietarioTipo || "visitante");
-          if (vehiculo.propietarioFotoUrl) setFotoUrl(vehiculo.propietarioFotoUrl);
-          if (alertasPropietario.status === "fulfilled") setAnotacionesAlerta(alertasPropietario.value as AnotacionDto[]);
-        }
-
-        setDatosOriginales({
-          nombre: nombres || vehiculo.propietarioNombre || "",
-          apellido: apellidos || vehiculo.propietarioApellido || "",
-          telefono: telefono || vehiculo.propietarioTelefono || "",
-          tipo: tipo || vehiculo.propietarioTipo || "visitante",
-          placa: placaLimpia,
-          marca: vehiculo.marca || "",
-          modelo: vehiculo.modelo || "",
-          color: vehiculo.color || "",
-          tipoVehiculo: vehiculo.tipoVehiculo || "",
-          fotoUrl: vehiculo.propietarioFotoUrl || null,
-          fotoVehiculoUrl: vehiculo.fotoUrl || null,
-        });
+        fetchVehiculoDetails(placaLimpia, vehiculo.id);
       }
     } catch (err: any) {
        setIsVehiculoBloqueado(false);
        setMotivoBloqueoVehiculo("");
        if (err.response?.status === 404) {
          setIsVehiculoNuevo(true);
+         setVehiculoSeleccionadoIdx(-1);
          showModal("⚠️ Vehículo Nuevo. Por normas de seguridad, debe registrar los datos del conductor en el panel izquierdo para vincularlo como propietario o conductor frecuente la primera vez.", "warning");
-       } else {
-         console.error("Error al buscar placa:", err);
        }
+    }
+  };
+
+  // Helper para buscar persona manualmente (usado al cambiar de vehículo con dueño distinto)
+  const handleBuscarManual = async (doc: string, placaObjetivo?: string) => {
+    try {
+      const res = await registroService.buscarPorDocumento(doc);
+      const persona = res.data;
+      if (persona) {
+          // Poblar persona
+          setNombres(persona.nombre || "");
+          setApellidos(persona.apellido || "");
+          setTelefono(persona.telefono || "");
+          setEmail(persona.email || "");
+          setTipo(persona.tipo || "visitante");
+          if (persona.fotoUrl) setFotoUrl(persona.fotoUrl);
+
+          // Poblar vehículos
+          if (persona.vehiculos) {
+              setVehiculosAsociados(persona.vehiculos);
+              const targetIdx = placaObjetivo 
+                ? persona.vehiculos.findIndex((v: any) => v.placa === placaObjetivo)
+                : 0;
+              
+              const v = persona.vehiculos[targetIdx === -1 ? 0 : targetIdx];
+              selectVehiculo(v, targetIdx === -1 ? 0 : targetIdx);
+          }
+
+          // Alertas Persona
+          if (persona.personalId) {
+              const alertas = await anotacionService.getAnotacionesPorPersonal(persona.personalId);
+              setAnotacionesAlerta(alertas);
+          }
+      }
+    } catch (err) {
+      console.error("Error en búsqueda manual:", err);
     }
   };
 
@@ -1060,6 +1060,37 @@ export default function DashboardPage() {
               )}
 
               <div className="flex-1 overflow-y-auto custom-scrollbar min-h-0 flex flex-col gap-2.5 transition-colors">
+                
+                {/* 🚗 LISTA DE VEHÍCULOS ASOCIADOS (Mini Selector) */}
+                {vehiculosAsociados.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-1 px-1">
+                    {vehiculosAsociados.map((v, idx) => (
+                      <button
+                        key={v.id}
+                        onClick={() => selectVehiculo(v, idx)}
+                        className={`px-2.5 py-1 rounded-lg text-[9px] font-black tracking-tighter uppercase transition-all border ${
+                          vehiculoSeleccionadoIdx === idx
+                            ? "bg-emerald-600 border-emerald-600 text-white shadow-md scale-105"
+                            : "bg-background border-border text-slate-500 hover:border-emerald-500 hover:text-emerald-500"
+                        }`}
+                      >
+                        {v.placa}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => {
+                        limpiarVehiculoFormulario();
+                        setVehiculoSeleccionadoIdx(-1);
+                        setTimeout(() => placaRef.current?.focus(), 100);
+                      }}
+                      className="px-2.5 py-1 rounded-lg text-[9px] font-black tracking-tighter uppercase transition-all border border-dashed border-emerald-500 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/20"
+                      title="Asociar nueva placa"
+                    >
+                      + Nuevo
+                    </button>
+                  </div>
+                )}
+
                 <div className="relative">
                   <input
                     ref={placaRef}
@@ -1077,7 +1108,9 @@ export default function DashboardPage() {
                         handleBuscarPlaca();
                       }
                     }}
-                    className="input-standard !p-3 !text-sm !font-black !uppercase"
+                    className={`input-standard !p-3 !text-sm !font-black !uppercase ${
+                      vehiculoSeleccionadoIdx !== -1 ? 'ring-2 ring-emerald-500/20 border-emerald-500' : ''
+                    }`}
                   />
                   {(anotacionesVehiculoAlerta.length > 0 || isVehiculoBloqueado) && (
                     <button

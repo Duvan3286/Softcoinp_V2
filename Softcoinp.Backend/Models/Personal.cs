@@ -27,6 +27,7 @@ namespace Softcoinp.Backend.Models
         public DateTime FechaCreacionUtc { get; set; } = DateTime.UtcNow;
 
         // Relación 1:N correcta
+        public List<Vehiculo> Vehiculos { get; set; } = new();
         public List<Registro> Registros { get; set; } = new();
 
         public List<Anotacion> Anotaciones { get; set; } = new();

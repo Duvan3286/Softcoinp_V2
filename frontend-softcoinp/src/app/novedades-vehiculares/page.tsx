@@ -77,7 +77,8 @@ export default function NovedadesVehicularesPage() {
     setSuccessMsg(null);
 
     try {
-      const v = await vehiculoService.getVehiculoPorPlaca(placa.toUpperCase().trim());
+      const res = await vehiculoService.getVehiculoPorPlaca(placa.toUpperCase().trim());
+      const v = res.data;
       if (v) {
         setVehiculo(v);
         const aList = await anotacionService.getAnotacionesPorVehiculo(v.id);
@@ -86,7 +87,12 @@ export default function NovedadesVehicularesPage() {
         setErrorBusqueda("No se encontró ningún vehículo con esa placa.");
       }
     } catch (err: any) {
-      setErrorBusqueda("Error al buscar. Verifica la conexión con el servidor.");
+      if (err.response?.status === 404) {
+        setErrorBusqueda("No se encontró ningún vehículo con esa placa.");
+      } else {
+        console.error("Error buscando placa:", err);
+        setErrorBusqueda("Error al buscar. Verifica la conexión con el servidor.");
+      }
     } finally {
       setBuscando(false);
     }

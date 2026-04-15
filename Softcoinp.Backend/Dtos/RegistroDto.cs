@@ -37,6 +37,9 @@ namespace Softcoinp.Backend.Dtos
         public string? TipoVehiculo { get; set; }
         public string? FotoVehiculoUrl { get; set; }
 
+        // 🚗 Lista de vehículos asociados a la persona
+        public List<VehiculoListDto> Vehiculos { get; set; } = new();
+
         // 👨‍✈️ Datos del Conductor
         public Guid? ConductorId { get; set; }
         public string? ConductorNombre { get; set; }

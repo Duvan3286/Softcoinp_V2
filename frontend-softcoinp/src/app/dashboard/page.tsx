@@ -1261,7 +1261,7 @@ export default function DashboardPage() {
                             >
                               <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-zinc-700 flex-shrink-0 overflow-hidden border border-slate-200 dark:border-zinc-600">
                                 {persona.fotoUrl ? (
-                                  <img src={`${api.defaults.baseURL?.replace('/api', '')}${persona.fotoUrl}`} alt="Foto" className="w-full h-full object-cover" />
+                                  <img src={resolveImageUrl(persona.fotoUrl)} alt="Foto" className="w-full h-full object-cover" />
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center text-slate-400">
                                      <User className="w-4 h-4" />
@@ -1481,7 +1481,7 @@ export default function DashboardPage() {
                 </div>
 
 
-                <div className="flex gap-2.5 mt-1">
+                <div className="flex flex-col gap-1 mt-1">
                   <span className="text-[9px] text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest px-2">Destino</span>
                   <input 
                     ref={destinoRef}

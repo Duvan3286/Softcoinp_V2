@@ -14,6 +14,23 @@ El sistema permite automatizar y supervisar las operaciones diarias de una propi
 4.  **Servicios Públicos**: Control centralizado de recibos y consumos comunes.
 5.  **Administración y Auditoría**: Gestión de roles, permisos granulares (RBAC) y logs detallados de actividad (AuditLogs).
 6.  **Analíticas**: Tableros de control con estadísticas mensuales y visualización de datos.
+7.  **Notificaciones por Correo**: Integración con **Brevo (Sendinblue)** para avisos automáticos a residentes sobre paquetes y recibos.
+
+---
+
+## 📧 Notificaciones por Correo (Brevo)
+
+El sistema cuenta con una integración robusta para mantener informados a los residentes:
+
+### Funcionalidades
+- **Aviso de Correspondencia**: Envío automático de correo cuando llega un paquete o sobre a nombre de un residente (requiere que el residente tenga su email registrado en el módulo de Personal).
+- **Aviso de Recibos Públicos**: Notificación masiva a grupos de personas (ej: Todos los Residentes) cuando se carga un nuevo lote de facturas de servicios públicos en la portería.
+
+### Configuración Necesaria
+Para habilitar los correos, se requiere:
+1.  **API Key de Brevo**: Configurada en la variable de entorno `BREVO_API_KEY` dentro del archivo `.env` o el entorno de ejecución.
+2.  **Remitente Verificado**: El correo emisor debe estar verificado en el panel de Brevo y configurarse en la vista de **Mantenimiento > Configuración de Mensajería** dentro del sistema.
+3.  **Nombre de la Institución**: El nombre del conjunto/edificio se toma automáticamente de **Mantenimiento > Identidad Visual**.
 
 ---
 

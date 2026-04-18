@@ -13,10 +13,14 @@ namespace Softcoinp.Backend.Controllers
     public class RecibosPublicosController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly Softcoinp.Backend.Services.IEmailService _emailService;
+        private readonly IServiceScopeFactory _scopeFactory;
 
-        public RecibosPublicosController(AppDbContext context)
+        public RecibosPublicosController(AppDbContext context, Softcoinp.Backend.Services.IEmailService emailService, IServiceScopeFactory scopeFactory)
         {
             _context = context;
+            _emailService = emailService;
+            _scopeFactory = scopeFactory;
         }
 
         [HttpGet("activos")]
@@ -65,6 +69,51 @@ namespace Softcoinp.Backend.Controllers
 
             _context.RecibosPublicos.Add(recibo);
             await _context.SaveChangesAsync();
+
+            // Lógica de Notificación Masiva por Correo
+            if (dto.TiposPersonaDestinatarios != null && dto.TiposPersonaDestinatarios.Count > 0)
+            {
+                _ = Task.Run(async () =>
+                {
+                    using (var scope = _scopeFactory.CreateScope())
+                    {
+                        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                        var emailSvc = scope.ServiceProvider.GetRequiredService<Softcoinp.Backend.Services.IEmailService>();
+                        
+                        try
+                        {
+                            // Normalizar tipos a minúsculas para comparación
+                            var tiposBuscados = dto.TiposPersonaDestinatarios.Select(t => t.ToLower()).ToList();
+
+                            // Buscar todas las personas que pertenezcan a los tipos seleccionados y tengan correo
+                            var destinatarios = await db.Personal
+                                .AsNoTracking()
+                                .Where(p => !string.IsNullOrEmpty(p.Email))
+                                .Where(p => tiposBuscados.Contains(p.Tipo.ToLower()))
+                                .Select(p => new { p.Email, p.Nombre, p.Apellido })
+                                .ToListAsync();
+
+                            foreach (var dest in destinatarios)
+                            {
+                                if (!string.IsNullOrEmpty(dest.Email))
+                                {
+                                    await emailSvc.NotifyNewBatchRecibosAsync(
+                                        dest.Email,
+                                        $"{dest.Nombre} {dest.Apellido}",
+                                        dto.Servicio,
+                                        dto.Mes,
+                                        dto.Anio
+                                    );
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"[NOTIFICACIÓN MASIVA] ERROR: {ex.Message}");
+                        }
+                    }
+                });
+            }
 
             return CreatedAtAction(nameof(GetActivos), new { id = recibo.Id }, new ReciboPublicoDto
             {

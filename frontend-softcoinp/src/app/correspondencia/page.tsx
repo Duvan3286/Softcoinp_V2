@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { correspondenciaService, CorrespondenciaDto } from "@/services/correspondenciaService";
 import { recibosPublicosService, ReciboPublicoDto, EntregaReciboDto } from "@/services/recibosPublicosService";
 import { personalService } from "@/services/personalService";
+import { tipoService, TipoPersonal } from "@/services/tipoService";
 import CustomModal, { ModalType } from "@/components/CustomModal";
 import { getCurrentUser, UserPayload } from "@/utils/auth";
 import dayjs from "dayjs";
@@ -18,7 +19,8 @@ import {
   Search, 
   ArrowLeft,
   X,
-  User
+  User,
+  Check
 } from "lucide-react";
 
 dayjs.locale("es");
@@ -28,6 +30,10 @@ export default function CorrespondenciaPage() {
   const [usuario, setUsuario] = useState<UserPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"paquetes" | "recibos" | "nuevo_paquete" | "nuevo_recibo">("paquetes");
+
+  // --- ESTADOS TIPOS PERSONA ---
+  const [tiposPersona, setTiposPersona] = useState<TipoPersonal[]>([]);
+  const [tiposSeleccionados, setTiposSeleccionados] = useState<string[]>([]);
 
   // --- ESTADOS PAQUETES ---
   const [listaPaquetes, setListaPaquetes] = useState<CorrespondenciaDto[]>([]);
@@ -82,14 +88,16 @@ export default function CorrespondenciaPage() {
   const loadAllData = async () => {
     setLoading(true);
     try {
-      const [p, r] = await Promise.all([
+      const [p, r, t] = await Promise.all([
         correspondenciaService.getAll(filtroEstadoPaquete, filtroRemitente, ""),
         mostrarArchivados 
           ? recibosPublicosService.getHistorial(filtroHServicio, filtroHMes, filtroHAnio ? parseInt(filtroHAnio) : undefined) 
-          : recibosPublicosService.getActivos()
+          : recibosPublicosService.getActivos(),
+        tipoService.getTipos()
       ]);
       setListaPaquetes(p);
       setListaRecibos(r);
+      setTiposPersona(t.filter(x => x.activo));
     } catch (error) {
       console.error("Error al cargar datos:", error);
     } finally {
@@ -135,6 +143,14 @@ export default function CorrespondenciaPage() {
     
     setResidenteResultados([]);
     setMostrarSugerencias(false);
+  };
+
+  const toggleTipoSeleccionado = (nombre: string) => {
+    setTiposSeleccionados(prev => 
+      prev.includes(nombre) 
+        ? prev.filter(t => t !== nombre) 
+        : [...prev, nombre]
+    );
   };
 
   // --- LÓGICA PAQUETES ---
@@ -187,9 +203,17 @@ export default function CorrespondenciaPage() {
         return;
       }
 
-      await recibosPublicosService.create({ servicio: formServicio, mes: formMes, anio, totalRecibidos: cant });
-      showModal("Lote de recibos creado exitosamente.", "success");
+      await recibosPublicosService.create({ 
+        servicio: formServicio, 
+        mes: formMes, 
+        anio, 
+        totalRecibidos: cant,
+        tiposPersonaDestinatarios: tiposSeleccionados
+      });
+
+      showModal("Lote de recibos creado exitosamente e iniciando notificaciones.", "success");
       setFormServicio(""); setFormMes(""); setFormAnio(String(new Date().getFullYear())); setFormCantidad("");
+      setTiposSeleccionados([]);
       setActiveTab("recibos");
       loadAllData();
     } catch (err: any) { 
@@ -232,8 +256,8 @@ export default function CorrespondenciaPage() {
   };
 
   return (
-    <div className="lg:h-full w-full bg-background p-2 md:p-4 lg:overflow-hidden flex flex-col items-center transition-colors duration-300">
-      <div className="w-full max-w-[1400px] h-full flex flex-col min-h-0 gap-4">
+    <div className="lg:h-full w-full bg-background p-2 md:p-3 lg:overflow-hidden flex flex-col items-center transition-colors duration-300">
+      <div className="w-full max-w-[1400px] h-full flex flex-col min-h-0 gap-3">
         
         <CustomModal {...modal} onClose={() => setModal({ ...modal, isOpen: false })} />
 
@@ -363,20 +387,20 @@ export default function CorrespondenciaPage() {
                   </thead>
                   <tbody className="divide-y divide-border transition-colors">
                     {entregasDetalle.length === 0 ? (
-                      <tr><td colSpan={3} className="text-center p-10 text-slate-400 dark:text-slate-600 font-bold uppercase tracking-widest text-[10px]">No se han registrado entregas en este lote</td></tr>
+                      <tr><td colSpan={3} className="text-center p-6 text-slate-400 dark:text-slate-600 font-bold uppercase tracking-widest text-[8px]">Sin registros</td></tr>
                     ) : (
                       entregasDetalle.map(e => (
                         <tr key={e.id} className="hover:bg-emerald-50/20 dark:hover:bg-emerald-900/10 transition-colors">
-                          <td className="px-6 py-4">
-                            <p className="text-[11px] font-black text-foreground uppercase tracking-tight">{e.residenteNombre}</p>
-                            <p className="text-[10px] font-bold text-cyan-500 uppercase tracking-widest">{e.apartamento}</p>
+                          <td className="px-4 py-1.5">
+                            <p className="text-[10px] font-black text-foreground uppercase tracking-tight">{e.residenteNombre}</p>
+                            <p className="text-[9px] font-bold text-cyan-500 uppercase tracking-widest">{e.apartamento}</p>
                           </td>
-                          <td className="px-6 py-4">
-                            <p className="text-[11px] font-black text-foreground">{dayjs(e.fechaEntregaUtc).format("DD MMM YYYY")}</p>
-                            <p className="text-[10px] font-bold text-slate-400">{dayjs(e.fechaEntregaUtc).format("HH:mm:ss")}</p>
+                          <td className="px-4 py-1.5">
+                            <p className="text-[10px] font-black text-foreground">{dayjs(e.fechaEntregaUtc).format("DD/MM/YY")}</p>
+                            <p className="text-[9px] font-bold text-slate-400">{dayjs(e.fechaEntregaUtc).format("HH:mm")}</p>
                           </td>
-                          <td className="px-6 py-4">
-                            <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-100 dark:border-emerald-800 px-2 py-1 rounded shadow-sm">
+                          <td className="px-4 py-1.5">
+                            <span className="text-[8px] font-black text-emerald-600 dark:text-emerald-400 uppercase bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-100 dark:border-emerald-800 px-1.5 py-0.5 rounded shadow-sm">
                               {e.registradoPor}
                             </span>
                           </td>
@@ -394,26 +418,25 @@ export default function CorrespondenciaPage() {
         )}
 
         {/* HEADER & TABS PRINCIPALES */}
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-4 bg-card p-4 rounded-xl border border-border shadow-sm transition-colors shrink-0">
-          <div className="flex items-center gap-4">
-
-            <div className="flex items-center gap-4">
-              <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 rounded-xl shadow-sm flex-shrink-0 transition-transform hover:rotate-3">
-                <Package className="w-6 h-6" />
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-2 bg-card p-2 rounded-xl border border-border shadow-sm transition-colors shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 rounded-lg shadow-sm flex-shrink-0 transition-transform hover:rotate-3">
+                <Package className="w-5 h-5" />
               </div>
               <div>
-                <h1 className="text-xl font-black text-foreground tracking-tight leading-none uppercase">Gestión de Correspondencia</h1>
-                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase mt-1.5 tracking-[0.2em]">Sincronizado con Vigilancia</p>
+                <h1 className="text-base font-black text-foreground tracking-tight leading-none uppercase">Correspondencia</h1>
+                <p className="text-[8px] text-slate-400 dark:text-slate-500 font-bold uppercase mt-1 tracking-[0.2em]">Sincronizado con Vigilancia</p>
               </div>
             </div>
           </div>
 
-          <nav className="flex gap-1.5 bg-background p-1.5 rounded-xl border border-border transition-colors">
-            <button onClick={() => setActiveTab("paquetes")} className={`flex items-center gap-1.5 px-5 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${activeTab === "paquetes" ? "bg-card text-emerald-600 dark:text-emerald-400 shadow-sm border border-border" : "text-slate-400 hover:text-emerald-500"}`}><Package className="w-3.5 h-3.5" /> Paquetes</button>
-            <button onClick={() => setActiveTab("recibos")} className={`flex items-center gap-1.5 px-5 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${activeTab === "recibos" ? "bg-card text-emerald-600 dark:text-emerald-400 shadow-sm border border-border" : "text-slate-400 hover:text-emerald-500"}`}><FileText className="w-3.5 h-3.5" /> Recibos Públicos</button>
-            <div className="w-px bg-border h-6 my-auto mx-1"></div>
-            <button onClick={() => setActiveTab(activeTab.includes("recibo") ? "nuevo_recibo" : "nuevo_paquete")} className="px-5 py-2 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-100 dark:shadow-none hover:bg-emerald-700 active:scale-95 transition-all">
-              {activeTab.includes("recibo") ? "+ Nuevo Lote" : "+ Registrar Paquete"}
+          <nav className="flex gap-1 bg-background p-1 rounded-lg border border-border transition-colors">
+            <button onClick={() => setActiveTab("paquetes")} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-black text-[9px] uppercase tracking-widest transition-all ${activeTab === "paquetes" ? "bg-card text-emerald-600 dark:text-emerald-400 shadow-sm border border-border" : "text-slate-400 hover:text-emerald-500"}`}><Package className="w-3 h-3" /> Paquetes</button>
+            <button onClick={() => setActiveTab("recibos")} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-black text-[9px] uppercase tracking-widest transition-all ${activeTab === "recibos" ? "bg-card text-emerald-600 dark:text-emerald-400 shadow-sm border border-border" : "text-slate-400 hover:text-emerald-500"}`}><FileText className="w-3 h-3" /> Recibos</button>
+            <div className="w-px bg-border h-4 my-auto mx-0.5"></div>
+            <button onClick={() => setActiveTab(activeTab.includes("recibo") ? "nuevo_recibo" : "nuevo_paquete")} className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg font-black text-[9px] uppercase tracking-widest shadow-md shadow-emerald-100 dark:shadow-none hover:bg-emerald-700 active:scale-95 transition-all">
+              {activeTab.includes("recibo") ? "+ Nuevo Lote" : "+ Registrar"}
             </button>
           </nav>
         </div>
@@ -423,21 +446,21 @@ export default function CorrespondenciaPage() {
           
           {/* TAB: PAQUETES (LISTADO) */}
           {activeTab === "paquetes" && (
-            <div className="flex flex-col h-full gap-4 animate-in fade-in duration-500">
-               <div className="bg-card p-4 rounded-xl border border-border flex flex-wrap gap-4 items-end shadow-sm">
-                  <div className="flex-1 min-w-[200px]">
-                    <label className="text-[9px] font-black text-slate-400 uppercase ml-1 tracking-widest">Estado de Paquete</label>
+            <div className="flex flex-col h-full gap-2 animate-in fade-in duration-500">
+               <div className="bg-card p-3 rounded-xl border border-border flex flex-wrap gap-3 items-end shadow-sm">
+                  <div className="flex-1 min-w-[150px]">
+                    <label className="text-[10px] font-black text-slate-400 uppercase ml-1 tracking-widest">Estado</label>
                     <select value={filtroEstadoPaquete} onChange={e => setFiltroEstadoPaquete(e.target.value)} className="input-standard !p-2 !text-xs !font-black uppercase mt-1 cursor-pointer">
-                      <option value="">Todos los Estados</option>
+                      <option value="">Todos</option>
                       <option value="en_espera">🟡 En Espera</option>
                       <option value="entregado">🟢 Entregado</option>
                     </select>
                   </div>
-                  <div className="flex-[2] min-w-[250px]">
-                    <label className="text-[9px] font-black text-slate-400 uppercase ml-1 tracking-widest">Buscar Remitente</label>
+                  <div className="flex-[2] min-w-[200px]">
+                    <label className="text-[10px] font-black text-slate-400 uppercase ml-1 tracking-widest">Buscar Remitente</label>
                     <input type="text" value={filtroRemitente} onChange={e => setFiltroRemitente(e.target.value)} placeholder="Ej: Amazon, DHL..." className="input-standard !p-2 !text-xs mt-1 uppercase" />
                   </div>
-                  <button onClick={loadAllData} className="bg-emerald-600 text-white px-8 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-100 active:scale-95 transition-all">Buscar</button>
+                  <button onClick={loadAllData} className="bg-emerald-600 text-white px-6 py-2.5 rounded-lg font-black text-[10px] uppercase tracking-widest shadow-md shadow-emerald-100 active:scale-95 transition-all">Buscar</button>
                </div>
 
                <div className="flex-1 bg-card rounded-xl border border-border shadow-sm overflow-hidden flex flex-col transition-colors">
@@ -445,36 +468,36 @@ export default function CorrespondenciaPage() {
                     <table className="w-full text-left border-collapse">
                       <thead className="bg-background sticky top-0 z-10 border-b border-border transition-colors">
                         <tr>
-                          <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Estado / Fecha</th>
-                          <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Residente / Destino</th>
-                          <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Paquete</th>
-                          <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Acciones</th>
+                          <th className="px-5 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Estado / Fecha</th>
+                          <th className="px-5 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Destinatario</th>
+                          <th className="px-5 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Paquete</th>
+                          <th className="px-5 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Acción</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border transition-colors">
                         {listaPaquetes.map(p => (
                           <tr key={p.id} className="hover:bg-emerald-50/30 dark:hover:bg-emerald-900/10 transition-colors group">
-                            <td className="px-6 py-4">
-                               <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[9px] font-black border uppercase tracking-tighter ${p.estado === 'entregado' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 border-emerald-100 dark:border-emerald-800' : 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 border-amber-100 dark:border-amber-800'}`}>
+                            <td className="px-5 py-2.5">
+                               <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-black border uppercase tracking-tighter ${p.estado === 'entregado' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 border-emerald-100 dark:border-emerald-800' : 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 border-amber-100 dark:border-amber-800'}`}>
                                  {p.estado === 'entregado' ? <><CheckCircle2 className="w-3 h-3" /> Entregado</> : <><Clock className="w-3 h-3" /> En Espera</>}
                                </span>
-                               <p className="text-[11px] font-black mt-2 text-foreground">{dayjs(p.fechaRecepcionLocal).format("DD/MM HH:mm")}</p>
+                               <p className="text-[11px] font-black mt-1 text-foreground">{dayjs(p.fechaRecepcionLocal).format("DD/MM HH:mm")}</p>
                             </td>
-                            <td className="px-6 py-4">
-                               <p className="text-[13px] font-black text-foreground uppercase tracking-tight leading-none">{p.destinatario}</p>
-                               <p className="text-[10px] font-bold text-cyan-600 mt-1 uppercase italic tracking-tighter">Remitente: {p.remitente}</p>
+                            <td className="px-5 py-2.5">
+                               <p className="text-[13px] font-black text-foreground uppercase tracking-tight leading-none truncate max-w-[250px]">{p.destinatario}</p>
+                               <p className="text-[10px] font-bold text-cyan-600 mt-1 uppercase italic tracking-tighter">De: {p.remitente}</p>
                             </td>
-                            <td className="px-6 py-4">
+                            <td className="px-5 py-2.5">
                                <span className="px-2 py-1 bg-background border border-border rounded text-[9px] font-black text-slate-500 uppercase">{p.tipoDocumento || 'Paquete'}</span>
-                               {p.numeroGuia && <p className="text-[10px] font-mono text-cyan-500 mt-1"># {p.numeroGuia}</p>}
+                               {p.numeroGuia && <p className="text-[11px] font-mono text-cyan-500 mt-1"># {p.numeroGuia}</p>}
                             </td>
-                            <td className="px-6 py-4 text-center">
+                            <td className="px-5 py-2.5 text-center">
                                {p.estado === 'en_espera' ? (
-                                 <button onClick={() => setEntregarPaqueteModal({ isOpen: true, id: p.id })} className="bg-emerald-600 text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-md shadow-emerald-100 dark:shadow-none">Entregar</button>
+                                 <button onClick={() => setEntregarPaqueteModal({ isOpen: true, id: p.id })} className="bg-emerald-600 text-white px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-sm">Entregar</button>
                                ) : (
-                                 <div className="flex flex-col items-center">
-                                   <span className="text-[10px] text-emerald-600 font-black">ENTREGADO A:</span>
-                                   <span className="text-[9px] text-slate-400 uppercase font-bold">{p.recibidoPor}</span>
+                                 <div className="flex flex-col items-center leading-tight">
+                                   <span className="text-[10px] text-emerald-600 font-black uppercase">Entregado</span>
+                                   <span className="text-[9px] text-slate-400 uppercase font-bold truncate max-w-[100px]">{p.recibidoPor}</span>
                                  </div>
                                )}
                             </td>
@@ -489,18 +512,18 @@ export default function CorrespondenciaPage() {
 
           {/* TAB: RECIBOS PÚBLICOS (LISTADO) */}
           {activeTab === "recibos" && (
-            <div className="flex flex-col h-full gap-4 animate-in fade-in duration-500">
+            <div className="flex flex-col h-full gap-2 animate-in fade-in duration-500">
                {/* FILTRO HISTORIAL RECIBOS */}
-               <div className="flex items-center justify-between bg-card p-3 rounded-xl border border-border shadow-sm transition-colors">
+               <div className="flex items-center justify-between bg-card p-2 rounded-xl border border-border shadow-sm transition-colors">
                   <div className="flex items-center gap-2 px-2">
-                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                     <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">
-                        {mostrarArchivados ? "Mostrando Lotes Archivados" : "Mostrando Lotes Activos (En Sitio)"}
+                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                     <p className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                        {mostrarArchivados ? "Lotes Archivados" : "Lotes Activos (En Sitio)"}
                      </p>
                   </div>
                   <button 
                     onClick={() => setMostrarArchivados(!mostrarArchivados)}
-                    className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all border ${mostrarArchivados ? "bg-emerald-600 text-white border-emerald-600" : "bg-background text-emerald-600 border-emerald-100 dark:border-emerald-900/50 hover:bg-emerald-50 dark:hover:bg-emerald-900/30"}`}
+                    className={`px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all border ${mostrarArchivados ? "bg-emerald-600 text-white border-emerald-600" : "bg-background text-emerald-600 border-emerald-100 dark:border-emerald-900/50 hover:bg-emerald-50 dark:hover:bg-emerald-900/30"}`}
                   >
                     {mostrarArchivados ? "Ver Activos" : "Ver Archivados"}
                   </button>
@@ -509,87 +532,76 @@ export default function CorrespondenciaPage() {
                <div className="flex-1 min-h-0 flex flex-col">
                   {mostrarArchivados ? (
                     /* VISTA COMPACTA (TABLA) PARA ARCHIVADOS */
-                    <div className="flex flex-col h-full gap-4">
+                    <div className="flex flex-col h-full gap-2">
                        {/* BARRA DE FILTROS HISTORIAL - SIEMPRE VISIBLE */}
-                       <div className="bg-card p-4 rounded-xl border border-border flex flex-wrap gap-4 items-end shadow-sm">
-                          <div className="flex-1 min-w-[150px]">
-                             <label className="text-[9px] font-black text-slate-400 uppercase ml-1 tracking-widest">Servicio</label>
-                             <select value={filtroHServicio} onChange={e => setFiltroHServicio(e.target.value)} className="input-standard !p-2 !text-xs mt-1 uppercase cursor-pointer">
-                                <option value="">Todos los Servicios</option>
-                                <option value="Agua / Acueducto">💧 Agua / Acueducto</option>
-                                <option value="Energía / Luz">⚡ Energía / Luz</option>
-                                <option value="Gas Natural">🔥 Gas Natural</option>
-                                <option value="Internet / TV">🌐 Internet / TV</option>
-                                <option value="Administración">🏢 Administración</option>
+                       <div className="bg-card p-2 rounded-xl border border-border flex flex-wrap gap-2 items-end shadow-sm">
+                          <div className="flex-1 min-w-[120px]">
+                             <label className="text-[8px] font-black text-slate-400 uppercase ml-1 tracking-widest">Servicio</label>
+                             <select value={filtroHServicio} onChange={e => setFiltroHServicio(e.target.value)} className="input-standard !p-1.5 !text-[10px] mt-0.5 uppercase cursor-pointer">
+                                <option value="">Todos</option>
+                                <option value="Agua / Acueducto">💧 Agua</option>
+                                <option value="Energía / Luz">⚡ Energía</option>
+                                <option value="Gas Natural">🔥 Gas</option>
+                                <option value="Internet / TV">🌐 Internet</option>
+                                <option value="Administración">🏢 Admon</option>
                                 <option value="Otro">📦 Otro</option>
                              </select>
                           </div>
-                          <div className="flex-1 min-w-[150px]">
-                             <label className="text-[9px] font-black text-slate-400 uppercase ml-1 tracking-widest">Mes</label>
-                             <select value={filtroHMes} onChange={e => setFiltroHMes(e.target.value)} className="input-standard !p-2 !text-xs mt-1 uppercase cursor-pointer">
+                          <div className="flex-1 min-w-[120px]">
+                             <label className="text-[8px] font-black text-slate-400 uppercase ml-1 tracking-widest">Mes</label>
+                             <select value={filtroHMes} onChange={e => setFiltroHMes(e.target.value)} className="input-standard !p-1.5 !text-[10px] mt-0.5 uppercase cursor-pointer">
                                 <option value="">Todos</option>
                                 {["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"].map(m => (
                                    <option key={m} value={m}>{m}</option>
                                 ))}
                              </select>
                           </div>
-                          <div className="w-32">
-                             <label className="text-[9px] font-black text-slate-400 uppercase ml-1 tracking-widest">Año</label>
-                             <input type="number" value={filtroHAnio} onChange={e => setFiltroHAnio(e.target.value)} placeholder="2026" className="input-standard !p-2 !text-xs mt-1 font-black" />
+                          <div className="w-20">
+                             <label className="text-[8px] font-black text-slate-400 uppercase ml-1 tracking-widest">Año</label>
+                             <input type="number" value={filtroHAnio} onChange={e => setFiltroHAnio(e.target.value)} placeholder="2026" className="input-standard !p-1.5 !text-[10px] mt-0.5 font-black" />
                           </div>
-                          <button onClick={loadAllData} className="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-100 active:scale-95 transition-all">Filtrar</button>
+                          <button onClick={loadAllData} className="bg-emerald-600 text-white px-5 py-2 rounded-lg font-black text-[9px] uppercase tracking-widest shadow-md active:scale-95 transition-all">Filtrar</button>
                        </div>
 
                        <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden flex flex-col transition-colors flex-1">
                           {listaRecibos.length === 0 ? (
-                            <div className="py-20 text-center flex flex-col items-center">
-                               <FolderOpen className="w-12 h-12 text-slate-300 dark:text-slate-600" />
-                               <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-4">No se hallaron registros con esos filtros</p>
-                               <button onClick={() => { setFiltroHServicio(""); setFiltroHMes(""); setFiltroHAnio(""); loadAllData(); }} className="mt-4 text-[10px] font-black text-emerald-600 uppercase underline decoration-2 underline-offset-4">Limpiar Filtros</button>
+                            <div className="py-12 text-center flex flex-col items-center">
+                               <FolderOpen className="w-8 h-8 text-slate-300 dark:text-slate-600" />
+                               <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.3em] mt-3">Sin registros</p>
                             </div>
                           ) : (
                             <div className="overflow-y-auto flex-1 custom-scrollbar">
                                <table className="w-full text-left border-collapse">
                                   <thead className="bg-background sticky top-0 z-10 border-b border-border transition-colors">
                                       <tr>
-                                         <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Servicio</th>
-                                         <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Periodo</th>
-                                         <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Inventario</th>
-                                         <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Estado</th>
-                                         <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Acciones</th>
+                                         <th className="px-4 py-2 text-[9px] font-black text-slate-400 uppercase tracking-widest">Servicio</th>
+                                         <th className="px-4 py-2 text-[9px] font-black text-slate-400 uppercase tracking-widest">Periodo</th>
+                                         <th className="px-4 py-2 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Inv.</th>
+                                         <th className="px-4 py-2 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Acciones</th>
                                       </tr>
                                   </thead>
                                   <tbody className="divide-y divide-border transition-colors">
                                       {listaRecibos.map(r => (
                                       <tr key={r.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
-                                          <td className="px-6 py-4">
-                                              <div className="flex items-center gap-3">
-                                                  <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                                                  <p className="text-[13px] font-black text-foreground uppercase tracking-tight">{r.servicio}</p>
+                                          <td className="px-4 py-1.5">
+                                              <div className="flex items-center gap-2">
+                                                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                                                  <p className="text-[11px] font-black text-foreground uppercase tracking-tight leading-none">{r.servicio}</p>
                                               </div>
                                           </td>
-                                          <td className="px-6 py-4">
-                                              <p className="text-[11px] font-black text-foreground uppercase">{r.mes}</p>
-                                              <p className="text-[10px] font-bold text-slate-400">{r.anio}</p>
+                                          <td className="px-4 py-1.5">
+                                              <p className="text-[10px] font-black text-foreground uppercase leading-none">{r.mes}</p>
+                                              <p className="text-[8px] font-bold text-slate-400">{r.anio}</p>
                                           </td>
-                                          <td className="px-6 py-4 text-center">
-                                              <div className="inline-flex flex-col">
-                                                  <span className="text-[12px] font-black text-emerald-600">{r.totalEntregados} / {r.totalRecibidos}</span>
-                                                  <span className="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">Entregados</span>
-                                              </div>
+                                          <td className="px-4 py-1.5 text-center">
+                                              <span className="text-[10px] font-black text-emerald-600">{r.totalEntregados} / {r.totalRecibidos}</span>
                                           </td>
-                                          <td className="px-6 py-4 text-center">
-                                              <span className="px-2 py-1 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 border border-emerald-100 dark:border-emerald-800 rounded-lg text-[9px] font-black uppercase tracking-widest">
-                                                  Completado
-                                              </span>
-                                          </td>
-                                          <td className="px-6 py-4 text-center">
+                                          <td className="px-4 py-1.5 text-center">
                                               <button 
                                                   onClick={() => handleVerEntregas(r.id, r.servicio)}
-                                                  className="p-2 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 rounded-xl hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
-                                                  title="Ver detalle de entregas"
+                                                  className="p-1.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 rounded-lg hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
                                               >
-                                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" /></svg>
+                                                  <Search className="w-3.5 h-3.5" />
                                               </button>
                                           </td>
                                       </tr>
@@ -603,64 +615,60 @@ export default function CorrespondenciaPage() {
                   ) : (
                     /* VISTA DE TARJETAS (CARDS) PARA LOTES ACTIVOS */
                     listaRecibos.length === 0 ? (
-                      <div className="py-20 text-center bg-card rounded-xl border border-dashed border-border transition-colors flex flex-col items-center">
-                         <FolderOpen className="w-12 h-12 text-slate-300 dark:text-slate-600" />
-                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-4">No hay lotes de recibos activos actualmente</p>
+                      <div className="py-12 text-center bg-card rounded-xl border border-dashed border-border transition-colors flex flex-col items-center">
+                         <FolderOpen className="w-10 h-10 text-slate-300 dark:text-slate-600" />
+                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-3">Sin lotes activos</p>
                       </div>
                     ) : (
                       <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
-                        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-4 content-start" style={{ gridAutoRows: 'minmax(280px, auto)' }}>
+                        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3 pb-3 content-start" style={{ gridAutoRows: 'minmax(200px, auto)' }}>
                         {listaRecibos.map(r => (
-                          <div key={r.id} className="bg-card rounded-xl border-2 border-border p-6 flex flex-col gap-5 hover:border-emerald-400 transition-all duration-300 shadow-sm relative overflow-hidden group min-h-[280px]">
+                          <div key={r.id} className="bg-card rounded-xl border border-border p-4 flex flex-col gap-3 hover:border-emerald-400 transition-all duration-300 shadow-sm relative overflow-hidden group min-h-[200px]">
                             {/* Progreso Visual Fondo */}
-                            <div className={`absolute bottom-0 left-0 h-1 transition-all duration-1000 ${r.activo ? 'bg-emerald-600' : 'bg-emerald-500'}`} style={{ width: `${(r.totalEntregados / r.totalRecibidos) * 100}%` }}></div>
+                            <div className={`absolute bottom-0 left-0 h-1 transition-all duration-1000 bg-emerald-600`} style={{ width: `${(r.totalEntregados / r.totalRecibidos) * 100}%` }}></div>
                             
                             <div className="flex justify-between items-start">
-                                <div className={`p-2.5 rounded-xl shadow-inner group-hover:scale-110 transition-transform ${r.activo ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' : 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'}`}>
-                                    {r.activo ? <FileText className="w-5 h-5" /> : <CheckCircle2 className="w-5 h-5" />}
+                                <div className={`p-2 rounded-lg bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400`}>
+                                    <FileText className="w-4 h-4" />
                                 </div>
                                 <div className="text-right">
-                                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{r.activo ? 'Lote Activo' : 'Completado'}</p>
-                                  <p className="text-sm font-black text-foreground uppercase tracking-tight">{r.mes} {r.anio}</p>
+                                  <p className="text-[11px] font-black text-foreground uppercase tracking-tight">{r.mes} {r.anio}</p>
                                 </div>
                             </div>
 
-                            <div>
-                                <h3 className="text-lg font-black text-foreground uppercase tracking-tighter leading-none">{r.servicio}</h3>
-                                <div className="flex items-center gap-2 mt-2">
-                                  <div className="flex-1 bg-background h-2 rounded-full overflow-hidden border border-border transition-colors">
-                                      <div className={`h-full bg-gradient-to-r from-emerald-500 to-emerald-600`} style={{ width: `${(r.totalEntregados / r.totalRecibidos) * 100}%` }}></div>
+                            <div className="flex-1 min-w-0">
+                                <h3 className="text-[14px] font-black text-foreground uppercase tracking-tighter leading-tight truncate">{r.servicio}</h3>
+                                <div className="flex items-center gap-1.5 mt-1.5">
+                                  <div className="flex-1 bg-background h-1.5 rounded-full overflow-hidden border border-border transition-colors">
+                                      <div className={`h-full bg-emerald-500`} style={{ width: `${(r.totalEntregados / r.totalRecibidos) * 100}%` }}></div>
                                   </div>
-                                  <span className={`text-[10px] font-black text-emerald-600 dark:text-emerald-400`}>{Math.round((r.totalEntregados / r.totalRecibidos) * 100)}%</span>
+                                  <span className={`text-[9px] font-black text-emerald-600`}>{Math.round((r.totalEntregados / r.totalRecibidos) * 100)}%</span>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-2 bg-background p-3 rounded-xl border border-border transition-colors">
+                            <div className="grid grid-cols-2 gap-1.5 bg-background p-2 rounded-lg border border-border transition-colors">
                                 <div className="text-center">
                                   <p className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">Pendientes</p>
-                                  <p className="text-xl font-black text-foreground">{r.pendientes}</p>
+                                  <p className="text-base font-black text-foreground leading-none">{r.pendientes}</p>
                                 </div>
                                 <div className="text-center border-l border-border transition-colors">
                                   <p className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">Entregados</p>
-                                  <p className={`text-xl font-black text-emerald-600 dark:text-emerald-400`}>{r.totalEntregados}</p>
+                                  <p className={`text-base font-black text-emerald-600 leading-none`}>{r.totalEntregados}</p>
                                 </div>
                             </div>
 
-                            <div className="flex gap-2">
-                                {r.activo && (
-                                    <button 
-                                        onClick={() => setEntregaReciboModal({ isOpen: true, id: r.id, servicio: r.servicio })}
-                                        className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-100 dark:shadow-none transition-all active:scale-95"
-                                    >
-                                        Entregar
-                                    </button>
-                                )}
+                            <div className="flex gap-2 mt-1.5">
+                                <button 
+                                    onClick={() => setEntregaReciboModal({ isOpen: true, id: r.id, servicio: r.servicio })}
+                                    className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[9px] font-black uppercase tracking-widest transition-all active:scale-95"
+                                >
+                                    Entregar
+                                </button>
                                 <button 
                                     onClick={() => handleVerEntregas(r.id, r.servicio)}
-                                    className={`py-3 px-4 bg-card border border-border rounded-xl text-[9px] font-black uppercase tracking-widest transition-all hover:bg-slate-50 dark:hover:bg-slate-800 ${!r.activo && 'w-full'}`}
-                                    title="Ver detalles de entregas"
+                                    className="py-2 px-3 bg-card border border-border rounded-lg text-[9px] font-black uppercase tracking-widest transition-all hover:bg-slate-50 dark:hover:bg-slate-800"
                                 >
-                                    {r.activo ? <Search className="w-4 h-4 mx-auto" /> : <div className="flex items-center justify-center gap-2"><Search className="w-4 h-4" /> Ver Verificación</div>}
+                                    <Search className="w-4 h-4 mx-auto" />
                                 </button>
                             </div>
                           </div>
@@ -675,25 +683,25 @@ export default function CorrespondenciaPage() {
 
           {/* TAB: NUEVO PAQUETE */}
           {activeTab === "nuevo_paquete" && (
-            <div className="bg-card p-6 md:p-10 rounded-xl border border-border shadow-sm flex flex-col flex-grow min-h-0 animate-in slide-in-from-right duration-500 transition-colors">
-               <div className="max-w-3xl mx-auto w-full space-y-8">
+            <div className="bg-card p-6 md:p-8 rounded-2xl border border-border shadow-md flex flex-col flex-grow min-h-0 animate-in slide-in-from-right duration-500 transition-colors overflow-y-auto custom-scrollbar">
+               <div className="max-w-3xl mx-auto w-full space-y-6">
                   <div className="flex items-center gap-4">
-                    <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 rounded-xl shadow-sm flex-shrink-0 transition-transform">
+                    <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 rounded-xl shadow-sm flex-shrink-0">
                       <Package className="w-6 h-6" />
                     </div>
                     <div>
-                      <h2 className="text-xl font-black text-foreground uppercase tracking-tight">Recepción de Paquetería</h2>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1">Registra el ingreso de mensajería y domicilios</p>
+                      <h2 className="text-xl font-black text-foreground uppercase tracking-tight">Registro de Paquetería</h2>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em] mt-0.5">Ingreso de mensajería y domicilios</p>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Empresa / Remitente *</label>
-                      <input type="text" value={formRemitente} onChange={e => setFormRemitente(e.target.value)} className="input-standard !py-3 uppercase" placeholder="Ej: Servientrega, Pizza Hut..." />
+                      <label className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Empresa / Remitente *</label>
+                      <input type="text" value={formRemitente} onChange={e => setFormRemitente(e.target.value)} className="input-standard !py-2.5 !text-[13px] uppercase" placeholder="Ej: Amazon, DHL..." />
                     </div>
                     <div className="space-y-2 relative">
-                      <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Residente / Destino *</label>
+                      <label className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Residente / Destinatario *</label>
                       <div className="relative">
                         <input 
                           type="text" 
@@ -701,8 +709,8 @@ export default function CorrespondenciaPage() {
                           onChange={e => handleSearchResidente(e.target.value, "paquete")} 
                           onFocus={() => formDestinatario.length >= 2 && setMostrarSugerencias(true)}
                           onBlur={() => setTimeout(() => setMostrarSugerencias(false), 200)}
-                          className="input-standard !py-3 uppercase pr-10" 
-                          placeholder="Ej: Apto 502, Administración..." 
+                          className="input-standard !py-2.5 !text-[13px] uppercase pr-10" 
+                          placeholder="Buscar residente..." 
                         />
                         <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
                           {buscandoResidente ? (
@@ -726,7 +734,7 @@ export default function CorrespondenciaPage() {
                                   <User className="w-4 h-4" />
                                 </div>
                                 <div>
-                                  <p className="text-[11px] font-black text-foreground uppercase leading-tight">{p.nombre} {p.apellido}</p>
+                                  <p className="text-[13px] font-black text-foreground uppercase leading-tight">{p.nombre} {p.apellido}</p>
                                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">DOC: {p.documento}</p>
                                 </div>
                               </button>
@@ -734,41 +742,29 @@ export default function CorrespondenciaPage() {
                           </div>
                         </div>
                       )}
-                      
-                      {mostrarSugerencias && residenteResultados.length === 0 && formDestinatario.length >= 2 && !buscandoResidente && (
-                        <div className="absolute z-50 w-full mt-1 bg-card border border-border rounded-xl shadow-xl p-4 text-center animate-in fade-in zoom-in-95 duration-200">
-                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">No se encontraron residentes</p>
-                           <button 
-                             onClick={() => setMostrarSugerencias(false)}
-                             className="mt-2 text-[9px] font-black text-emerald-600 uppercase"
-                           >
-                             Cerrar
-                           </button>
-                        </div>
-                      )}
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Tipo de Envío</label>
-                      <select value={formTipoDoc} onChange={e => setFormTipoDoc(e.target.value)} className="input-standard !py-3 uppercase cursor-pointer">
-                        <option value="">Seleccione tipo...</option>
+                      <label className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Tipo de Envío</label>
+                      <select value={formTipoDoc} onChange={e => setFormTipoDoc(e.target.value)} className="input-standard !py-2.5 !text-[13px] uppercase cursor-pointer">
+                        <option value="">Seleccione...</option>
                         <option value="Sobre">Sobre / Documento</option>
                         <option value="Paquete">Paquete / Caja</option>
                         <option value="Domicilio">Domicilio / Alimentos</option>
                       </select>
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Nro de Guía (Si aplica)</label>
-                      <input type="text" value={formGuia} onChange={e => setFormGuia(e.target.value)} className="input-standard !py-3 uppercase font-mono" placeholder="Opcional" />
+                      <label className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Número de Guía</label>
+                      <input type="text" value={formGuia} onChange={e => setFormGuia(e.target.value)} className="input-standard !py-2.5 !text-[13px] uppercase font-mono" placeholder="Opcional" />
                     </div>
                     <div className="md:col-span-2 space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Detalles Adicionales</label>
-                      <textarea value={formDesc} onChange={e => setFormDesc(e.target.value)} className="input-standard !py-3 h-20 resize-none" placeholder="Caja abierta, pago pendiente, etc." />
+                      <label className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Observaciones</label>
+                      <textarea value={formDesc} onChange={e => setFormDesc(e.target.value)} className="input-standard !py-2.5 !text-[13px] h-20 resize-none" placeholder="Detalles adicionales..." />
                     </div>
                   </div>
 
                   <div className="flex gap-3 justify-end pt-4">
-                    <button onClick={() => setActiveTab("paquetes")} className="px-8 py-3 bg-background border border-border text-slate-400 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-colors">Cancelar</button>
-                    <button onClick={handleCreatePaquete} className="px-10 py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-emerald-100 hover:bg-emerald-700 transition-all active:scale-95">Guardar Registro</button>
+                    <button onClick={() => setActiveTab("paquetes")} className="px-6 py-2.5 bg-background border border-border text-slate-400 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-all">Cancelar</button>
+                    <button onClick={handleCreatePaquete} className="px-8 py-2.5 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-md shadow-emerald-100 hover:bg-emerald-700 transition-all active:scale-95">Guardar Registro</button>
                   </div>
                </div>
             </div>
@@ -776,22 +772,22 @@ export default function CorrespondenciaPage() {
 
           {/* TAB: NUEVO LOTE DE RECIBOS */}
           {activeTab === "nuevo_recibo" && (
-            <div className="bg-card p-6 md:p-10 rounded-xl border border-border shadow-sm flex flex-col flex-grow min-h-0 animate-in slide-in-from-right duration-500 transition-colors">
-               <div className="max-w-3xl mx-auto w-full space-y-8">
+            <div className="bg-card p-6 md:p-8 rounded-2xl border border-border shadow-md flex flex-col flex-grow min-h-0 animate-in slide-in-from-right duration-500 transition-colors overflow-y-auto custom-scrollbar">
+               <div className="max-w-3xl mx-auto w-full space-y-6">
                   <div className="flex items-center gap-4">
-                    <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 rounded-xl shadow-sm flex-shrink-0 transition-transform">
+                    <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 rounded-xl shadow-sm flex-shrink-0">
                       <FileText className="w-6 h-6" />
                     </div>
                     <div>
                       <h2 className="text-xl font-black text-foreground uppercase tracking-tight">Carga Masiva de Recibos</h2>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1">Registra la llegada de facturas de servicios públicos</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em] mt-0.5">Creación de inventario y avisos</p>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Tipo de Servicio *</label>
-                      <select value={formServicio} onChange={e => setFormServicio(e.target.value)} className="input-standard !py-3 uppercase cursor-pointer">
+                      <label className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Tipo de Servicio *</label>
+                      <select value={formServicio} onChange={e => setFormServicio(e.target.value)} className="input-standard !py-2.5 !text-[13px] uppercase cursor-pointer">
                         <option value="">Seleccione servicio...</option>
                         <option value="Agua / Acueducto">💧 Agua / Acueducto</option>
                         <option value="Energía / Luz">⚡ Energía / Luz</option>
@@ -802,8 +798,8 @@ export default function CorrespondenciaPage() {
                       </select>
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Mes de Facturación *</label>
-                      <select value={formMes} onChange={e => setFormMes(e.target.value)} className="input-standard !py-3 uppercase cursor-pointer">
+                      <label className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Mes de Facturación *</label>
+                      <select value={formMes} onChange={e => setFormMes(e.target.value)} className="input-standard !py-2.5 !text-[13px] uppercase cursor-pointer">
                         <option value="">Seleccione mes...</option>
                         {["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"].map(m => (
                           <option key={m} value={m}>{m}</option>
@@ -811,28 +807,42 @@ export default function CorrespondenciaPage() {
                       </select>
                     </div>
                     <div className="space-y-2">
-                       <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Año del Lote *</label>
-                       <input
-                         type="number"
-                         value={formAnio}
-                         onChange={e => setFormAnio(e.target.value)}
-                         className="input-standard !py-3 font-black"
-                         placeholder="Ej: 2026"
-                         min="2000"
-                         max="2100"
-                       />
-                       <p className="text-[9px] text-slate-400 italic px-1 uppercase tracking-tighter">Año al que corresponde la facturación.</p>
+                       <label className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Año del Lote *</label>
+                       <input type="number" value={formAnio} onChange={e => setFormAnio(e.target.value)} className="input-standard !py-2.5 !text-[13px] font-black" min="2000" max="2100" />
                      </div>
                      <div className="space-y-2">
-                       <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Cantidad Total Recibida *</label>
-                       <input type="number" value={formCantidad} onChange={e => setFormCantidad(e.target.value)} className="input-standard !py-3 font-black text-lg" placeholder="Ej: 300" />
-                       <p className="text-[9px] text-slate-400 italic px-1 uppercase tracking-tighter mt-1">El sistema creará un inventario de {formCantidad || '0'} facturas para entregar individualmente.</p>
+                       <label className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Cantidad Recibida *</label>
+                       <input type="number" value={formCantidad} onChange={e => setFormCantidad(e.target.value)} className="input-standard !py-2.5 !text-[14px] font-black" placeholder="Ej: 300" />
+                     </div>
+
+                     <div className="md:col-span-2 space-y-3 pt-2">
+                        <label className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Notificar automáticamente a:</label>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                           {tiposPersona.map(tipo => (
+                              <button
+                                 key={tipo.id}
+                                 onClick={() => toggleTipoSeleccionado(tipo.nombre)}
+                                 className={`flex items-center justify-between p-3 rounded-xl border-2 transition-all text-left ${
+                                    tiposSeleccionados.includes(tipo.nombre)
+                                       ? "border-emerald-500 bg-emerald-50/50 text-emerald-700"
+                                       : "border-border bg-background text-slate-500 hover:border-slate-300"
+                                 }`}
+                              >
+                                 <span className="text-[11px] font-black uppercase tracking-tight truncate pr-1">{tipo.nombre}</span>
+                                 <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                                    tiposSeleccionados.includes(tipo.nombre) ? "bg-emerald-500 border-emerald-500 text-white" : "border-slate-300"
+                                 }`}>
+                                    {tiposSeleccionados.includes(tipo.nombre) && <Check className="w-2.5 h-2.5" strokeWidth={5} />}
+                                 </div>
+                              </button>
+                           ))}
+                        </div>
                      </div>
                   </div>
 
                   <div className="flex gap-3 justify-end pt-4">
-                    <button onClick={() => setActiveTab("recibos")} className="px-8 py-3 bg-background border border-border text-slate-400 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-colors">Cancelar</button>
-                    <button onClick={handleCreateLoteRecibos} className="px-10 py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-emerald-100 hover:bg-emerald-700 transition-all active:scale-95">Crear Inventario</button>
+                    <button onClick={() => setActiveTab("recibos")} className="px-6 py-2.5 bg-background border border-border text-slate-400 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-all">Cancelar</button>
+                    <button onClick={handleCreateLoteRecibos} className="px-8 py-2.5 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-md shadow-emerald-100 hover:bg-emerald-700 transition-all active:scale-95">Crear Inventario</button>
                   </div>
                </div>
             </div>

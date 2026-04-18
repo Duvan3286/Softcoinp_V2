@@ -21,6 +21,7 @@ namespace Softcoinp.Backend.Dtos
         public string Mes { get; set; } = string.Empty;
         public int Anio { get; set; }
         public int TotalRecibidos { get; set; }
+        public List<string>? TiposPersonaDestinatarios { get; set; }
     }
 
     public class RegisterEntregaReciboDto

@@ -558,39 +558,58 @@ export default function DashboardPage() {
       return;
     }
 
-    // Validaciones específicas
-    if (telefono && telefono.length !== 10) {
-      setCamposErrores(["telefono"]);
-      showModal("El teléfono debe tener exactamente 10 dígitos.", "error", "Error de Validación");
-      return;
+    const errors: string[] = [];
+
+    // Validaciones específicas conforme al DTO del Backend
+    if (telefono && !/^\d{10}$/.test(telefono)) {
+      errors.push("telefono");
     }
 
     if (email && !validateEmail(email)) {
-      setCamposErrores(["email"]);
-      showModal("El formato del correo electrónico no es válido.", "error", "Error de Validación");
+      errors.push("email");
+    }
+
+    if (placa && !/^[A-Z0-9]{6}$/i.test(placa)) {
+      errors.push("placa");
+    }
+
+    if (modelo && !/^\d{4}$/.test(modelo)) {
+      errors.push("modelo");
+    }
+
+    if (errors.length > 0) {
+      setCamposErrores(errors);
+      let msg = "Existen errores de validación:";
+      if (errors.includes("telefono")) msg += "\n- El teléfono debe tener 10 dígitos.";
+      if (errors.includes("email")) msg += "\n- El formato de correo no es válido.";
+      if (errors.includes("placa")) msg += "\n- La placa debe tener 6 caracteres alfanuméricos.";
+      if (errors.includes("modelo")) msg += "\n- El modelo debe tener 4 dígitos.";
+      
+      showModal(msg, "error", "Error de Validación");
       return;
     }
 
     try {
       setLoadingTipos(true);
       await registroService.actualizarDatos({
-        nombre: nombres,
-        apellido: apellidos,
+        nombre: nombres || null,
+        apellido: apellidos || null,
         documento: identificacion,
-        telefono: telefono,
-        email: email,
-        tipo,
-        foto: fotoBase64 || undefined,
-        placa,
-        marca,
-        modelo,
-        color,
-        tipoVehiculo,
-        fotoVehiculo: fotoVehiculoBase64 || undefined,
+        telefono: telefono || null,
+        email: email || null,
+        tipo: tipo || "visitante",
+        foto: fotoBase64 || null,
+        placa: placa ? placa.toUpperCase().trim() : null,
+        marca: marca || null,
+        modelo: modelo || null,
+        color: color || null,
+        tipoVehiculo: tipoVehiculo || null,
+        fotoVehiculo: fotoVehiculoBase64 || null,
       });
 
       const resumen = "✅ Información sincronizada correctamente.";
       showModal(resumen, "success");
+      setCamposErrores([]);
       handleBuscar();
     } catch (err: any) {
       console.error("Error al actualizar datos:", err);

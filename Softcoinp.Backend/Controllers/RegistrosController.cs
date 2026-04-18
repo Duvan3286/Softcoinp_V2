@@ -77,8 +77,8 @@ namespace Softcoinp.Backend.Controllers
             persona.Nombre = string.IsNullOrWhiteSpace(input.Nombre) ? persona.Nombre : input.Nombre;
             persona.Apellido = string.IsNullOrWhiteSpace(input.Apellido) ? persona.Apellido : input.Apellido;
             persona.Tipo = string.IsNullOrWhiteSpace(input.Tipo) ? persona.Tipo : input.Tipo;
-            persona.Telefono = input.Telefono ?? persona.Telefono;
-            persona.Email = input.Email ?? persona.Email;
+            persona.Telefono = input.Telefono;
+            persona.Email = input.Email;
             if (!string.IsNullOrWhiteSpace(fotoUrlPersonal))
                 persona.FotoUrl = fotoUrlPersonal;
 
@@ -600,8 +600,8 @@ namespace Softcoinp.Backend.Controllers
                 persona.Nombre = string.IsNullOrWhiteSpace(input.Nombre) ? persona.Nombre : input.Nombre;
                 persona.Apellido = string.IsNullOrWhiteSpace(input.Apellido) ? persona.Apellido : input.Apellido;
                 persona.Tipo = string.IsNullOrWhiteSpace(input.Tipo) ? persona.Tipo : input.Tipo;
-                persona.Telefono = input.Telefono ?? persona.Telefono;
-                persona.Email = input.Email ?? persona.Email;
+                persona.Telefono = input.Telefono;
+                persona.Email = input.Email;
                 
                 if (!string.IsNullOrWhiteSpace(fotoUrlPersonal))
                     persona.FotoUrl = fotoUrlPersonal;

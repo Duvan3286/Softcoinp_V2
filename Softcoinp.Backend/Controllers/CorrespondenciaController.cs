@@ -14,10 +14,17 @@ namespace Softcoinp.Backend.Controllers
     public class CorrespondenciaController : ControllerBase
     {
         private readonly AppDbContext _db;
+        private readonly Softcoinp.Backend.Services.IEmailService _emailService;
+        private readonly IServiceScopeFactory _scopeFactory;
 
-        public CorrespondenciaController(AppDbContext db)
+        public CorrespondenciaController(
+            AppDbContext db, 
+            Softcoinp.Backend.Services.IEmailService emailService,
+            IServiceScopeFactory scopeFactory)
         {
             _db = db;
+            _emailService = emailService;
+            _scopeFactory = scopeFactory;
         }
 
         // GET: api/correspondencia?estado=en_espera&remitente=...&destinatario=...
@@ -95,6 +102,62 @@ namespace Softcoinp.Backend.Controllers
 
             _db.Correspondencias.Add(item);
             await _db.SaveChangesAsync();
+
+            // Lógica de Notificación por Correo (Segura en Segundo Plano)
+            _ = Task.Run(async () =>
+            {
+                using (var scope = _scopeFactory.CreateScope())
+                {
+                    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                    var logger = scope.ServiceProvider.GetRequiredService<ILogger<CorrespondenciaController>>();
+                    var emailSvc = scope.ServiceProvider.GetRequiredService<Softcoinp.Backend.Services.IEmailService>();
+
+                    try
+                    {
+                        // Normalizamos: quitamos espacios al inicio/final y pasamos a mayúsculas
+                        var destinatarioOriginal = item.Destinatario.Trim().ToUpper();
+                        // Creamos una versión sin NINGÚN espacio para comparación ultra-segura
+                        var destinatarioSinEspacios = destinatarioOriginal.Replace(" ", "");
+                        
+                        Console.WriteLine($"[NOTIFICACIÓN] Buscando coincidencia para: '{destinatarioOriginal}' (Sin espacios: '{destinatarioSinEspacios}')");
+
+                        // Buscamos en la base de datos
+                        // Comparamos Nombre + Apellido quitando todos los espacios
+                        var resident = await db.Personal
+                            .AsNoTracking()
+                            .Where(p => (p.Nombre + p.Apellido).Replace(" ", "").ToUpper() == destinatarioSinEspacios)
+                            .FirstOrDefaultAsync();
+
+                        if (resident != null)
+                        {
+                            if (!string.IsNullOrEmpty(resident.Email))
+                            {
+                                Console.WriteLine($"[NOTIFICACIÓN] ✅ MATCH ENCONTRADO: {resident.Nombre} {resident.Apellido} -> {resident.Email}");
+                                await emailSvc.NotifyNewCorrespondenceAsync(
+                                    resident.Email,
+                                    $"{resident.Nombre} {resident.Apellido}",
+                                    item.Remitente,
+                                    item.TipoDocumento ?? "Paquete",
+                                    item.NumeroGuia ?? "N/A"
+                                );
+                            }
+                            else
+                            {
+                                Console.WriteLine($"[NOTIFICACIÓN] ⚠️ PERSONA ENCONTRADA PERO NO TIENE EMAIL: {resident.Nombre} {resident.Apellido}");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[NOTIFICACIÓN] ❌ NO SE ENCONTRÓ NADIE QUE COINCIDA CON: {destinatarioOriginal}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[NOTIFICACIÓN] ERROR CRÍTICO: {ex.Message}");
+                        logger.LogError(ex, "Error crítico en el proceso de notificación de correspondencia.");
+                    }
+                }
+            });
 
             return Ok(ApiResponse<object>.SuccessResponse(new { id = item.Id }, "Correspondencia registrada correctamente."));
         }

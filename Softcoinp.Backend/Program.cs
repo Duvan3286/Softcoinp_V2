@@ -124,6 +124,9 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuditService, AuditService>();
 
+// Servicio de Correo Brevo
+builder.Services.AddHttpClient<Softcoinp.Backend.Services.IEmailService, BrevoEmailService>();
+
 // Servicios de Inteligencia de Datos y Reportes
 builder.Services.AddScoped<Softcoinp.Backend.Services.Reporting.IReportDataService, Softcoinp.Backend.Services.Reporting.ReportDataService>();
 builder.Services.AddScoped<Softcoinp.Backend.Services.Reporting.IPdfReportService, Softcoinp.Backend.Services.Reporting.PdfReportService>();

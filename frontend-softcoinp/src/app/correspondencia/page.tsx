@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { correspondenciaService, CorrespondenciaDto } from "@/services/correspondenciaService";
 import { recibosPublicosService, ReciboPublicoDto, EntregaReciboDto } from "@/services/recibosPublicosService";
+import { personalService } from "@/services/personalService";
 import CustomModal, { ModalType } from "@/components/CustomModal";
 import { getCurrentUser, UserPayload } from "@/utils/auth";
 import dayjs from "dayjs";
@@ -16,7 +17,8 @@ import {
   Clock, 
   Search, 
   ArrowLeft,
-  X
+  X,
+  User
 } from "lucide-react";
 
 dayjs.locale("es");
@@ -36,6 +38,11 @@ export default function CorrespondenciaPage() {
   const [formTipoDoc, setFormTipoDoc] = useState("");
   const [formGuia, setFormGuia] = useState("");
   const [formDesc, setFormDesc] = useState("");
+
+  // --- ESTADOS BUSQUEDA RESIDENTE ---
+  const [buscandoResidente, setBuscandoResidente] = useState(false);
+  const [residenteResultados, setResidenteResultados] = useState<any[]>([]);
+  const [mostrarSugerencias, setMostrarSugerencias] = useState(false);
 
   // --- ESTADOS RECIBOS ---
   const [listaRecibos, setListaRecibos] = useState<ReciboPublicoDto[]>([]);
@@ -92,6 +99,42 @@ export default function CorrespondenciaPage() {
 
   const showModal = (msg: string, type: ModalType, title?: string, onConfirm?: () => void) => {
     setModal({ isOpen: true, message: msg, type, title: title || "Aviso", onConfirm });
+  };
+
+  // --- BUSQUEDA RESIDENTE ---
+  const [campoBusquedaActual, setCampoBusquedaActual] = useState<"paquete" | "recibo">("paquete");
+
+  const handleSearchResidente = async (termino: string, campo: "paquete" | "recibo") => {
+    if (campo === "paquete") setFormDestinatario(termino);
+    else setResidenteNombre(termino);
+
+    setCampoBusquedaActual(campo);
+
+    if (termino.length < 2) {
+      setResidenteResultados([]);
+      setMostrarSugerencias(false);
+      return;
+    }
+
+    try {
+      setBuscandoResidente(true);
+      const res = await personalService.buscarPorNombre(termino);
+      setResidenteResultados(res.data || []);
+      setMostrarSugerencias(true);
+    } catch (error) {
+      console.error("Error buscando residente:", error);
+    } finally {
+      setBuscandoResidente(false);
+    }
+  };
+
+  const handleSelectResidente = (p: any) => {
+    const nombreCompleto = `${p.nombre} ${p.apellido}`.toUpperCase();
+    if (campoBusquedaActual === "paquete") setFormDestinatario(nombreCompleto);
+    else setResidenteNombre(nombreCompleto);
+    
+    setResidenteResultados([]);
+    setMostrarSugerencias(false);
   };
 
   // --- LÓGICA PAQUETES ---
@@ -241,9 +284,46 @@ export default function CorrespondenciaPage() {
                 </button>
               </div>
               <div className="p-5 space-y-4">
-                <div>
+                <div className="relative">
                   <label className="block text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase mb-1 tracking-widest">Nombre del Residente *</label>
-                  <input type="text" value={residenteNombre} onChange={e => setResidenteNombre(e.target.value)} className="input-standard !text-[10px]" placeholder="Nombre Completo" />
+                  <div className="relative">
+                    <input 
+                      type="text" 
+                      value={residenteNombre} 
+                      onChange={e => handleSearchResidente(e.target.value, "recibo")} 
+                      onFocus={() => residenteNombre.length >= 2 && setMostrarSugerencias(true)}
+                      onBlur={() => setTimeout(() => setMostrarSugerencias(false), 200)}
+                      className="input-standard !text-[10px] pr-8" 
+                      placeholder="Nombre Completo" 
+                    />
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400">
+                      {buscandoResidente && campoBusquedaActual === "recibo" ? (
+                        <div className="w-3 h-3 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
+                      ) : (
+                        <Search className="w-3.5 h-3.5" />
+                      )}
+                    </div>
+                  </div>
+
+                  {mostrarSugerencias && campoBusquedaActual === "recibo" && residenteResultados.length > 0 && (
+                    <div className="absolute z-50 w-full mt-1 bg-card border border-border rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                      <div className="max-h-48 overflow-y-auto custom-scrollbar">
+                        {residenteResultados.map((p) => (
+                          <button
+                            key={p.id}
+                            onClick={() => handleSelectResidente(p)}
+                            className="w-full flex items-center gap-2 p-2 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors border-b border-border last:border-0 text-left"
+                          >
+                            <User className="w-3 h-3 text-emerald-600" />
+                            <div>
+                              <p className="text-[10px] font-black text-foreground uppercase leading-tight">{p.nombre} {p.apellido}</p>
+                              <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">DOC: {p.documento}</p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="block text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase mb-1 tracking-widest">Apartamento / Torre *</label>
@@ -612,9 +692,60 @@ export default function CorrespondenciaPage() {
                       <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Empresa / Remitente *</label>
                       <input type="text" value={formRemitente} onChange={e => setFormRemitente(e.target.value)} className="input-standard !py-3 uppercase" placeholder="Ej: Servientrega, Pizza Hut..." />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 relative">
                       <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Residente / Destino *</label>
-                      <input type="text" value={formDestinatario} onChange={e => setFormDestinatario(e.target.value)} className="input-standard !py-3 uppercase" placeholder="Ej: Apto 502, Administración..." />
+                      <div className="relative">
+                        <input 
+                          type="text" 
+                          value={formDestinatario} 
+                          onChange={e => handleSearchResidente(e.target.value, "paquete")} 
+                          onFocus={() => formDestinatario.length >= 2 && setMostrarSugerencias(true)}
+                          onBlur={() => setTimeout(() => setMostrarSugerencias(false), 200)}
+                          className="input-standard !py-3 uppercase pr-10" 
+                          placeholder="Ej: Apto 502, Administración..." 
+                        />
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+                          {buscandoResidente ? (
+                            <div className="w-4 h-4 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
+                          ) : (
+                            <Search className="w-4 h-4" />
+                          )}
+                        </div>
+                      </div>
+
+                      {mostrarSugerencias && residenteResultados.length > 0 && (
+                        <div className="absolute z-50 w-full mt-1 bg-card border border-border rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                          <div className="max-h-60 overflow-y-auto custom-scrollbar">
+                            {residenteResultados.map((p) => (
+                              <button
+                                key={p.id}
+                                onClick={() => handleSelectResidente(p)}
+                                className="w-full flex items-center gap-3 p-3 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors border-b border-border last:border-0 text-left"
+                              >
+                                <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-600">
+                                  <User className="w-4 h-4" />
+                                </div>
+                                <div>
+                                  <p className="text-[11px] font-black text-foreground uppercase leading-tight">{p.nombre} {p.apellido}</p>
+                                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">DOC: {p.documento}</p>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {mostrarSugerencias && residenteResultados.length === 0 && formDestinatario.length >= 2 && !buscandoResidente && (
+                        <div className="absolute z-50 w-full mt-1 bg-card border border-border rounded-xl shadow-xl p-4 text-center animate-in fade-in zoom-in-95 duration-200">
+                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">No se encontraron residentes</p>
+                           <button 
+                             onClick={() => setMostrarSugerencias(false)}
+                             className="mt-2 text-[9px] font-black text-emerald-600 uppercase"
+                           >
+                             Cerrar
+                           </button>
+                        </div>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Tipo de Envío</label>

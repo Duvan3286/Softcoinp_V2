@@ -721,7 +721,7 @@ export default function CorrespondenciaPage() {
                         </div>
                       </div>
 
-                      {mostrarSugerencias && residenteResultados.length > 0 && (
+                      {mostrarSugerencias && campoBusquedaActual === "paquete" && residenteResultados.length > 0 && (
                         <div className="absolute z-50 w-full mt-1 bg-card border border-border rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                           <div className="max-h-60 overflow-y-auto custom-scrollbar">
                             {residenteResultados.map((p) => (
@@ -740,6 +740,12 @@ export default function CorrespondenciaPage() {
                               </button>
                             ))}
                           </div>
+                        </div>
+                      )}
+
+                      {mostrarSugerencias && campoBusquedaActual === "paquete" && residenteResultados.length === 0 && formDestinatario.length >= 2 && !buscandoResidente && (
+                        <div className="absolute z-50 w-full mt-1 bg-card border border-border rounded-xl shadow-xl p-4 text-center animate-in fade-in zoom-in-95 duration-200">
+                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">No se encontraron resultados</p>
                         </div>
                       )}
                     </div>

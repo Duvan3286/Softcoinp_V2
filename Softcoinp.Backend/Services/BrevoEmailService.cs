@@ -23,19 +23,26 @@ namespace Softcoinp.Backend.Services
             _config = config;
             _logger = logger;
             _serviceProvider = serviceProvider;
+            _httpClient.BaseAddress = new Uri("https://api.brevo.com/v3/");
+        }
 
-            // Intentar leer de variable de entorno (prioridad) o appsettings.json
-            var apiKey = Environment.GetEnvironmentVariable("BREVO_API_KEY") ?? _config["Brevo:ApiKey"];
+        private async Task<bool> ConfigureHttpClientAsync(AppDbContext db)
+        {
+            // Intentar obtener de BD
+            var dbApiKey = (await db.SystemSettings.FirstOrDefaultAsync(s => s.Key == "BrevoApiKey"))?.Value;
             
+            // Si no está en BD, intentar de Variable de Entorno
+            var apiKey = !string.IsNullOrEmpty(dbApiKey) ? dbApiKey : Environment.GetEnvironmentVariable("BREVO_API_KEY") ?? _config["Brevo:ApiKey"];
+
             if (string.IsNullOrEmpty(apiKey) || apiKey == "USAR_VARIABLE_DE_ENTORNO")
             {
-                _logger.LogWarning("Brevo API Key no configurada. Configure la variable de entorno 'BREVO_API_KEY'.");
+                _logger.LogWarning("Brevo API Key no configurada.");
+                return false;
             }
-            else
-            {
-                _httpClient.DefaultRequestHeaders.Add("api-key", apiKey);
-                _httpClient.BaseAddress = new Uri("https://api.brevo.com/v3/");
-            }
+
+            _httpClient.DefaultRequestHeaders.Remove("api-key");
+            _httpClient.DefaultRequestHeaders.Add("api-key", apiKey);
+            return true;
         }
 
         public async Task<bool> SendEmailAsync(string toEmail, string toName, string subject, string htmlContent)
@@ -45,10 +52,12 @@ namespace Softcoinp.Backend.Services
                 string senderEmail = "no-reply@softcoinp.com";
                 string senderName = "Softcoinp - Portería";
 
-                // Obtener configuración desde la base de datos (SystemSettings)
                 using (var scope = _serviceProvider.CreateScope())
                 {
                     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                    
+                    if (!await ConfigureHttpClientAsync(db)) return false;
+
                     var settings = await db.SystemSettings
                         .Where(s => s.Key == "SmtpEmail" || s.Key == "ClientName")
                         .ToListAsync();

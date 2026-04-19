@@ -20,6 +20,7 @@ export default function MantenimientoHubPage() {
   const [saving, setSaving] = useState(false);
   const [smtpEmail, setSmtpEmail] = useState("");
   const [smtpPassword, setSmtpPassword] = useState("");
+  const [brevoApiKey, setBrevoApiKey] = useState("");
   const [modal, setModal] = useState({ 
     isOpen: false, 
     title: "", 
@@ -38,28 +39,31 @@ export default function MantenimientoHubPage() {
     settingsService.getSystemVersion().then(setSystemVersion);
     settingsService.getClientName().then(setClientName);
 
-    // Cargar config SMTP
+    // Cargar config SMTP y Brevo
     api.get("/Settings").then(res => {
         const settings = (res.data as any).data || [];
         const email = settings.find((s:any) => s.key === "SmtpEmail")?.value || "";
         const pass = settings.find((s:any) => s.key === "SmtpPassword")?.value || "";
+        const brevo = settings.find((s:any) => s.key === "BrevoApiKey")?.value || "";
         setSmtpEmail(email);
         setSmtpPassword(pass);
+        setBrevoApiKey(brevo);
     });
   }, [router]);
 
-  const handleUpdateSmtpConfig = async () => {
-    if (!smtpEmail.trim() || !smtpPassword.trim()) {
-      showModal("Correo y Contraseña son obligatorios.", "warning");
+  const handleUpdateMessagingConfig = async () => {
+    if (!smtpEmail.trim()) {
+      showModal("El correo emisor es obligatorio.", "warning");
       return;
     }
     setSaving(true);
     try {
       await settingsService.update({ key: "SmtpEmail", value: smtpEmail });
       await settingsService.update({ key: "SmtpPassword", value: smtpPassword });
-      showModal("✅ Configuración de Gmail guardada con éxito.", "success");
+      await settingsService.update({ key: "BrevoApiKey", value: brevoApiKey });
+      showModal("✅ Configuración de mensajería guardada con éxito.", "success");
     } catch (err: any) {
-      showModal("❌ Error al guardar configuración SMTP.", "error");
+      showModal("❌ Error al guardar configuración.", "error");
     } finally {
       setSaving(false);
     }
@@ -309,42 +313,55 @@ export default function MantenimientoHubPage() {
         <section className="bg-card border border-cyan-500/30 rounded-xl p-6 lg:p-8 shadow-sm">
             <div className="flex items-center gap-4 mb-6">
                 <div className="w-12 h-12 bg-cyan-100 dark:bg-cyan-900/40 text-cyan-600 rounded-xl flex items-center justify-center shrink-0"><Mail className="w-6 h-6" /></div>
-                <h2 className="text-sm font-black text-foreground uppercase tracking-tight">Configuración de Mensajería (Gmail)</h2>
+                <h2 className="text-sm font-black text-foreground uppercase tracking-tight">Configuración de Mensajería</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Correo Emisor</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Correo Emisor (Gmail/Brevo)</label>
                     <input 
                         type="email" 
-                        placeholder="tu-cuenta@gmail.com"
+                        placeholder="ej: porteria@softcoinp.com"
                         value={smtpEmail} 
                         onChange={(e) => setSmtpEmail(e.target.value)} 
                         className="w-full px-4 py-3 bg-input border border-border rounded-xl text-xs font-black outline-none focus:border-cyan-500 transition-all" 
                     />
                 </div>
                 <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Contraseña de Aplicación</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Contraseña de Aplicación (Gmail)</label>
+                    <input 
+                        type="password" 
+                        placeholder="•••• •••• •••• ••••"
+                        value={smtpPassword} 
+                        onChange={(e) => setSmtpPassword(e.target.value)} 
+                        className="w-full px-4 py-3 bg-input border border-border rounded-xl text-xs font-black outline-none focus:border-cyan-500 transition-all" 
+                    />
+                </div>
+                <div className="md:col-span-2 space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Brevo API Key (Notificaciones Automáticas)</label>
                     <div className="flex gap-2">
                         <input 
                             type="password" 
-                            placeholder="•••• •••• •••• ••••"
-                            value={smtpPassword} 
-                            onChange={(e) => setSmtpPassword(e.target.value)} 
+                            placeholder="xkeysib-..."
+                            value={brevoApiKey} 
+                            onChange={(e) => setBrevoApiKey(e.target.value)} 
                             className="w-full px-4 py-3 bg-input border border-border rounded-xl text-xs font-black outline-none focus:border-cyan-500 transition-all" 
                         />
                         <button 
-                            onClick={handleUpdateSmtpConfig} 
+                            onClick={handleUpdateMessagingConfig} 
                             disabled={saving} 
-                            className="bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-sm active:scale-95 disabled:opacity-50"
+                            className="bg-cyan-600 hover:bg-cyan-700 text-white px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-sm active:scale-95 disabled:opacity-50"
                         >
-                            {saving ? "..." : "Guardar"}
+                            {saving ? "..." : "Guardar Todo"}
                         </button>
                     </div>
                 </div>
             </div>
-            <p className="mt-4 text-[9px] font-bold text-slate-400 uppercase leading-relaxed opacity-70">
-                ⚠️ IMPORTANTE: Utiliza una "Contraseña de Aplicación" generada en tu cuenta de Google. No uses tu contraseña personal.
-            </p>
+            <div className="mt-4 p-4 bg-cyan-50/30 dark:bg-cyan-900/10 rounded-xl border border-cyan-100/50 dark:border-cyan-900/30">
+               <p className="text-[9px] font-bold text-slate-400 uppercase leading-relaxed">
+                  💡 <strong>Gmail:</strong> Requiere "Contraseña de Aplicación". Se usa para reportes manuales.<br/>
+                  💡 <strong>Brevo:</strong> Se usa para avisos automáticos de correspondencia y recibos.
+               </p>
+            </div>
         </section>
 
 

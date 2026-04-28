@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Softcoinp.Backend.Dtos;
@@ -74,12 +74,12 @@ namespace Softcoinp.Backend.Controllers
             persona.MotivoBloqueo = input.Motivo;
             persona.FechaBloqueoUtc = DateTime.UtcNow;
 
-            // 2. Crear Anotación automática para historial
+            // 2. Crear AnotaciÃ³n automÃ¡tica para historial
             var anotacion = new Anotacion
             {
                 Id = Guid.NewGuid(),
                 PersonalId = persona.Id,
-                Texto = $"🚫 BLOQUEO DE SEGURIDAD: {input.Motivo}",
+                Texto = $"ðŸš« BLOQUEO DE SEGURIDAD: {input.Motivo}",
                 FechaCreacionUtc = DateTime.UtcNow,
                 RegistradoPor = userId
             };
@@ -115,12 +115,12 @@ namespace Softcoinp.Backend.Controllers
             persona.MotivoBloqueo = null;
             persona.FechaBloqueoUtc = null;
 
-            // 2. Crear Anotación automática para historial
+            // 2. Crear AnotaciÃ³n automÃ¡tica para historial
             var anotacion = new Anotacion
             {
                 Id = Guid.NewGuid(),
                 PersonalId = persona.Id,
-                Texto = $"🔓 DESBLOQUEO DE SEGURIDAD: {input.Motivo}",
+                Texto = $"ðŸ”“ DESBLOQUEO DE SEGURIDAD: {input.Motivo}",
                 FechaCreacionUtc = DateTime.UtcNow,
                 RegistradoPor = userId
             };
@@ -141,7 +141,7 @@ namespace Softcoinp.Backend.Controllers
                 return Ok(ApiResponse<object>.SuccessResponse(new List<object>()));
 
             var personas = await _db.Personal
-                .Where(p => EF.Functions.ILike(p.Nombre + " " + p.Apellido, $"%{termino}%") || p.Documento.StartsWith(termino))
+                .Where(p => EF.Functions.Like(p.Nombre + " " + p.Apellido, $"%{termino}%") || p.Documento.StartsWith(termino))
                 .Take(10)
                 .Select(p => new
                 {
@@ -162,3 +162,4 @@ namespace Softcoinp.Backend.Controllers
         public string Motivo { get; set; } = string.Empty;
     }
 }
+

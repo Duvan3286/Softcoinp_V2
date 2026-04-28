@@ -82,16 +82,16 @@ namespace Softcoinp.Backend.Controllers
                 queryable = queryable.Where(v => v.Personal.Documento.Contains(documento));
 
             if (!string.IsNullOrWhiteSpace(marca))
-                queryable = queryable.Where(v => EF.Functions.ILike(v.Marca, $"%{marca}%"));
+                queryable = queryable.Where(v => EF.Functions.Like(v.Marca, $"%{marca}%"));
 
             if (!string.IsNullOrWhiteSpace(modelo))
-                queryable = queryable.Where(v => EF.Functions.ILike(v.Modelo, $"%{modelo}%"));
+                queryable = queryable.Where(v => EF.Functions.Like(v.Modelo, $"%{modelo}%"));
 
             if (!string.IsNullOrWhiteSpace(tipoVehiculo))
                 queryable = queryable.Where(v => v.TipoVehiculo == tipoVehiculo);
 
             if (!string.IsNullOrWhiteSpace(color))
-                queryable = queryable.Where(v => EF.Functions.ILike(v.Color, $"%{color}%"));
+                queryable = queryable.Where(v => EF.Functions.Like(v.Color, $"%{color}%"));
 
             var vehiculos = await queryable
                 .OrderByDescending(v => v.FechaCreacionUtc)

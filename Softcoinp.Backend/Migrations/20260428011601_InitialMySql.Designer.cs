@@ -2,9 +2,9 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Softcoinp.Backend;
 
 #nullable disable
@@ -12,40 +12,40 @@ using Softcoinp.Backend;
 namespace Softcoinp.Backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260328210342_AddUserPermissions")]
-    partial class AddUserPermissions
+    [Migration("20260428011601_InitialMySql")]
+    partial class InitialMySql
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.9")
-                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+                .HasAnnotation("ProductVersion", "8.0.11")
+                .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
-            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+            MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
             modelBuilder.Entity("Softcoinp.Backend.Models.Anotacion", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("char(36)");
 
                     b.Property<DateTime>("FechaCreacionUtc")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<Guid?>("PersonalId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("char(36)");
 
                     b.Property<Guid>("RegistradoPor")
-                        .HasColumnType("uuid");
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("Texto")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<Guid?>("VehiculoId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("char(36)");
 
                     b.HasKey("Id");
 
@@ -60,32 +60,32 @@ namespace Softcoinp.Backend.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("Action")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Data")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Entity")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<Guid?>("EntityId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("IpAddress")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("UserAgent")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<Guid?>("UserId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("char(36)");
 
                     b.HasKey("Id");
 
@@ -96,97 +96,131 @@ namespace Softcoinp.Backend.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("Descripcion")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Destinatario")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<Guid?>("EntregadoPor")
-                        .HasColumnType("uuid");
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("Estado")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<DateTime?>("FechaEntregaLocal")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<DateTime?>("FechaEntregaUtc")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<DateTime>("FechaRecepcionLocal")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<DateTime>("FechaRecepcionUtc")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("NotaEntrega")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("NumeroGuia")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("RecibidoPor")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<Guid?>("RegistradoPor")
-                        .HasColumnType("uuid");
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("Remitente")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("TipoDocumento")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
                     b.ToTable("Correspondencias");
                 });
 
+            modelBuilder.Entity("Softcoinp.Backend.Models.EntregaRecibo", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Apartamento")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("FechaEntregaUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("ReciboPublicoId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("RegistradoPor")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ResidenteNombre")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReciboPublicoId");
+
+                    b.ToTable("EntregasRecibos");
+                });
+
             modelBuilder.Entity("Softcoinp.Backend.Models.Personal", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("Apellido")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Documento")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("longtext");
 
                     b.Property<DateTime?>("FechaBloqueoUtc")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<DateTime>("FechaCreacionUtc")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("FotoUrl")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<bool>("IsBloqueado")
-                        .HasColumnType("boolean");
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("MotivoBloqueo")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Telefono")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Tipo")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -196,73 +230,132 @@ namespace Softcoinp.Backend.Migrations
                     b.ToTable("Personal");
                 });
 
+            modelBuilder.Entity("Softcoinp.Backend.Models.ReciboPublico", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("Anio")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("FechaCreacionUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Mes")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Servicio")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("TotalEntregados")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalRecibidos")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("RecibosPublicos");
+                });
+
             modelBuilder.Entity("Softcoinp.Backend.Models.Registro", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("Apellido")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("ColorVehiculo")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
+
+                    b.Property<Guid?>("ConductorId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("ConductorNombre")
+                        .HasColumnType("longtext");
+
+                    b.Property<Guid?>("ConductorSalidaId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("ConductorSalidaNombre")
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Destino")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Documento")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("EmailPersona")
+                        .HasColumnType("longtext");
 
                     b.Property<string>("FotoUrl")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("FotoVehiculoUrl")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<DateTime>("HoraIngresoUtc")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<DateTime?>("HoraSalidaUtc")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("MarcaVehiculo")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("ModeloVehiculo")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Motivo")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<Guid>("PersonalId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("PlacaVehiculo")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<Guid?>("RegistradoPor")
-                        .HasColumnType("uuid");
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("TelefonoPersona")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Tipo")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("TipoVehiculo")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ConductorId");
+
+                    b.HasIndex("ConductorSalidaId");
+
+                    b.HasIndex("Documento");
+
+                    b.HasIndex("HoraIngresoUtc");
+
+                    b.HasIndex("HoraSalidaUtc");
 
                     b.HasIndex("PersonalId");
 
@@ -273,40 +366,56 @@ namespace Softcoinp.Backend.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("Color")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
+
+                    b.Property<Guid?>("ConductorId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("ConductorNombre")
+                        .HasColumnType("longtext");
+
+                    b.Property<Guid?>("ConductorSalidaId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("ConductorSalidaNombre")
+                        .HasColumnType("longtext");
 
                     b.Property<string>("FotoVehiculoUrl")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<DateTime>("HoraIngresoUtc")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<DateTime?>("HoraSalidaUtc")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Marca")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Modelo")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Placa")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<Guid?>("RegistradoPor")
-                        .HasColumnType("uuid");
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("TipoVehiculo")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<Guid?>("VehiculoId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("char(36)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ConductorId");
+
+                    b.HasIndex("ConductorSalidaId");
 
                     b.HasIndex("VehiculoId");
 
@@ -316,14 +425,14 @@ namespace Softcoinp.Backend.Migrations
             modelBuilder.Entity("Softcoinp.Backend.Models.SystemSetting", b =>
                 {
                     b.Property<string>("Key")
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Value")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.HasKey("Key");
 
@@ -334,15 +443,15 @@ namespace Softcoinp.Backend.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("char(36)");
 
                     b.Property<bool>("Activo")
-                        .HasColumnType("boolean");
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasColumnType("varchar(50)");
 
                     b.HasKey("Id");
 
@@ -367,33 +476,33 @@ namespace Softcoinp.Backend.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("char(36)");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("RefreshToken")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<DateTime>("RefreshTokenExpiry")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Role")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -404,17 +513,17 @@ namespace Softcoinp.Backend.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("char(36)");
 
                     b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("char(36)");
 
                     b.Property<Guid?>("UserId1")
-                        .HasColumnType("uuid");
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("ViewKey")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(255)");
 
                     b.HasKey("Id");
 
@@ -430,42 +539,45 @@ namespace Softcoinp.Backend.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("Color")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<DateTime>("FechaCreacionUtc")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("FotoUrl")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<bool>("IsBloqueado")
-                        .HasColumnType("boolean");
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("Marca")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Modelo")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("MotivoBloqueo")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<Guid>("PersonalId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("Placa")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("TipoVehiculo")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
                     b.HasIndex("PersonalId");
+
+                    b.HasIndex("Placa")
+                        .IsUnique();
 
                     b.ToTable("Vehiculos");
                 });
@@ -487,22 +599,61 @@ namespace Softcoinp.Backend.Migrations
                     b.Navigation("Vehiculo");
                 });
 
+            modelBuilder.Entity("Softcoinp.Backend.Models.EntregaRecibo", b =>
+                {
+                    b.HasOne("Softcoinp.Backend.Models.ReciboPublico", "ReciboPublico")
+                        .WithMany("Entregas")
+                        .HasForeignKey("ReciboPublicoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ReciboPublico");
+                });
+
             modelBuilder.Entity("Softcoinp.Backend.Models.Registro", b =>
                 {
+                    b.HasOne("Softcoinp.Backend.Models.Personal", "Conductor")
+                        .WithMany()
+                        .HasForeignKey("ConductorId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Softcoinp.Backend.Models.Personal", "ConductorSalida")
+                        .WithMany()
+                        .HasForeignKey("ConductorSalidaId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Softcoinp.Backend.Models.Personal", "Personal")
                         .WithMany("Registros")
                         .HasForeignKey("PersonalId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.Navigation("Conductor");
+
+                    b.Navigation("ConductorSalida");
+
                     b.Navigation("Personal");
                 });
 
             modelBuilder.Entity("Softcoinp.Backend.Models.RegistroVehiculo", b =>
                 {
+                    b.HasOne("Softcoinp.Backend.Models.Personal", "Conductor")
+                        .WithMany()
+                        .HasForeignKey("ConductorId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Softcoinp.Backend.Models.Personal", "ConductorSalida")
+                        .WithMany()
+                        .HasForeignKey("ConductorSalidaId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Softcoinp.Backend.Models.Vehiculo", "Vehiculo")
                         .WithMany()
                         .HasForeignKey("VehiculoId");
+
+                    b.Navigation("Conductor");
+
+                    b.Navigation("ConductorSalida");
 
                     b.Navigation("Vehiculo");
                 });
@@ -525,7 +676,7 @@ namespace Softcoinp.Backend.Migrations
             modelBuilder.Entity("Softcoinp.Backend.Models.Vehiculo", b =>
                 {
                     b.HasOne("Softcoinp.Backend.Models.Personal", "Personal")
-                        .WithMany()
+                        .WithMany("Vehiculos")
                         .HasForeignKey("PersonalId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -538,6 +689,13 @@ namespace Softcoinp.Backend.Migrations
                     b.Navigation("Anotaciones");
 
                     b.Navigation("Registros");
+
+                    b.Navigation("Vehiculos");
+                });
+
+            modelBuilder.Entity("Softcoinp.Backend.Models.ReciboPublico", b =>
+                {
+                    b.Navigation("Entregas");
                 });
 
             modelBuilder.Entity("Softcoinp.Backend.Models.User", b =>

@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Softcoinp.Backend.Models;
 using Softcoinp.Backend.Dtos; // Usaremos esta directiva para referenciar tus DTOs existentes (como CreateRegistroDto, UpdateRegistroDto, RegistroDto, etc.)
@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using ClosedXML.Excel;
 using System.Text;
 using Softcoinp.Backend.Exceptions;
-using System.IO; // 🆕 Necesario para System.IO.File y Path
+using System.IO; // ðŸ†• Necesario para System.IO.File y Path
 
 namespace Softcoinp.Backend.Controllers
 {
@@ -51,7 +51,7 @@ namespace Softcoinp.Backend.Controllers
                 catch { }
             }
 
-            // ---------- Procesar foto vehículo (opcional) ----------
+            // ---------- Procesar foto vehÃ­culo (opcional) ----------
             string? fotoUrlVehiculo = null;
             if (!string.IsNullOrWhiteSpace(input.FotoVehiculo) && !string.IsNullOrWhiteSpace(input.Placa))
             {
@@ -82,7 +82,7 @@ namespace Softcoinp.Backend.Controllers
             if (!string.IsNullOrWhiteSpace(fotoUrlPersonal))
                 persona.FotoUrl = fotoUrlPersonal;
 
-            // ---------- Actualizar Vehículo ----------
+            // ---------- Actualizar VehÃ­culo ----------
             if (!string.IsNullOrWhiteSpace(input.Placa))
             {
                 var placaNormalizada = input.Placa.ToUpper().Trim();
@@ -90,7 +90,7 @@ namespace Softcoinp.Backend.Controllers
                 
                 if (vehiculo != null)
                 {
-                    // Asegurar que el vehículo esté vinculado a esta persona
+                    // Asegurar que el vehÃ­culo estÃ© vinculado a esta persona
                     vehiculo.PersonalId = persona.Id;
 
                     vehiculo.Marca = string.IsNullOrWhiteSpace(input.Marca) ? vehiculo.Marca : input.Marca;
@@ -142,7 +142,7 @@ namespace Softcoinp.Backend.Controllers
             var tz = TimeZoneInfo.FindSystemTimeZoneById("SA Pacific Standard Time"); // Colombia
 
             if (!string.IsNullOrWhiteSpace(nombre))
-                query = query.Where(r => EF.Functions.ILike(r.Nombre, $"%{nombre}%"));
+                query = query.Where(r => EF.Functions.Like(r.Nombre, $"%{nombre}%"));
 
             if (!string.IsNullOrWhiteSpace(documento))
                 query = query.Where(r => r.Documento == documento);
@@ -163,12 +163,12 @@ namespace Softcoinp.Backend.Controllers
 
             var total = query.Count();
 
-            // 🛑 Cambio clave: Proyección a tipo anónimo para crear la estructura anidada "personal: {}"
+            // ðŸ›‘ Cambio clave: ProyecciÃ³n a tipo anÃ³nimo para crear la estructura anidada "personal: {}"
             var registros = query
                 .OrderByDescending(r => r.HoraIngresoUtc)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .Select(r => new // Tipo Anónimo
+                .Select(r => new // Tipo AnÃ³nimo
                 {
                     Id = r.Id,
                     Personal = new // Objeto anidado "personal"
@@ -202,7 +202,7 @@ namespace Softcoinp.Backend.Controllers
                 })
                 .ToList();
 
-            // Los contenedores de respuesta deben usar 'object' debido al tipo anónimo
+            // Los contenedores de respuesta deben usar 'object' debido al tipo anÃ³nimo
             var response = new PagedResponse<object>(registros.Cast<object>().ToList(), total, page, pageSize); 
             return Ok(ApiResponse<PagedResponse<object>>.SuccessResponse(response)); 
         }
@@ -212,8 +212,8 @@ namespace Softcoinp.Backend.Controllers
         public IActionResult GetById(Guid id)
         {
             // JOIN con Vehiculo por PersonalId (ID de la persona)
-            // Esto garantiza que se traiga el vehículo asociado en el sistema,
-            // no solo el del historial de este registro específico.
+            // Esto garantiza que se traiga el vehÃ­culo asociado en el sistema,
+            // no solo el del historial de este registro especÃ­fico.
             var result = (
                 from r in _db.Registros
                 join v in _db.Vehiculos on r.PersonalId equals v.PersonalId into vJoin
@@ -239,7 +239,7 @@ namespace Softcoinp.Backend.Controllers
                     IsBloqueado     = r.Personal!.IsBloqueado,
                     MotivoBloqueo   = r.Personal!.MotivoBloqueo,
                     r.PlacaVehiculo,
-                    // Si hay un vehículo maestro asociado, usamos su data; si no, la del historial
+                    // Si hay un vehÃ­culo maestro asociado, usamos su data; si no, la del historial
                     MarcaVehiculo   = v.Marca      ?? r.MarcaVehiculo,
                     ModeloVehiculo  = v.Modelo     ?? r.ModeloVehiculo,
                     ColorVehiculo   = v.Color      ?? r.ColorVehiculo,
@@ -292,19 +292,19 @@ namespace Softcoinp.Backend.Controllers
             if (string.IsNullOrWhiteSpace(documento))
                 return BadRequest(ApiResponse<RegistroDto>.Fail(null, "El documento es obligatorio"));
 
-            // 1. Buscar la persona (sin Include para evitar fallos de mapeo/esquema si no está sincronizado)
+            // 1. Buscar la persona (sin Include para evitar fallos de mapeo/esquema si no estÃ¡ sincronizado)
             var persona = await _db.Personal
                 .FirstOrDefaultAsync(p => p.Documento == documento);
 
             if (persona == null)
-                return NotFound(ApiResponse<RegistroDto>.Fail(null, "No se encontró una persona con ese documento"));
+                return NotFound(ApiResponse<RegistroDto>.Fail(null, "No se encontrÃ³ una persona con ese documento"));
 
-            // 2. Buscar vehículos asociados manualmente
+            // 2. Buscar vehÃ­culos asociados manualmente
             var listaVehiculos = await _db.Vehiculos
                 .Where(v => v.PersonalId == persona.Id)
                 .ToListAsync();
 
-            // 3. Buscar el último registro de entrada/salida
+            // 3. Buscar el Ãºltimo registro de entrada/salida
             var ultimoRegistro = await _db.Registros
                 .Where(r => r.PersonalId == persona.Id)
                 .OrderByDescending(r => r.HoraIngresoUtc)
@@ -332,7 +332,7 @@ namespace Softcoinp.Backend.Controllers
                 HoraSalidaUtc   = ultimoRegistro?.HoraSalidaUtc,
                 HoraSalidaLocal = ultimoRegistro?.HoraSalidaLocal,
 
-                // 🚗 LISTA DE TODOS LOS VEHÍCULOS (Cargada manualmente)
+                // ðŸš— LISTA DE TODOS LOS VEHÃCULOS (Cargada manualmente)
                 Vehiculos = listaVehiculos.Select(v => new VehiculoListDto
                 {
                     Id = v.Id,
@@ -373,14 +373,14 @@ namespace Softcoinp.Backend.Controllers
         // public async Task<IActionResult> Create([FromBody] CreateRegistroDto input)
         // {
         //     if (!ModelState.IsValid)
-        //         return BadRequest(ApiResponse<RegistroDto>.Fail(null, "Error de validación", ModelState));
+        //         return BadRequest(ApiResponse<RegistroDto>.Fail(null, "Error de validaciÃ³n", ModelState));
 
         //     // =================================================================
-        //     // 🆕 VALIDACIÓN DE FOTO OBLIGATORIA
+        //     // ðŸ†• VALIDACIÃ“N DE FOTO OBLIGATORIA
         //     // =================================================================
         //     if (string.IsNullOrWhiteSpace(input.Foto))
         //     {
-        //         return BadRequest(ApiResponse<RegistroDto>.Fail(null, "🛑 La fotografía de la persona es un requisito obligatorio para registrar la entrada."));
+        //         return BadRequest(ApiResponse<RegistroDto>.Fail(null, "ðŸ›‘ La fotografÃ­a de la persona es un requisito obligatorio para registrar la entrada."));
         //     }
         //     // =================================================================
 
@@ -388,11 +388,11 @@ namespace Softcoinp.Backend.Controllers
         //     string? fotoUrl = null; 
             
         //     // =================================================================
-        //     // 🆕 1. PROCESAR Y GUARDAR LA FOTO
+        //     // ðŸ†• 1. PROCESAR Y GUARDAR LA FOTO
         //     // =================================================================
         //     try
         //     {
-        //         // 🛑 PASO 1: Separar prefijo y decodificar Base64 a bytes
+        //         // ðŸ›‘ PASO 1: Separar prefijo y decodificar Base64 a bytes
         //         var base64Data = input.Foto;
         //         if (base64Data.StartsWith("data:"))
         //         {
@@ -401,7 +401,7 @@ namespace Softcoinp.Backend.Controllers
                 
         //         byte[] imageBytes = Convert.FromBase64String(base64Data);
 
-        //         // 🛑 PASO 2: Definir el nombre de archivo y la ruta
+        //         // ðŸ›‘ PASO 2: Definir el nombre de archivo y la ruta
         //         var extension = ".jpeg"; // Asumiendo JPEG por defecto
         //         var fileName = $"{input.Documento}_{DateTime.Now:yyyyMMddHHmmss}{extension}";
                 
@@ -415,15 +415,15 @@ namespace Softcoinp.Backend.Controllers
 
         //         var filePath = Path.Combine(uploadsFolder, fileName);
 
-        //         // 🛑 PASO 3: Guardar el archivo en el disco
+        //         // ðŸ›‘ PASO 3: Guardar el archivo en el disco
         //         await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
 
-        //         // 🛑 PASO 4: Guardar la ruta pública para la DB
+        //         // ðŸ›‘ PASO 4: Guardar la ruta pÃºblica para la DB
         //         fotoUrl = $"/uploads/registros/{fileName}";
         //     }
         //     catch (FormatException)
         //     {
-        //         return BadRequest(ApiResponse<RegistroDto>.Fail(null, "El formato de la imagen Base64 es inválido."));
+        //         return BadRequest(ApiResponse<RegistroDto>.Fail(null, "El formato de la imagen Base64 es invÃ¡lido."));
         //     }
         //     catch (IOException ex)
         //     {
@@ -432,12 +432,12 @@ namespace Softcoinp.Backend.Controllers
         //     // =================================================================
 
 
-        //     // 1️⃣ Buscar si la persona ya existe en la tabla Personal
+        //     // 1ï¸âƒ£ Buscar si la persona ya existe en la tabla Personal
         //     var persona = await _db.Personal.FirstOrDefaultAsync(p => p.Documento == input.Documento);
 
         //     if (persona == null)
         //     {
-        //         // 2️⃣ Si no existe, crearla
+        //         // 2ï¸âƒ£ Si no existe, crearla
         //         persona = new Personal
         //         {
         //             Id = Guid.NewGuid(),
@@ -450,7 +450,7 @@ namespace Softcoinp.Backend.Controllers
         //         await _db.SaveChangesAsync();
         //     }
 
-        //     // 3️⃣ Crear el registro de entrada asociado a esa persona
+        //     // 3ï¸âƒ£ Crear el registro de entrada asociado a esa persona
         //     var registro = new Registro
         //     {
         //         Id = Guid.NewGuid(),
@@ -462,7 +462,7 @@ namespace Softcoinp.Backend.Controllers
         //         Motivo = input.Motivo,
         //         Tipo = persona.Tipo,
         //         HoraIngresoUtc = nowUtc,
-        //         // 🆕 Asignar la URL de la foto
+        //         // ðŸ†• Asignar la URL de la foto
         //         FotoUrl = fotoUrl 
         //     };
 
@@ -473,7 +473,7 @@ namespace Softcoinp.Backend.Controllers
         //     _db.Registros.Add(registro);
         //     await _db.SaveChangesAsync();
 
-        //     // 4️⃣ Log opcional
+        //     // 4ï¸âƒ£ Log opcional
         //     try
         //     {
         //         await _audit.LogAsync("RegistroCreated", "Registro", registro.Id, new
@@ -489,7 +489,7 @@ namespace Softcoinp.Backend.Controllers
         //     }
         //     catch { }
 
-        //     // 5️⃣ Respuesta
+        //     // 5ï¸âƒ£ Respuesta
         //     var dto = new RegistroDto
         //     {
         //         Id = registro.Id,
@@ -504,12 +504,12 @@ namespace Softcoinp.Backend.Controllers
         //         HoraSalidaUtc = registro.HoraSalidaUtc,
         //         HoraSalidaLocal = registro.HoraSalidaLocal,
         //         RegistradoPor = registro.RegistradoPor,
-        //         // 🆕 Incluir la URL de la foto en la respuesta
+        //         // ðŸ†• Incluir la URL de la foto en la respuesta
         //         FotoUrl = registro.FotoUrl 
         //     };
 
         //     return CreatedAtAction(nameof(GetById), new { id = registro.Id },
-        //         ApiResponse<RegistroDto>.SuccessResponse(dto, "Registro creado con éxito"));
+        //         ApiResponse<RegistroDto>.SuccessResponse(dto, "Registro creado con Ã©xito"));
         // }
 
         
@@ -518,9 +518,9 @@ namespace Softcoinp.Backend.Controllers
         public async Task<IActionResult> Create([FromBody] CreateRegistroDto input)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ApiResponse<RegistroDto>.Fail(null, "Error de validación", ModelState));
+                return BadRequest(ApiResponse<RegistroDto>.Fail(null, "Error de validaciÃ³n", ModelState));
 
-            // Foto obligatoria solo si la persona es nueva o no tiene foto previa (se valida más abajo)
+            // Foto obligatoria solo si la persona es nueva o no tiene foto previa (se valida mÃ¡s abajo)
 
 
             var nowUtc = DateTime.UtcNow;
@@ -542,7 +542,7 @@ namespace Softcoinp.Backend.Controllers
                 }
                 catch (FormatException)
                 {
-                    return BadRequest(ApiResponse<RegistroDto>.Fail(null, "Formato de imagen Base64 inválido."));
+                    return BadRequest(ApiResponse<RegistroDto>.Fail(null, "Formato de imagen Base64 invÃ¡lido."));
                 }
                 catch (IOException ex)
                 {
@@ -550,7 +550,7 @@ namespace Softcoinp.Backend.Controllers
                 }
             }
 
-            // ---------- Procesar foto vehículo (opcional) ----------
+            // ---------- Procesar foto vehÃ­culo (opcional) ----------
             string? fotoUrlVehiculo = null;
             if (!string.IsNullOrWhiteSpace(input.FotoVehiculo))
             {
@@ -574,7 +574,7 @@ namespace Softcoinp.Backend.Controllers
             {
                 // Si es nuevo, la foto ES OBLIGATORIA
                 if (string.IsNullOrWhiteSpace(fotoUrlPersonal))
-                    return BadRequest(ApiResponse<RegistroDto>.Fail(null, "🛑 La fotografía es obligatoria para registrar personas nuevas."));
+                    return BadRequest(ApiResponse<RegistroDto>.Fail(null, "ðŸ›‘ La fotografÃ­a es obligatoria para registrar personas nuevas."));
 
                 persona = new Personal
                 {
@@ -593,9 +593,9 @@ namespace Softcoinp.Backend.Controllers
             }
             else
             {
-                // Si ya existe, validar que al menos tenga una foto previa si no mandó nueva
+                // Si ya existe, validar que al menos tenga una foto previa si no mandÃ³ nueva
                 if (string.IsNullOrWhiteSpace(persona.FotoUrl) && string.IsNullOrWhiteSpace(fotoUrlPersonal))
-                    return BadRequest(ApiResponse<RegistroDto>.Fail(null, "🛑 Esta persona no tiene foto. Debe capturar una para continuar."));
+                    return BadRequest(ApiResponse<RegistroDto>.Fail(null, "ðŸ›‘ Esta persona no tiene foto. Debe capturar una para continuar."));
 
                 persona.Nombre = string.IsNullOrWhiteSpace(input.Nombre) ? persona.Nombre : input.Nombre;
                 persona.Apellido = string.IsNullOrWhiteSpace(input.Apellido) ? persona.Apellido : input.Apellido;
@@ -611,7 +611,7 @@ namespace Softcoinp.Backend.Controllers
                 await _db.SaveChangesAsync();
             }
 
-            // ---------- Guardar/Actualizar Vehículo vinculado a Personal ----------
+            // ---------- Guardar/Actualizar VehÃ­culo vinculado a Personal ----------
             if (!string.IsNullOrWhiteSpace(input.Placa))
             {
                 var placaNormalizada = input.Placa.ToUpper().Trim();
@@ -660,7 +660,7 @@ namespace Softcoinp.Backend.Controllers
                 Tipo = persona.Tipo,
                 HoraIngresoUtc = nowUtc,
                 FotoUrl = persona.FotoUrl,
-                // Datos del vehículo para el historial
+                // Datos del vehÃ­culo para el historial
                 PlacaVehiculo = input.Placa?.ToUpper(),
                 MarcaVehiculo = input.Marca,
                 ModeloVehiculo = input.Modelo,
@@ -715,7 +715,7 @@ namespace Softcoinp.Backend.Controllers
             };
 
             return CreatedAtAction(nameof(GetById), new { id = registro.Id },
-                ApiResponse<RegistroDto>.SuccessResponse(dto, "Registro creado con éxito"));
+                ApiResponse<RegistroDto>.SuccessResponse(dto, "Registro creado con Ã©xito"));
         }
 
 
@@ -765,10 +765,10 @@ namespace Softcoinp.Backend.Controllers
                 HoraSalidaUtc = registro.HoraSalidaUtc,
                 HoraSalidaLocal = registro.HoraSalidaLocal,
                 RegistradoPor = registro.RegistradoPor,
-                FotoUrl = registro.FotoUrl // 🆕 Incluir FotoUrl
+                FotoUrl = registro.FotoUrl // ðŸ†• Incluir FotoUrl
             };
 
-            return Ok(ApiResponse<RegistroDto>.SuccessResponse(dto, "Salida registrada con éxito"));
+            return Ok(ApiResponse<RegistroDto>.SuccessResponse(dto, "Salida registrada con Ã©xito"));
         }
 
         [HttpPatch("{id}")]
@@ -814,7 +814,7 @@ namespace Softcoinp.Backend.Controllers
                 HoraSalidaUtc = registro.HoraSalidaUtc,
                 HoraSalidaLocal = registro.HoraSalidaLocal,
                 RegistradoPor = registro.RegistradoPor,
-                FotoUrl = registro.FotoUrl // 🆕 Incluir FotoUrl
+                FotoUrl = registro.FotoUrl // ðŸ†• Incluir FotoUrl
             };
 
             return Ok(ApiResponse<RegistroDto>.SuccessResponse(dto, "Registro actualizado correctamente"));
@@ -898,7 +898,7 @@ namespace Softcoinp.Backend.Controllers
             var query = _db.Registros.AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(nombre))
-                query = query.Where(r => EF.Functions.ILike(r.Nombre, $"%{nombre}%"));
+                query = query.Where(r => EF.Functions.Like(r.Nombre, $"%{nombre}%"));
 
             if (!string.IsNullOrWhiteSpace(documento))
                 query = query.Where(r => r.Documento == documento);
@@ -916,7 +916,7 @@ namespace Softcoinp.Backend.Controllers
 
             var tz = TimeZoneInfo.FindSystemTimeZoneById("SA Pacific Standard Time"); // Colombia
             var csv = new StringBuilder();
-            csv.AppendLine("Id;Nombre;Documento;Motivo;Destino;Tipo;FechaIngreso;HoraIngreso;FechaSalida;HoraSalida;RegistradoPor;FotoUrl"); // 🆕 Encabezado
+            csv.AppendLine("Id;Nombre;Documento;Motivo;Destino;Tipo;FechaIngreso;HoraIngreso;FechaSalida;HoraSalida;RegistradoPor;FotoUrl"); // ðŸ†• Encabezado
 
             foreach (var r in registros)
             {
@@ -929,7 +929,7 @@ namespace Softcoinp.Backend.Controllers
                                 $"{ingresoLocal:yyyy-MM-dd};{ingresoLocal:HH:mm:ss};" +
                                 $"{(salidaLocal.HasValue ? salidaLocal.Value.ToString("yyyy-MM-dd") : "")};" +
                                 $"{(salidaLocal.HasValue ? salidaLocal.Value.ToString("HH:mm:ss") : "")};" +
-                                $"{r.RegistradoPor};{r.FotoUrl}"); // 🆕 Datos
+                                $"{r.RegistradoPor};{r.FotoUrl}"); // ðŸ†• Datos
             }
 
             var bytes = Encoding.UTF8.GetBytes(csv.ToString());
@@ -955,17 +955,17 @@ namespace Softcoinp.Backend.Controllers
             var query = _db.Registros.AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(nombre))
-                query = query.Where(r => EF.Functions.ILike(r.Nombre, $"%{nombre}%"));
+                query = query.Where(r => EF.Functions.Like(r.Nombre, $"%{nombre}%"));
 
             if (!string.IsNullOrWhiteSpace(apellido))
-                query = query.Where(r => EF.Functions.ILike(r.Apellido, $"%{apellido}%"));
+                query = query.Where(r => EF.Functions.Like(r.Apellido, $"%{apellido}%"));
 
             if (!string.IsNullOrWhiteSpace(documento))
                 query = query.Where(r => r.Documento == documento);
 
             if (desde.HasValue)
             {
-                // Convertir inicio del día local a UTC (ej: 20-03 00:00 COL -> 20-03 05:00 UTC)
+                // Convertir inicio del dÃ­a local a UTC (ej: 20-03 00:00 COL -> 20-03 05:00 UTC)
                 var desdeLocal = DateTime.SpecifyKind(desde.Value.Date, DateTimeKind.Unspecified);
                 var desdeUtc = TimeZoneInfo.ConvertTimeToUtc(desdeLocal, tz);
                 query = query.Where(r => r.HoraIngresoUtc >= desdeUtc);
@@ -973,7 +973,7 @@ namespace Softcoinp.Backend.Controllers
 
             if (hasta.HasValue)
             {
-                // Convertir fin del día local a UTC (ej: 20-03 23:59 COL -> 21-03 04:59 UTC)
+                // Convertir fin del dÃ­a local a UTC (ej: 20-03 23:59 COL -> 21-03 04:59 UTC)
                 var hastaFinLocal = DateTime.SpecifyKind(hasta.Value.Date.AddDays(1), DateTimeKind.Unspecified);
                 var hastaFinUtc = TimeZoneInfo.ConvertTimeToUtc(hastaFinLocal, tz);
                 query = query.Where(r => r.HoraIngresoUtc < hastaFinUtc);
@@ -1016,7 +1016,7 @@ namespace Softcoinp.Backend.Controllers
             var clientSetting = await _db.SystemSettings.FirstOrDefaultAsync(s => s.Key == "ClientName");
             string clientName = clientSetting?.Value ?? "SOFTCOINP";
 
-            // 1. Título Principal (Banner Premium)
+            // 1. TÃ­tulo Principal (Banner Premium)
             var titleRange = worksheet.Range(1, 1, 1, 11);
             titleRange.Merge().Value = $"{clientName} - REPORTE GERENCIAL DE PERSONAS";
             titleRange.Style
@@ -1028,8 +1028,8 @@ namespace Softcoinp.Backend.Controllers
                 .Alignment.SetVertical(XLAlignmentVerticalValues.Center);
             worksheet.Row(1).Height = 35;
 
-            // 2. Información de Contexto
-            worksheet.Cell(2, 1).Value = "Rango de Búsqueda:";
+            // 2. InformaciÃ³n de Contexto
+            worksheet.Cell(2, 1).Value = "Rango de BÃºsqueda:";
             string rangoStr = (desde.HasValue ? desde.Value.ToString("yyyy-MM-dd") : "Inicio") + 
                              " hasta " + 
                              (hasta.HasValue ? hasta.Value.ToString("yyyy-MM-dd") : "Hoy");
@@ -1066,7 +1066,7 @@ namespace Softcoinp.Backend.Controllers
             }
             worksheet.Row(4).Height = 25;
 
-            // 4. Datos con Estilo Zebra y Límites
+            // 4. Datos con Estilo Zebra y LÃ­mites
             int row = 5;
             foreach (var r in registros)
             {
@@ -1112,7 +1112,7 @@ namespace Softcoinp.Backend.Controllers
                 rowRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                 rowRange.Style.Border.OutsideBorderColor = borderColor;
 
-                // Centrar columnas específicas
+                // Centrar columnas especÃ­ficas
                 worksheet.Cell(row, 1).Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
                 worksheet.Cell(row, 4).Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
                 worksheet.Cell(row, 5).Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
@@ -1130,9 +1130,9 @@ namespace Softcoinp.Backend.Controllers
                 row++;
             }
 
-            // 5. Ajustes Finales de Visualización
+            // 5. Ajustes Finales de VisualizaciÃ³n
             worksheet.Columns().AdjustToContents();
-            // Limitar ancho máximo de columna motivo para evitar excels demasiado anchos
+            // Limitar ancho mÃ¡ximo de columna motivo para evitar excels demasiado anchos
             worksheet.Column(10).Width = 40; 
             worksheet.Column(10).Style.Alignment.SetWrapText(true);
 

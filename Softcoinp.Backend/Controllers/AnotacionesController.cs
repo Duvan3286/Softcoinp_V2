@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Softcoinp.Backend.Dtos;
@@ -16,7 +16,7 @@ namespace Softcoinp.Backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize] // Todos los endpoints requieren autenticaciÃ³n
+    [Authorize] // Todos los endpoints requieren autenticaciÃƒÂ³n
     public class AnotacionesController : ControllerBase
     {
         private readonly AppDbContext _db;
@@ -62,10 +62,10 @@ namespace Softcoinp.Backend.Controllers
         public async Task<IActionResult> Create([FromBody] CreateAnotacionDto input)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ApiResponse<AnotacionDto>.Fail(null, "Error de validaciÃ³n", ModelState));
+                return BadRequest(ApiResponse<AnotacionDto>.Fail(null, "Error de validaciÃƒÂ³n", ModelState));
 
             if (!input.PersonalId.HasValue && !input.VehiculoId.HasValue)
-                return BadRequest(ApiResponse<AnotacionDto>.Fail(null, "Debe proporcionar un ID de Personal o un ID de VehÃ­culo."));
+                return BadRequest(ApiResponse<AnotacionDto>.Fail(null, "Debe proporcionar un ID de Personal o un ID de VehÃƒÂ­culo."));
 
             if (input.PersonalId.HasValue)
             {
@@ -78,7 +78,7 @@ namespace Softcoinp.Backend.Controllers
             {
                 var vehiculoExists = await _db.Vehiculos.AnyAsync(v => v.Id == input.VehiculoId);
                 if (!vehiculoExists)
-                    return NotFound(ApiResponse<AnotacionDto>.Fail(null, "VehÃ­culo no encontrado en el sistema."));
+                    return NotFound(ApiResponse<AnotacionDto>.Fail(null, "VehÃƒÂ­culo no encontrado en el sistema."));
             }
 
             var userIdClaim = User.FindFirst("id")?.Value;
@@ -119,7 +119,7 @@ namespace Softcoinp.Backend.Controllers
                 RegistradoPor = anotacion.RegistradoPor
             };
 
-            return Ok(ApiResponse<AnotacionDto>.SuccessResponse(dto, "AnotaciÃ³n guardada correctamente"));
+            return Ok(ApiResponse<AnotacionDto>.SuccessResponse(dto, "AnotaciÃƒÂ³n guardada correctamente"));
         }
 
         // GET: api/anotaciones/vehiculo/{vehiculoId}
@@ -194,10 +194,10 @@ namespace Softcoinp.Backend.Controllers
             {
                 var q = query.ToLower();
                 dbQuery = dbQuery.Where(a => 
-                    EF.Functions.ILike(a.Texto, $"%{q}%") || 
-                    EF.Functions.ILike(a.Personal!.Nombre, $"%{q}%") || 
-                    EF.Functions.ILike(a.Personal!.Apellido, $"%{q}%") ||
-                    EF.Functions.ILike(a.Personal!.Documento, $"%{q}%")
+                    EF.Functions.Like(a.Texto, $"%{q}%") || 
+                    EF.Functions.Like(a.Personal!.Nombre, $"%{q}%") || 
+                    EF.Functions.Like(a.Personal!.Apellido, $"%{q}%") ||
+                    EF.Functions.Like(a.Personal!.Documento, $"%{q}%")
                 );
             }
 
@@ -375,7 +375,7 @@ namespace Softcoinp.Backend.Controllers
                   .AllowElement(XLSheetProtectionElements.FormatColumns)
                   .AllowElement(XLSheetProtectionElements.FormatRows);
 
-            // 5. AUDITORÍA Y DESCARGA
+            // 5. AUDITORÃA Y DESCARGA
             using var stream = new MemoryStream();
             workbook.SaveAs(stream);
             try { await _audit.LogAsync("AnotacionesExportExcelEliteUnified", "Anotacion", null, new { ciudadanos = sujetosTot }); } catch { }
@@ -404,8 +404,8 @@ namespace Softcoinp.Backend.Controllers
             {
                 var q = query.ToLower();
                 dbQuery = dbQuery.Where(a => 
-                    EF.Functions.ILike(a.Texto, $"%{q}%") || 
-                    EF.Functions.ILike(a.Vehiculo!.Placa, $"%{q}%")
+                    EF.Functions.Like(a.Texto, $"%{q}%") || 
+                    EF.Functions.Like(a.Vehiculo!.Placa, $"%{q}%")
                 );
             }
 
@@ -583,11 +583,11 @@ namespace Softcoinp.Backend.Controllers
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateAnotacionDto input)
         {
             if (string.IsNullOrWhiteSpace(input.Texto))
-                return BadRequest(ApiResponse<AnotacionDto>.Fail(null, "El texto no puede estar vacÃ­o."));
+                return BadRequest(ApiResponse<AnotacionDto>.Fail(null, "El texto no puede estar vacÃƒÂ­o."));
 
             var anotacion = await _db.Anotaciones.FindAsync(id);
             if (anotacion == null)
-                return NotFound(ApiResponse<AnotacionDto>.Fail(null, "AnotaciÃ³n no encontrada."));
+                return NotFound(ApiResponse<AnotacionDto>.Fail(null, "AnotaciÃƒÂ³n no encontrada."));
 
             anotacion.Texto = input.Texto;
             await _db.SaveChangesAsync();
@@ -604,7 +604,7 @@ namespace Softcoinp.Backend.Controllers
                 RegistradoPor = anotacion.RegistradoPor
             };
 
-            return Ok(ApiResponse<AnotacionDto>.SuccessResponse(dto, "AnotaciÃ³n actualizada correctamente."));
+            return Ok(ApiResponse<AnotacionDto>.SuccessResponse(dto, "AnotaciÃƒÂ³n actualizada correctamente."));
         }
 
         // DELETE: api/anotaciones/{id}
@@ -614,15 +614,16 @@ namespace Softcoinp.Backend.Controllers
         {
             var anotacion = await _db.Anotaciones.FindAsync(id);
             if (anotacion == null)
-                return NotFound(ApiResponse<AnotacionDto>.Fail(null, "AnotaciÃ³n no encontrada."));
+                return NotFound(ApiResponse<AnotacionDto>.Fail(null, "AnotaciÃƒÂ³n no encontrada."));
 
             _db.Anotaciones.Remove(anotacion);
             await _db.SaveChangesAsync();
 
             try { await _audit.LogAsync("AnotacionDeleted", "Anotacion", id, new { anotacion.PersonalId, anotacion.VehiculoId }); } catch { }
 
-            return Ok(ApiResponse<object>.SuccessResponse(null!, "AnotaciÃ³n eliminada correctamente."));
+            return Ok(ApiResponse<object>.SuccessResponse(null!, "AnotaciÃƒÂ³n eliminada correctamente."));
         }
     }
 }
+
 

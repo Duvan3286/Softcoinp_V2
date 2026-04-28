@@ -10,8 +10,8 @@ RUN dotnet publish "Softcoinp.Backend.csproj" -c Release -o /app/publish
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 
-# INSTALACIÓN CRÍTICA: Cliente de PostgreSQL para pg_dump
-RUN apt-get update && apt-get install -y postgresql-client-15 && rm -rf /var/lib/apt/lists/*
+# INSTALACIÓN CRÍTICA: Cliente de MySQL para mysqldump
+RUN apt-get update && apt-get install -y default-mysql-client && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "Softcoinp.Backend.dll"]

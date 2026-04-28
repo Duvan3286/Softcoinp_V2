@@ -26,12 +26,6 @@ El sistema cuenta con una integración robusta para mantener informados a los re
 - **Aviso de Correspondencia**: Envío automático de correo cuando llega un paquete o sobre a nombre de un residente (requiere que el residente tenga su email registrado en el módulo de Personal).
 - **Aviso de Recibos Públicos**: Notificación masiva a grupos de personas (ej: Todos los Residentes) cuando se carga un nuevo lote de facturas de servicios públicos en la portería.
 
-### Configuración Necesaria
-Para habilitar los correos, se requiere:
-1.  **API Key de Brevo**: Configurada en la variable de entorno `BREVO_API_KEY` dentro del archivo `.env` o el entorno de ejecución.
-2.  **Remitente Verificado**: El correo emisor debe estar verificado en el panel de Brevo y configurarse en la vista de **Mantenimiento > Configuración de Mensajería** dentro del sistema.
-3.  **Nombre de la Institución**: El nombre del conjunto/edificio se toma automáticamente de **Mantenimiento > Identidad Visual**.
-
 ---
 
 ## 🏗️ Arquitectura y Stack Tecnológico
@@ -39,40 +33,41 @@ Para habilitar los correos, se requiere:
 El ecosistema se distribuye en una arquitectura desacoplada y dockerizada:
 
 ### 🎨 Frontend (`/frontend-softcoinp`)
-- **Framework**: Next.js 15+ (App Router) con TypeScript 6.
+- **Framework**: Next.js 16+ (App Router) con TypeScript 6.
+- **Entorno**: Dockerizado sobre **Debian Slim** para máxima compatibilidad con módulos nativos.
+- **Iconografía**: Lucide React.
 - **Estilos**: Tailwind CSS 4 con soporte para Modo Oscuro/Claro (`next-themes`).
 - **Estado y Datos**: Context API para estado global, Axios para consumo de APIs y Recharts para analítica.
-- **Convenciones**: Organización basada en carpetas por funcionalidades dentro de `src/app`.
 
 ### ⚙️ Backend (`/Softcoinp.Backend`)
 - **Framework**: ASP.NET Core 8.0 Web API.
-- **Base de Datos**: PostgreSQL 15 (Entity Framework Core).
+- **Base de Datos**: **MySQL 8.0** (Entity Framework Core con Pomelo Provider).
 - **Seguridad**: Autenticación JWT con políticas de validación estrictas.
-- **Optimización**: Compresión de respuestas (Brotli/Gzip) y procesamiento de fechas en UTC mediante middlewares.
-- **Patrones**: DTOs para transferencia de datos, filtros globales de validación y manejo centralizado de excepciones.
+- **Optimización**: Compresión de respuestas (Brotli/Gzip) y procesamiento de fechas en UTC.
 
 ### 🕒 Worker Service (`/Softcoinp.Worker`)
-- **Propósito**: Procesamiento de tareas en segundo plano, como generación de analíticas mensuales y tareas de mantenimiento programadas.
+- **Propósito**: Procesamiento de tareas en segundo plano (Analíticas mensuales, reportes automáticos).
+- **Base de Datos**: MySQL 8.0.
+
+---
+
+## 🛠️ Herramientas de Administración
+
+El entorno de desarrollo incluye herramientas integradas para la gestión de datos:
+
+- **phpMyAdmin**: Accesible en [http://localhost:8081](http://localhost:8081)
+  - **Servidor**: `db`
+  - **Usuario**: `root`
+  - **Contraseña**: `1234`
+- **Swagger UI**: Documentación interactiva de la API en [http://localhost:5100/swagger](http://localhost:5100/swagger).
 
 ---
 
 ## 📏 Reglas de Estilo y Convenciones de Código
 
-Para mantener la consistencia en el desarrollo, el proyecto sigue estas directrices:
-
-### General
-- **Internacionalización**: El backend maneja todas las fechas en formato UTC y utiliza conversores personalizados para asegurar consistencia en el JSON.
-- **Arquitectura de API**: Uso estricto de CamelCase para las respuestas JSON y manejo de `null` omitiendo campos no definidos.
-
-### Backend (C#)
-- **Validación**: Uso de `ValidationFilter` global para interceptar y estandarizar errores de `ModelState`.
-- **Estructura**: Separación clara entre `Models` (entidades de DB), `Dtos` (contratos de API) y `Controllers`.
-- **Inyección de Dependencias**: Configuración centralizada en `Program.cs`.
-
-### Frontend (TypeScript/React)
-- **Tipado**: Uso obligatorio de interfaces y tipos de TypeScript para todas las props y respuestas de API.
-- **Componentes**: Estilo funcional con Hooks. Preferencia por componentes de servidor cuando sea posible.
-- **CSS**: Utilidad de Tailwind para evitar CSS personalizado innecesario.
+- **Base de Datos**: Se utiliza `EF.Functions.Like` para búsquedas agnósticas (Case-Insensitive por defecto en MySQL).
+- **Mantenimiento**: El sistema de backups nativos utiliza `mysqldump` para generar volcados SQL compatibles.
+- **Fechas**: Almacenamiento estricto en UTC. El frontend realiza la conversión local según la zona horaria del cliente.
 
 ---
 
@@ -84,8 +79,10 @@ La forma recomendada de ejecutar SOFTCOINP es mediante **Docker Compose**.
 1.  Clonar el repositorio.
 2.  Ejecutar:
     ```bash
-    docker-compose up --build -d
+    docker compose up --build -d
     ```
+    *Nota: Si vienes de una versión anterior con PostgreSQL, es necesario ejecutar `docker compose down -v` primero para limpiar los volúmenes de datos antiguos.*
+
 3.  Acceso: [http://localhost:3000](http://localhost:3000)
 
 ### Credenciales Predeterminadas

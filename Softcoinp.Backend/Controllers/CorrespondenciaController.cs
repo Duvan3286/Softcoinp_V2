@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Softcoinp.Backend.Models;
 using Softcoinp.Backend.Dtos;
@@ -42,10 +42,10 @@ namespace Softcoinp.Backend.Controllers
                 query = query.Where(c => c.Estado == estado);
 
             if (!string.IsNullOrWhiteSpace(remitente))
-                query = query.Where(c => EF.Functions.ILike(c.Remitente, $"%{remitente}%"));
+                query = query.Where(c => EF.Functions.Like(c.Remitente, $"%{remitente}%"));
 
             if (!string.IsNullOrWhiteSpace(destinatario))
-                query = query.Where(c => EF.Functions.ILike(c.Destinatario, $"%{destinatario}%"));
+                query = query.Where(c => EF.Functions.Like(c.Destinatario, $"%{destinatario}%"));
 
             if (desde.HasValue)
                 query = query.Where(c => c.FechaRecepcionUtc >= desde.Value.Date);
@@ -103,7 +103,7 @@ namespace Softcoinp.Backend.Controllers
             _db.Correspondencias.Add(item);
             await _db.SaveChangesAsync();
 
-            // Lógica de Notificación por Correo (Segura en Segundo Plano)
+            // LÃ³gica de NotificaciÃ³n por Correo (Segura en Segundo Plano)
             _ = Task.Run(async () =>
             {
                 using (var scope = _scopeFactory.CreateScope())
@@ -114,12 +114,12 @@ namespace Softcoinp.Backend.Controllers
 
                     try
                     {
-                        // Normalizamos: quitamos espacios al inicio/final y pasamos a mayúsculas
+                        // Normalizamos: quitamos espacios al inicio/final y pasamos a mayÃºsculas
                         var destinatarioOriginal = item.Destinatario.Trim().ToUpper();
-                        // Creamos una versión sin NINGÚN espacio para comparación ultra-segura
+                        // Creamos una versiÃ³n sin NINGÃšN espacio para comparaciÃ³n ultra-segura
                         var destinatarioSinEspacios = destinatarioOriginal.Replace(" ", "");
                         
-                        Console.WriteLine($"[NOTIFICACIÓN] Buscando coincidencia para: '{destinatarioOriginal}' (Sin espacios: '{destinatarioSinEspacios}')");
+                        Console.WriteLine($"[NOTIFICACIÃ“N] Buscando coincidencia para: '{destinatarioOriginal}' (Sin espacios: '{destinatarioSinEspacios}')");
 
                         // Buscamos en la base de datos
                         // Comparamos Nombre + Apellido quitando todos los espacios
@@ -132,7 +132,7 @@ namespace Softcoinp.Backend.Controllers
                         {
                             if (!string.IsNullOrEmpty(resident.Email))
                             {
-                                Console.WriteLine($"[NOTIFICACIÓN] ✅ MATCH ENCONTRADO: {resident.Nombre} {resident.Apellido} -> {resident.Email}");
+                                Console.WriteLine($"[NOTIFICACIÃ“N] âœ… MATCH ENCONTRADO: {resident.Nombre} {resident.Apellido} -> {resident.Email}");
                                 await emailSvc.NotifyNewCorrespondenceAsync(
                                     resident.Email,
                                     $"{resident.Nombre} {resident.Apellido}",
@@ -143,18 +143,18 @@ namespace Softcoinp.Backend.Controllers
                             }
                             else
                             {
-                                Console.WriteLine($"[NOTIFICACIÓN] ⚠️ PERSONA ENCONTRADA PERO NO TIENE EMAIL: {resident.Nombre} {resident.Apellido}");
+                                Console.WriteLine($"[NOTIFICACIÃ“N] âš ï¸ PERSONA ENCONTRADA PERO NO TIENE EMAIL: {resident.Nombre} {resident.Apellido}");
                             }
                         }
                         else
                         {
-                            Console.WriteLine($"[NOTIFICACIÓN] ❌ NO SE ENCONTRÓ NADIE QUE COINCIDA CON: {destinatarioOriginal}");
+                            Console.WriteLine($"[NOTIFICACIÃ“N] âŒ NO SE ENCONTRÃ“ NADIE QUE COINCIDA CON: {destinatarioOriginal}");
                         }
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"[NOTIFICACIÓN] ERROR CRÍTICO: {ex.Message}");
-                        logger.LogError(ex, "Error crítico en el proceso de notificación de correspondencia.");
+                        Console.WriteLine($"[NOTIFICACIÃ“N] ERROR CRÃTICO: {ex.Message}");
+                        logger.LogError(ex, "Error crÃ­tico en el proceso de notificaciÃ³n de correspondencia.");
                     }
                 }
             });
@@ -167,7 +167,7 @@ namespace Softcoinp.Backend.Controllers
         public async Task<IActionResult> Entregar(Guid id, [FromBody] EntregarCorrespondenciaDto input)
         {
             if (string.IsNullOrWhiteSpace(input.RecibidoPor))
-                return BadRequest(ApiResponse<object>.Fail(null, "Debe indicar quién recibió la correspondencia."));
+                return BadRequest(ApiResponse<object>.Fail(null, "Debe indicar quiÃ©n recibiÃ³ la correspondencia."));
 
             var item = await _db.Correspondencias.FindAsync(id);
             if (item == null)
@@ -207,3 +207,4 @@ namespace Softcoinp.Backend.Controllers
         }
     }
 }
+

@@ -9,28 +9,28 @@ version: "3.9"
 services:
 
   # ──────────────────────────────────────────
-  # Base de datos PostgreSQL
+  # Base de datos MySQL
   # ──────────────────────────────────────────
   db:
-    image: postgres:15
-    container_name: postgres-softcoinp
+    image: mysql:8.0
+    container_name: mysql-softcoinp
+    command: --default-authentication-plugin=mysql_native_password
     restart: unless-stopped
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: "1234"
-      POSTGRES_DB: softcoinp
+      MYSQL_ROOT_PASSWORD: "1234"
+      MYSQL_DATABASE: softcoinp
     ports:
-      - "5432:5432"
+      - "3306:3306"
     volumes:
-      - db-data:/var/lib/postgresql/data
+      - db-data:/var/lib/mysql
     networks:
       - softcoinp-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d softcoinp"]
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost", "-u", "root", "-p1234"]
       interval: 10s
       timeout: 5s
-      retries: 5
-      start_period: 10s
+      retries: 10
+      start_period: 30s
 
   # ──────────────────────────────────────────
   # Backend — .NET 8 con dotnet watch (hot-reload)
@@ -45,7 +45,7 @@ services:
       - "5100:8080"
     environment:
       # La conexión interna usa el nombre de servicio 'db', no localhost
-      - ConnectionStrings__DefaultConnection=Host=db;Database=softcoinp;Username=postgres;Password=1234
+      - ConnectionStrings__DefaultConnection=Server=db;Database=softcoinp;User=root;Password=1234
       - BREVO_API_KEY=${BREVO_API_KEY}
       - ASPNETCORE_ENVIRONMENT=Development
       # Necesario para que dotnet watch detecte cambios de archivo en Windows (bind-mount)
@@ -84,13 +84,33 @@ services:
       - CHOKIDAR_USEPOLLING=true
       - NODE_OPTIONS=--max-old-space-size=2048
     volumes:
-      # Bind-mount del código fuente → hot-reload sin rebuild
+      # Bind-mount del código fuente
       - ./frontend-softcoinp:/app
-      # Volúmenes anónimos para proteger node_modules y la caché de Next.js del bind-mount
-      - frontend-node-modules:/app/node_modules
+      # Volumen para node_modules (V2 - Limpio)
+      - frontend-node-modules-v2:/app/node_modules
       - frontend-next-cache:/app/.next
     depends_on:
       - backend
+    networks:
+      - softcoinp-network
+
+  # ──────────────────────────────────────────
+  # phpMyAdmin — Administrador Web de DB
+  # ──────────────────────────────────────────
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: phpmyadmin-softcoinp
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOST=db
+      - PMA_USER=root
+      - PMA_PASSWORD=1234
+    depends_on:
+      db:
+        condition: service_healthy
     networks:
       - softcoinp-network
 
@@ -102,5 +122,5 @@ volumes:
   db-data:
   backend-obj:
   backend-bin:
-  frontend-node-modules:
+  frontend-node-modules-v2:
   frontend-next-cache:

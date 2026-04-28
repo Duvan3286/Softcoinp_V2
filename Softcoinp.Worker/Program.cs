@@ -10,10 +10,10 @@ var builder = Host.CreateApplicationBuilder(args);
 
 // 1. Configurar Base de Datos (Consumiendo AppDbContext del Backend)
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-    ?? "Host=db;Database=softcoinpdb;Username=postgres;Password=postgres";
+    ?? "Server=db;Database=softcoinpdb;User=root;Password=rootpassword";
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(connectionString));
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
 // 2. Registrar Servicios de Lógica de Negocio (SOLID)
 builder.Services.AddScoped<IReportDataService, ReportDataService>();

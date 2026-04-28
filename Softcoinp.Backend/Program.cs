@@ -38,9 +38,10 @@ builder.Services.Configure<BrotliCompressionProviderOptions>(o => o.Level = Syst
 builder.Services.Configure<GzipCompressionProviderOptions>(o => o.Level = System.IO.Compression.CompressionLevel.Fastest);
 
 
-// Conexión a PostgreSQL
+// Conexión a MySQL
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
 // Configuración de JWT
 var jwtSettings = builder.Configuration.GetSection("Jwt");

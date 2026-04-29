@@ -1,9 +1,7 @@
 version: "3.9"
 
 # ============================================================
-# DESARROLLO LOCAL — sin necesidad de rebuild al cambiar código
-# Uso: docker compose up --build   (solo la primera vez o al cambiar dependencias)
-#      docker compose up           (arranque rápido posterior)
+# SOFTCOINP — ORQUESTACIÓN MULTI-TENANT (DOCKER)
 # ============================================================
 
 services:
@@ -18,7 +16,8 @@ services:
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: "1234"
-      MYSQL_DATABASE: softcoinp
+      # Base de datos maestra (catálogo de tenants)
+      MYSQL_DATABASE: softcoinp_master
     ports:
       - "3306:3306"
     volumes:
@@ -33,7 +32,7 @@ services:
       start_period: 30s
 
   # ──────────────────────────────────────────
-  # Backend — .NET 8 con dotnet watch (hot-reload)
+  # Backend — .NET 8 Multi-tenant
   # ──────────────────────────────────────────
   backend:
     build:
@@ -44,17 +43,16 @@ services:
     ports:
       - "5100:8080"
     environment:
-      # La conexión interna usa el nombre de servicio 'db', no localhost
-      - ConnectionStrings__DefaultConnection=Server=db;Database=softcoinp;User=root;Password=1234
+      # Conexión a la base de datos maestra
+      - ConnectionStrings__MasterConnection=Server=db;Database=softcoinp_master;User=root;Password=1234
+      # Conexión por defecto (usada como template o fallback)
+      - ConnectionStrings__DefaultConnection=Server=db;Database=softcoinp_dev;User=root;Password=1234
       - BREVO_API_KEY=${BREVO_API_KEY}
       - ASPNETCORE_ENVIRONMENT=Development
-      # Necesario para que dotnet watch detecte cambios de archivo en Windows (bind-mount)
       - DOTNET_USE_POLLING_FILE_WATCHER=1
       - DOTNET_WATCH_SUPPRESS_BROWSER_REFRESH=1
     volumes:
-      # Bind-mount del código fuente → hot-reload sin rebuild
       - ./Softcoinp.Backend:/app
-      # Proteger directorios de compilación dentro del contenedor
       - backend-obj:/app/obj
       - backend-bin:/app/bin
     depends_on:
@@ -64,7 +62,7 @@ services:
       - softcoinp-network
 
   # ──────────────────────────────────────────
-  # Frontend — Next.js con Turbopack (hot-reload)
+  # Frontend — Next.js Multi-tenant
   # ──────────────────────────────────────────
   frontend:
     build:
@@ -75,27 +73,23 @@ services:
     ports:
       - "3000:3000"
     environment:
-      # NEXT_PUBLIC_* = variable que el BROWSER usa (debe apuntar a localhost del host)
+      # La URL base debe ser accesible desde el navegador del usuario
       - NEXT_PUBLIC_API_URL=http://localhost:5100/api
-      # Variable interna para SSR (server-side): usa el nombre de servicio Docker
       - INTERNAL_API_URL=http://backend:8080/api
-      # Polling para que Webpack/Turbopack detecte cambios en Windows (bind-mount)
       - WATCHPACK_POLLING=true
       - CHOKIDAR_USEPOLLING=true
       - NODE_OPTIONS=--max-old-space-size=2048
     volumes:
-      # Bind-mount del código fuente
       - ./frontend-softcoinp:/app
-      # Volumen para node_modules (V2 - Limpio)
-      - frontend-node-modules-v2:/app/node_modules
-      - frontend-next-cache:/app/.next
+      - frontend-node-modules-v3:/app/node_modules
+      - frontend-next-cache-v3:/app/.next
     depends_on:
       - backend
     networks:
       - softcoinp-network
 
   # ──────────────────────────────────────────
-  # phpMyAdmin — Administrador Web de DB
+  # phpMyAdmin
   # ──────────────────────────────────────────
   phpmyadmin:
     image: phpmyadmin:latest
@@ -122,5 +116,6 @@ volumes:
   db-data:
   backend-obj:
   backend-bin:
-  frontend-node-modules-v2:
-  frontend-next-cache:
+  # Incrementamos versiones de volúmenes para asegurar limpieza tras cambios estructurales
+  frontend-node-modules-v3:
+  frontend-next-cache-v3:

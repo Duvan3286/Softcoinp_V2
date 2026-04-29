@@ -1,11 +1,18 @@
 using Microsoft.EntityFrameworkCore;
 using Softcoinp.Backend.Models;
+using Softcoinp.Backend.Services;
 
 namespace Softcoinp.Backend
 {
     public class AppDbContext : DbContext
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+        private readonly ITenantProvider _tenantProvider;
+
+        public AppDbContext(DbContextOptions<AppDbContext> options, ITenantProvider tenantProvider) 
+            : base(options) 
+        {
+            _tenantProvider = tenantProvider;
+        }
 
         public DbSet<User> Users { get; set; }
         public DbSet<Registro> Registros { get; set; }
@@ -20,6 +27,19 @@ namespace Softcoinp.Backend
         public DbSet<UserPermission> UserPermissions { get; set; }
         public DbSet<ReciboPublico> RecibosPublicos { get; set; }
         public DbSet<EntregaRecibo> EntregasRecibos { get; set; }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            if (_tenantProvider != null)
+            {
+                var connectionString = _tenantProvider.GetConnectionString();
+                if (!string.IsNullOrEmpty(connectionString))
+                {
+                    optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+                }
+            }
+            base.OnConfiguring(optionsBuilder);
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -57,14 +77,14 @@ namespace Softcoinp.Backend
             // Relación Vehiculo - Anotacion
             modelBuilder.Entity<Anotacion>()
                 .HasOne(a => a.Vehiculo)
-                .WithMany() // Opcional: podrías agregar ICollection<Anotacion> en Vehiculo
+                .WithMany()
                 .HasForeignKey(a => a.VehiculoId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Relación 1:N entre Personal y Vehiculo
             modelBuilder.Entity<Vehiculo>()
                 .HasOne(v => v.Personal)
-                .WithMany(p => p.Vehiculos) // Una persona puede tener varios vehículos
+                .WithMany(p => p.Vehiculos)
                 .HasForeignKey(v => v.PersonalId)
                 .OnDelete(DeleteBehavior.Cascade);
 
@@ -85,19 +105,14 @@ namespace Softcoinp.Backend
                 .HasForeignKey(up => up.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // ── Índices de rendimiento ──────────────────────────────────────────
-            // Sin estos, cada búsqueda hace full table scan en PostgreSQL.
-            // Con ellos, las queries más frecuentes pasan de segundos a milisegundos.
-
-            // Registro: columnas de filtrado más usadas
+            // Índices de rendimiento
             modelBuilder.Entity<Registro>()
                 .HasIndex(r => r.Documento);
             modelBuilder.Entity<Registro>()
                 .HasIndex(r => r.HoraIngresoUtc);
             modelBuilder.Entity<Registro>()
-                .HasIndex(r => r.HoraSalidaUtc); // NULL = entrada activa
+                .HasIndex(r => r.HoraSalidaUtc);
 
-            // Vehículo: búsqueda por placa es la operación más frecuente
             modelBuilder.Entity<Vehiculo>()
                 .HasIndex(v => v.Placa)
                 .IsUnique();
@@ -105,15 +120,9 @@ namespace Softcoinp.Backend
             modelBuilder.Entity<Anotacion>()
                 .HasIndex(a => a.VehiculoId);
 
-            // Vehículo: búsqueda por placa Y relación con el personal
-            modelBuilder.Entity<Vehiculo>()
-                .HasIndex(v => v.Placa)
-                .IsUnique();
-
             modelBuilder.Entity<Vehiculo>()
                 .HasIndex(v => v.PersonalId);
 
-            // Relaciones de RegistroVehiculo con Personal (Conductores)
             modelBuilder.Entity<RegistroVehiculo>()
                 .HasOne(r => r.Conductor)
                 .WithMany()
@@ -128,6 +137,5 @@ namespace Softcoinp.Backend
 
             base.OnModelCreating(modelBuilder);
         }
-
     }
 }

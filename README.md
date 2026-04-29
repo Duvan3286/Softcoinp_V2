@@ -1,94 +1,91 @@
-# 🛡️ SOFTCOINP - Sistema Integral de Gestión Residencial y Control de Acceso
+# 🛡️ SOFTCOINP - Sistema Integral de Gestión Residencial Multi-Tenant
 
-**SOFTCOINP** es una solución de grado empresarial diseñada para la gestión crítica de copropiedades y conjuntos residenciales. El sistema centraliza la seguridad, administración y comunicación en una plataforma robusta y moderna.
-
----
-
-## 📝 Resumen del Proyecto
-
-El sistema permite automatizar y supervisar las operaciones diarias de una propiedad horizontal:
-
-1.  **Control de Acceso Vehicular y Peatonal**: Registro en tiempo real de entradas y salidas con gestión de bloqueos preventivos.
-2.  **Seguridad y Bitácora**: Módulo de anotaciones para vigilantes y personal de seguridad.
-3.  **Gestión de Correspondencia**: Seguimiento automatizado de paquetes y correspondencia recibida.
-4.  **Servicios Públicos**: Control centralizado de recibos y consumos comunes.
-5.  **Administración y Auditoría**: Gestión de roles, permisos granulares (RBAC) y logs detallados de actividad (AuditLogs).
-6.  **Analíticas**: Tableros de control con estadísticas mensuales y visualización de datos.
-7.  **Notificaciones por Correo**: Integración con **Brevo (Sendinblue)** para avisos automáticos a residentes sobre paquetes y recibos.
+**SOFTCOINP** es una solución de grado empresarial diseñada para la gestión crítica de copropiedades y conjuntos residenciales. El sistema utiliza una arquitectura **Multi-tenant con Aislamiento Físico (Database-per-Tenant)**, permitiendo escalar a miles de clientes manteniendo la integridad y privacidad de los datos de forma absoluta.
 
 ---
 
-## 📧 Notificaciones por Correo (Brevo)
+## 🏗️ Arquitectura Multi-Tenant
 
-El sistema cuenta con una integración robusta para mantener informados a los residentes:
+El sistema está diseñado para servir a múltiples organizaciones (tenants) desde una única infraestructura compartida:
 
-### Funcionalidades
-- **Aviso de Correspondencia**: Envío automático de correo cuando llega un paquete o sobre a nombre de un residente (requiere que el residente tenga su email registrado en el módulo de Personal).
-- **Aviso de Recibos Públicos**: Notificación masiva a grupos de personas (ej: Todos los Residentes) cuando se carga un nuevo lote de facturas de servicios públicos en la portería.
+1.  **Aislamiento de Datos**: Cada tenant posee su propia base de datos física independiente.
+2.  **Resolución por Subdominio**: El sistema identifica al cliente basándose en el subdominio de la URL (ej: `cliente.softcoinp.com`).
+3.  **Base de Datos Maestra**: Un catálogo central (`softcoinp_master`) gestiona el registro de clientes, sus subdominios y sus respectivas cadenas de conexión.
+4.  **Migraciones Automáticas**: Al iniciar la aplicación, el backend detecta todos los tenants activos y aplica automáticamente las actualizaciones de esquema (migraciones) y datos base (seeding) a cada base de datos individual.
 
 ---
 
-## 🏗️ Arquitectura y Stack Tecnológico
+## 📝 Resumen de Funcionalidades
 
-El ecosistema se distribuye en una arquitectura desacoplada y dockerizada:
+El sistema centraliza las operaciones diarias de una propiedad horizontal:
+
+- **Control de Acceso Vehicular y Peatonal**: Registro de entradas/salidas con gestión de bloqueos preventivos.
+- **Seguridad y Bitácora**: Módulo de anotaciones para personal de seguridad.
+- **Gestión de Correspondencia**: Seguimiento automatizado de paquetes.
+- **Servicios Públicos**: Control de recibos y consumos comunes.
+- **Administración y Auditoría**: Gestión de roles (RBAC) y logs detallados (AuditLogs).
+- **Analíticas**: Tableros de control con estadísticas mensuales.
+- **Notificaciones**: Integración con **Brevo** para avisos automáticos por correo electrónico.
+
+---
+
+## 🏗️ Stack Tecnológico
 
 ### 🎨 Frontend (`/frontend-softcoinp`)
-- **Framework**: Next.js 16+ (App Router) con TypeScript 6.
-- **Entorno**: Dockerizado sobre **Debian Slim** para máxima compatibilidad con módulos nativos.
-- **Iconografía**: Lucide React.
-- **Estilos**: Tailwind CSS 4 con soporte para Modo Oscuro/Claro (`next-themes`).
-- **Estado y Datos**: Context API para estado global, Axios para consumo de APIs y Recharts para analítica.
+- **Next.js 16+ (App Router)** con TypeScript 6.
+- **Resolución Dinámica**: Axios configurado para inyectar subdominios automáticamente en las peticiones al API.
+- **Tailwind CSS 4**: Soporte nativo para modo oscuro/claro.
 
 ### ⚙️ Backend (`/Softcoinp.Backend`)
-- **Framework**: ASP.NET Core 8.0 Web API.
-- **Base de Datos**: **MySQL 8.0** (Entity Framework Core con Pomelo Provider).
-- **Seguridad**: Autenticación JWT con políticas de validación estrictas.
-- **Optimización**: Compresión de respuestas (Brotli/Gzip) y procesamiento de fechas en UTC.
-
-### 🕒 Worker Service (`/Softcoinp.Worker`)
-- **Propósito**: Procesamiento de tareas en segundo plano (Analíticas mensuales, reportes automáticos).
-- **Base de Datos**: MySQL 8.0.
+- **ASP.NET Core 8.0 Web API**.
+- **Entity Framework Core**: Proveedor dinámico de contexto basado en el tenant resuelto.
+- **MySQL 8.0**: Motor de base de datos para aislamiento físico.
+- **JWT**: Autenticación segura con claims de rol y tenant.
 
 ---
 
-## 🛠️ Herramientas de Administración
+## 🚀 Guía de Inicio Rápido (Desarrollo Local)
 
-El entorno de desarrollo incluye herramientas integradas para la gestión de datos:
+### 1. Configuración de DNS Local
+Para simular el comportamiento multi-tenant en tu máquina, debes mapear los subdominios en tu archivo `hosts` (`C:\Windows\System32\drivers\etc\hosts`):
 
-- **phpMyAdmin**: Accesible en [http://localhost:8081](http://localhost:8081)
-  - **Servidor**: `db`
-  - **Usuario**: `root`
-  - **Contraseña**: `1234`
-- **Swagger UI**: Documentación interactiva de la API en [http://localhost:5100/swagger](http://localhost:5100/swagger).
+```text
+127.0.0.1 dev.localhost
+127.0.0.1 cliente1.localhost
+```
 
----
+### 2. Levantar el Entorno con Docker
+Ejecuta el siguiente comando en la raíz del proyecto:
+```bash
+docker compose up --build
+```
+*El sistema creará automáticamente la base maestra y el tenant `dev` por defecto.*
 
-## 📏 Reglas de Estilo y Convenciones de Código
+### 3. Acceso al Sistema
+- **Frontend**: [http://dev.localhost:3000](http://dev.localhost:3000)
+- **Backend (Swagger)**: [http://dev.localhost:5100/swagger](http://dev.localhost:5100/swagger)
+- **phpMyAdmin**: [http://localhost:8081](http://localhost:8081)
 
-- **Base de Datos**: Se utiliza `EF.Functions.Like` para búsquedas agnósticas (Case-Insensitive por defecto en MySQL).
-- **Mantenimiento**: El sistema de backups nativos utiliza `mysqldump` para generar volcados SQL compatibles.
-- **Fechas**: Almacenamiento estricto en UTC. El frontend realiza la conversión local según la zona horaria del cliente.
-
----
-
-## 🚀 Despliegue Rápido (Docker)
-
-La forma recomendada de ejecutar SOFTCOINP es mediante **Docker Compose**.
-
-### Pasos para iniciar
-1.  Clonar el repositorio.
-2.  Ejecutar:
-    ```bash
-    docker compose up --build -d
-    ```
-    *Nota: Si vienes de una versión anterior con PostgreSQL, es necesario ejecutar `docker compose down -v` primero para limpiar los volúmenes de datos antiguos.*
-
-3.  Acceso: [http://localhost:3000](http://localhost:3000)
-
-### Credenciales Predeterminadas
-| Rol | Email | Password |
+### 🔑 Credenciales Predeterminadas (en cualquier tenant)
+| Usuario | Email | Password |
 | :--- | :--- | :--- |
 | **SuperAdmin** | `superadmin@dev` | `SuperDev2026!` |
+| **Admin** | `admin@local` | `Admin123` |
+
+---
+
+## ➕ Cómo Crear un Nuevo Tenant
+
+1.  **Registro**: Inserta un registro en la tabla `Tenants` de la base de datos `softcoinp_master` vía phpMyAdmin:
+    - `Subdomain`: `nombre_cliente`
+    - `ConnectionString`: `Server=db;Database=softcoinp_nombre;User=root;Password=1234`
+2.  **Activación**: Reinicia el servicio `backend` en Docker. El sistema creará la base de datos física y aplicará las tablas automáticamente.
+3.  **Acceso**: Agrega `127.0.0.1 nombre_cliente.localhost` a tu archivo `hosts` y navega a `http://nombre_cliente.localhost:3000`.
+4.  **Ejemplo**:
+    ```sql
+    INSERT INTO Tenants (Id, Subdomain, ConnectionString, IsActive, CreatedAt)
+    VALUES (UUID(), 'ejemplo', 'Server=db;Database=softcoinp_ejemplo;User=root;Password=1234', 1, NOW());
+    ```
 
 ---
 © 2026 **Softcoinp Technologies** | *Ingeniería en Control de Acceso e Identidad Digital.*

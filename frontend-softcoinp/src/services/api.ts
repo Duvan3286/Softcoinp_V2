@@ -7,9 +7,50 @@ export interface ApiResponse<T> {
   message?: string;
 }
 
+/**
+ * Obtiene el subdominio actual.
+ * Ej: 'dev.localhost' -> 'dev'
+ * Si es 'localhost' o no hay subdominio, retorna null.
+ */
+const getSubdomain = () => {
+  if (typeof window === "undefined") return null;
+  const host = window.location.host; // 'dev.localhost:3000'
+  const parts = host.split('.');
+  
+  if (parts.length >= 2) {
+    // Si es algo como 'dev.localhost:3000', parts[0] es 'dev'
+    return parts[0].toLowerCase();
+  }
+  return null;
+};
+
+/**
+ * Calcula la Base URL dinámica.
+ * Si detecta un subdominio, intenta inyectarlo en la URL del API.
+ */
+const getBaseUrl = () => {
+  const defaultApiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5100/api";
+  const subdomain = getSubdomain();
+
+  if (subdomain && subdomain !== "www") {
+    try {
+      const url = new URL(defaultApiUrl);
+      // Inyectar subdominio en el host del API
+      // Ej: de 'localhost:5100' a 'dev.localhost:5100'
+      url.hostname = `${subdomain}.${url.hostname}`;
+      return url.toString();
+    } catch (e) {
+      console.error("Error al construir la URL del API con subdominio:", e);
+      return defaultApiUrl;
+    }
+  }
+
+  return defaultApiUrl;
+};
+
 // ✅ Instancia de Axios configurada
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5100/api", 
+  baseURL: getBaseUrl(), 
 });
 
 // ✅ Interceptor para añadir el token JWT automáticamente
@@ -24,15 +65,20 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// ✅ Interceptor para manejar errores globales (ej: 401 Unauthorized)
+// ✅ Interceptor para manejar errores globales (ej: 401 Unauthorized o 404 Tenant Not Found)
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && error.response.status === 401) {
-      console.warn("🔒 Sesión expirada o no autorizada. Redirigiendo a login...");
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("token");
-        window.location.href = "/login";
+    if (error.response) {
+      if (error.response.status === 401) {
+        console.warn("🔒 Sesión expirada o no autorizada. Redirigiendo a login...");
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("token");
+          window.location.href = "/login";
+        }
+      } else if (error.response.status === 404 && error.config.url?.includes("/api/")) {
+        // Podría ser un tenant no encontrado
+        console.error("🏢 Tenant no encontrado o inactivo.");
       }
     }
     return Promise.reject(error);

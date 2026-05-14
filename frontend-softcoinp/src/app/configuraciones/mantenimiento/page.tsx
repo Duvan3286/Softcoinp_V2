@@ -40,8 +40,8 @@ export default function MantenimientoHubPage() {
     settingsService.getClientName().then(setClientName);
 
     // Cargar config SMTP y Brevo
-    api.get("/Settings").then(res => {
-        const settings = (res.data as any).data || [];
+    api.get("/settings").then(res => {
+        const settings = res.data.data || [];
         const email = settings.find((s:any) => s.key === "SmtpEmail")?.value || "";
         const pass = settings.find((s:any) => s.key === "SmtpPassword")?.value || "";
         const brevo = settings.find((s:any) => s.key === "BrevoApiKey")?.value || "";

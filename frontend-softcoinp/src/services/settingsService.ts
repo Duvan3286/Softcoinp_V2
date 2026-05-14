@@ -1,4 +1,4 @@
-import api from "./api";
+import api, { getApiResponse } from "./api";
 
 export interface SystemSetting {
   key: string;
@@ -8,23 +8,24 @@ export interface SystemSetting {
 
 export const settingsService = {
   getAll: async () => {
-    const res = await api.get<SystemSetting[]>("/settings");
+    const res = await getApiResponse<SystemSetting[]>("/settings");
     return res.data;
   },
 
   getByKey: async (key: string) => {
-    const res = await api.get<SystemSetting>(`/settings/${key}`);
+    const res = await getApiResponse<SystemSetting>(`/settings/${key}`);
     return res.data;
   },
 
   update: async (setting: { key: string; value: string }) => {
-    const res = await api.post<SystemSetting>("/settings", setting);
-    return res.data;
+    const res = await api.post<any>("/settings", setting);
+    // res.data es ApiResponse<SystemSetting>, retornamos .data que es el SystemSetting
+    return res.data.data;
   },
 
   getClientName: async () => {
     try {
-      const res = await api.get<SystemSetting>("/settings/ClientName");
+      const res = await getApiResponse<SystemSetting>("/settings/ClientName");
       return res.data.value;
     } catch {
       return "SISTEMA DE SEGURIDAD";
@@ -33,7 +34,7 @@ export const settingsService = {
 
   getSystemVersion: async () => {
     try {
-      const res = await api.get<SystemSetting>("/settings/SystemVersion");
+      const res = await getApiResponse<SystemSetting>("/settings/SystemVersion");
       return res.data.value;
     } catch {
       return ""; // No hardcoded fallback

@@ -2,11 +2,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Softcoinp.Backend.Models;
+using Softcoinp.Backend.Helpers;
+using Softcoinp.Backend.Dtos;
 
 namespace Softcoinp.Backend.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/settings")]
     [ApiController]
+    [Authorize]
     public class SettingsController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -21,16 +24,17 @@ namespace Softcoinp.Backend.Controllers
         public async Task<IActionResult> GetAll()
         {
             var settings = await _context.SystemSettings.ToListAsync();
-            return Ok(settings);
+            return Ok(ApiResponse<List<SystemSetting>>.SuccessResponse(settings));
         }
 
         // GET: api/settings/{key}
         [HttpGet("{key}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetByKey(string key)
         {
             var setting = await _context.SystemSettings.FirstOrDefaultAsync(s => s.Key == key);
-            if (setting == null) return NotFound();
-            return Ok(setting);
+            if (setting == null) return NotFound(ApiResponse<SystemSetting>.Fail(null, "Configuración no encontrada"));
+            return Ok(ApiResponse<SystemSetting>.SuccessResponse(setting));
         }
 
         // POST: api/settings
@@ -55,13 +59,13 @@ namespace Softcoinp.Backend.Controllers
 
                 await _context.SaveChangesAsync();
                 Console.WriteLine($"[Settings] Guardado exitoso para {input.Key}");
-                return Ok(setting);
+                return Ok(ApiResponse<SystemSetting>.SuccessResponse(setting, "Configuración actualizada"));
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"[Settings] ERROR al actualizar: {ex.Message}");
                 if (ex.InnerException != null) Console.WriteLine($"[Settings] Inner ERROR: {ex.InnerException.Message}");
-                return BadRequest(new { error = ex.Message });
+                return BadRequest(ApiResponse<object>.Fail(null, ex.Message));
             }
         }
     }
